@@ -1,730 +1,316 @@
 package ast;
 
-import java.util.LinkedList;
+import util.Todo;
 
-public class Ast
-{
+import java.util.List;
 
-  // ///////////////////////////////////////////////////////////
-  // type
-  public static class Type
-  {
-    public static abstract class T implements ast.Acceptable
-    {
-      // boolean: -1
-      // int: 0
-      // int[]: 1
-      // class: 2
-      // Such that one can easily tell who is who
-      public abstract int getNum();
+public class Ast {
+    //  ///////////////////////////////////////////////////////////
+    //  type
+    public static class Type {
+        public sealed interface T
+                permits Boolean, ClassType, Int, IntArray {
+            // boolean: -1
+            // int: 0
+            // int[]: 1
+            // class: 2
+            // Such that one can easily tell who is who
+            public abstract int getNum();
+        }
+
+        // boolean
+        public record Boolean() implements T {
+            @Override
+            public int getNum() {
+                return -1;
+            }
+        }
+
+        // class
+        public record ClassType(String id) implements T {
+            @Override
+            public int getNum() {
+                return 2;
+            }
+        }
+
+        // int
+        public record Int() implements T {
+            @Override
+            public int getNum() {
+                return 0;
+            }
+        }
+
+        // int[]
+        public record IntArray() implements T {
+            @Override
+            public int getNum() {
+                return 1;
+            }
+        }
+
+        public static boolean equals(Type.T ty1, Type.T ty2) {
+            if (ty1 == ty2)
+                return true;
+            if (ty1 instanceof ClassType classType1 &&
+                    ty2 instanceof ClassType classType2) {
+                return classType1.id.equals(classType2.id);
+            }
+            return ty1.getClass().equals(ty2.getClass());
+        }
+
+        public static void output(Type.T ty) throws Exception {
+            switch (ty) {
+                case Type.Int() -> {
+                    System.out.print("int");
+                }
+                default -> {
+                    throw new Todo();
+                }
+            }
+        }
     }
 
-    // boolean
-    public static class Boolean extends T
-    {
-      public Boolean()
-      {
-      }
+    // ///////////////////////////////////////////////////
+    // declaration
+    public static class Dec {
+        public sealed interface T permits Singleton {
+        }
 
-      @Override
-      public String toString()
-      {
-        return "@boolean";
-      }
+        public record Singleton(Type.T type,
+                                String id) implements T {
+            @Override
+            public boolean equals(Object obj) {
+                if (obj == null)
+                    return false;
+//                if(!instanceof(obj, Singleton))
+//                    return false;
+                return Dec.isEqual(this, (Singleton) obj);
+            }
+        }
 
-      @Override
-      public int getNum()
-      {
-        return -1;
-      }
+        // operations
+        public static boolean isEqual(T x, T y) {
+            switch (x) {
+                case Singleton(
+                        Type.T type1,
+                        String id1
+                ) -> {
+                    switch (y) {
+                        case Singleton(
+                                Type.T type2,
+                                String id2
+                        ) -> {
+                            return id1.equals(id2);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+
+    // /////////////////////////////////////////////////////////
+    // expression
+    public static class Exp {
+        public interface T {
+        }
+
+        // binary operations
+        public record Bop(T left, String op, T right) implements T {
+        }
+
+        // and, op is a boolean operator
+        public record BopBool(T left, String op, T right) implements T {
+        }
+
+        // ArraySelect
+        public record ArraySelect(T array, T index) implements T {
+        }
+
+        // Call
+        public record Call(T exp,
+                           String id,
+                           List<T> args,
+                           // these fields will
+                           List<Type.T> calleeType_0,     // type of first field "exp"
+                           List<Type.T> argTypes, // arguments type
+                           List<Type.T> retType_0) implements T {
+        }
+
+        // False
+        public record False() implements T {
+        }
+
+        // Id
+        public record Id(String id, Type.T type, boolean isField) implements T {
+        }
+
+        // length
+        public record Length(T array) implements T {
+        }
+
+        // new int [e]
+        public record NewIntArray(T exp) implements T {
+        }
+
+        // new A();
+        public record NewObject(String id) implements T {
+        }
+
+        // !
+        public record Uop(String op, T exp) implements T {
+        }
+
+        // number
+        public record Num(int num) implements T {
+        }
+
+        // this
+        public record This() implements T {
+        }
+
+        // True
+        public record True() implements T {
+        }
+
+    }
+    // end of expression
+
+    // /////////////////////////////////////////////////////////
+    // statement
+    public static class Stm {
+        public sealed interface T
+                permits Assign, AssignArray, Block, If, Print, While {
+        }
+
+        // assign
+        public record Assign(String id, Exp.T exp, Type.T type) implements T {
+        }
+
+        // assign-array
+        public record AssignArray(String id, Exp.T index, Exp.T exp) implements T {
+        }
+
+        // block
+        public record Block(List<T> stms) implements T {
+        }
+
+        // if
+        public record If(Exp.T cond, T thenn, T elsee) implements T {
+        }
+
+        // System.out.println
+        public record Print(Exp.T exp) implements T {
+        }
+
+        // while
+        public record While(Exp.T cond, T body) implements T {
+        }
+    }
+    // end of statement
+
+    // /////////////////////////////////////////////////////////
+    // method
+    public static class Method {
+        public sealed interface T permits Singleton {
+        }
+
+        public record Singleton(Type.T retType,
+                                String id,
+                                List<Dec.T> formals,
+                                List<Dec.T> locals,
+                                List<Stm.T> stms,
+                                Exp.T retExp) implements T {
+        }
     }
 
     // class
-    public static class ClassType extends T
-    {
-      public String id;
+    public static class Class {
+        public sealed interface T permits Singleton {
+        }
 
-      public ClassType(String id)
-      {
-        this.id = id;
-      }
+        public record Singleton(String id,
+                                String extends_, // null for non-existing "extends"
+                                List<Dec.T> decs,
+                                List<ast.Ast.Method.T> methods) implements T {
+        }
 
-      @Override
-      public String toString()
-      {
-        return this.id;
-      }
-
-      @Override
-      public int getNum()
-      {
-        return 2;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+        public static String getName(T cls) {
+            switch (cls) {
+                case Singleton(String id, _, _, _) -> {
+                    return id;
+                }
+            }
+        }
     }
 
-    // int
-    public static class Int extends T
-    {
-      public Int()
-      {
-      }
+    // main class
+    public static class MainClass {
+        public sealed interface T permits Singleton {
+        }
 
-      @Override
-      public String toString()
-      {
-        return "@int";
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-
-      @Override
-      public int getNum()
-      {
-        return 0;
-      }
+        public record Singleton(String id,
+                                String arg,
+                                Stm.T stm) implements T {
+        }
     }
 
-    // int[]
-    public static class IntArray extends T
-    {
-      public IntArray()
-      {
-      }
+    // whole program
+    public static class Program {
+        public sealed interface T permits Singleton {
+        }
 
-      @Override
-      public String toString()
-      {
-        return "@int[]";
-      }
+        public record Singleton(MainClass.T mainClass,
+                                List<Class.T> classes) implements T {
+        }
 
-      @Override
-      public int getNum()
-      {
-        return 1;
-      }
+        // operations on the whole programs
+        public static Class.T searchClass(T prog, String className) {
+            switch (prog) {
+                case Singleton(
+                        _,
+                        List<Class.T> classes
+                ) -> {
+                    for (Class.T cls : classes) {
+                        switch (cls) {
+                            case Ast.Class.Singleton(
+                                    String id,
+                                    _,
+                                    _,
+                                    _
+                            ) -> {
+                                if (id.equals(className))
+                                    return cls;
+                            }
+                        }
+                    }
+                    return null;
+                }
+            }
+        }
 
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+        public static List<Class.T> getClasses(T prog) {
+            switch (prog) {
+                case Singleton(
+                        _,
+                        List<Class.T> classes
+                ) -> {
+                    return classes;
+                }
+            }
+        }
+
+        public static MainClass.T getMainClass(T prog) {
+            switch (prog) {
+                case Singleton(
+                        MainClass.T mainClass,
+                        _
+                ) -> {
+                    return mainClass;
+                }
+            }
+        }
     }
-
-  }
-
-  // ///////////////////////////////////////////////////
-  // dec
-  public static class Dec
-  {
-    public static abstract class T implements ast.Acceptable
-    {
-    }
-
-    public static class DecSingle extends T
-    {
-      public Type.T type;
-      public String id;
-
-      public DecSingle(Type.T type, String id)
-      {
-        this.type = type;
-        this.id = id;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-  }
-
-  // /////////////////////////////////////////////////////////
-  // expression
-  public static class Exp
-  {
-    public static abstract class T implements ast.Acceptable
-    {
-    }
-
-    // +
-    public static class Add extends T
-    {
-      public T left;
-      public T right;
-
-      public Add(T left, T right)
-      {
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // and
-    public static class And extends T
-    {
-      public T left;
-      public T right;
-
-      public And(T left, T right)
-      {
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // ArraySelect
-    public static class ArraySelect extends T
-    {
-      public T array;
-      public T index;
-
-      public ArraySelect(T array, T index)
-      {
-        this.array = array;
-        this.index = index;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // Call
-    public static class Call extends T
-    {
-      public T exp;
-      public String id;
-      public java.util.LinkedList<T> args;
-      public String type; // type of first field "exp"
-      public java.util.LinkedList<Type.T> at; // arg's type
-      public Type.T rt;
-
-      public Call(T exp, String id, java.util.LinkedList<T> args)
-      {
-        this.exp = exp;
-        this.id = id;
-        this.args = args;
-        this.type = null;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // False
-    public static class False extends T
-    {
-      public False()
-      {
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // Id
-    public static class Id extends T
-    {
-      public String id; // name of the id
-      public Type.T type; // type of the id
-      public boolean isField; // whether or not this is a class field
-
-      public Id(String id)
-      {
-        this.id = id;
-        this.type = null;
-        this.isField = false;
-      }
-
-      public Id(String id, Type.T type, boolean isField)
-      {
-        this.id = id;
-        this.type = type;
-        this.isField = isField;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // length
-    public static class Length extends T
-    {
-      public T array;
-
-      public Length(T array)
-      {
-        this.array = array;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // <
-    public static class Lt extends T
-    {
-      public T left;
-      public T right;
-
-      public Lt(T left, T right)
-      {
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // new int [e]
-    public static class NewIntArray extends T
-    {
-      public T exp;
-
-      public NewIntArray(T exp)
-      {
-        this.exp = exp;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // new A();
-    public static class NewObject extends T
-    {
-      public String id;
-
-      public NewObject(String id)
-      {
-        this.id = id;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // !
-    public static class Not extends T
-    {
-      public T exp;
-
-      public Not(T exp)
-      {
-        this.exp = exp;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // number
-    public static class Num extends T
-    {
-      public int num;
-
-      public Num(int num)
-      {
-        this.num = num;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // -
-    public static class Sub extends T
-    {
-      public T left;
-      public T right;
-
-      public Sub(T left, T right)
-      {
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // this
-    public static class This extends T
-    {
-      public This()
-      {
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // *
-    public static class Times extends T
-    {
-      public T left;
-      public T right;
-
-      public Times(T left, T right)
-      {
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-    // True
-    public static class True extends T
-    {
-      public True()
-      {
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-  }// end of expression
-
-  // /////////////////////////////////////////////////////////
-  // statement
-  public static class Stm
-  {
-    public static abstract class T implements ast.Acceptable
-    {
-    }
-
-    // assign
-    public static class Assign extends T
-    {
-      public String id;
-      public Exp.T exp;
-      public Type.T type; // type of the id
-
-      public Assign(String id, Exp.T exp)
-      {
-        this.id = id;
-        this.exp = exp;
-        this.type = null;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    // assign-array
-    public static class AssignArray extends T
-    {
-      public String id;
-      public Exp.T index;
-      public Exp.T exp;
-
-      public AssignArray(String id, Exp.T index, Exp.T exp)
-      {
-        this.id = id;
-        this.index = index;
-        this.exp = exp;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    // block
-    public static class Block extends T
-    {
-      public java.util.LinkedList<T> stms;
-
-      public Block(java.util.LinkedList<T> stms)
-      {
-        this.stms = stms;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    // if
-    public static class If extends T
-    {
-      public Exp.T condition;
-      public T thenn;
-      public T elsee;
-
-      public If(Exp.T condition, T thenn, T elsee)
-      {
-        this.condition = condition;
-        this.thenn = thenn;
-        this.elsee = elsee;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    // Print
-    public static class Print extends T
-    {
-      public Exp.T exp;
-
-      public Print(Exp.T exp)
-      {
-        this.exp = exp;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    // while
-    public static class While extends T
-    {
-      public Exp.T condition;
-      public T body;
-
-      public While(Exp.T condition, T body)
-      {
-        this.condition = condition;
-        this.body = body;
-      }
-
-      @Override
-      public void accept(ast.Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-  }// end of statement
-
-  // /////////////////////////////////////////////////////////
-  // method
-  public static class Method
-  {
-    public static abstract class T implements ast.Acceptable
-    {
-    }
-
-    public static class MethodSingle extends T
-    {
-      public Type.T retType;
-      public String id;
-      public LinkedList<Dec.T> formals;
-      public LinkedList<Dec.T> locals;
-      public LinkedList<Stm.T> stms;
-      public Exp.T retExp;
-
-      public MethodSingle(Type.T retType, String id,
-          LinkedList<Dec.T> formals, LinkedList<Dec.T> locals,
-          LinkedList<Stm.T> stms, Exp.T retExp)
-      {
-        this.retType = retType;
-        this.id = id;
-        this.formals = formals;
-        this.locals = locals;
-        this.stms = stms;
-        this.retExp = retExp;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-  }
-
-  // class
-  public static class Class
-  {
-    public static abstract class T implements ast.Acceptable
-    {
-    }
-
-    public static class ClassSingle extends T
-    {
-      public String id;
-      public String extendss; // null for non-existing "extends"
-      public java.util.LinkedList<Dec.T> decs;
-      public java.util.LinkedList<ast.Ast.Method.T> methods;
-
-      public ClassSingle(String id, String extendss,
-          java.util.LinkedList<Dec.T> decs,
-          java.util.LinkedList<ast.Ast.Method.T> methods)
-      {
-        this.id = id;
-        this.extendss = extendss;
-        this.decs = decs;
-        this.methods = methods;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-  }
-
-  // main class
-  public static class MainClass
-  {
-    public static abstract class T implements ast.Acceptable
-    {
-    }
-
-    public static class MainClassSingle extends T
-    {
-      public String id;
-      public String arg;
-      public Stm.T stm;
-
-      public MainClassSingle(String id, String arg, Stm.T stm)
-      {
-        this.id = id;
-        this.arg = arg;
-        this.stm = stm;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-  }
-
-  // whole program
-  public static class Program
-  {
-    public static abstract class T implements ast.Acceptable
-    {
-    }
-
-    public static class ProgramSingle extends T
-    {
-      public MainClass.T mainClass;
-      public LinkedList<Class.T> classes;
-
-      public ProgramSingle(MainClass.T mainClass, LinkedList<Class.T> classes)
-      {
-        this.mainClass = mainClass;
-        this.classes = classes;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
-    }
-
-  }
 }
