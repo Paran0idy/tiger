@@ -70,7 +70,7 @@ public class InheritTree {
         for (Ast.Class.T c : classes) {
             String parentClassName = ((Ast.Class.Singleton) c).extends_();
             Node parentNode;
-            // this is special
+            // this is special, as its root is "Object"
             if (parentClassName == null) {
                 parentNode = this.root;
             } else {
