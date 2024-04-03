@@ -7,13 +7,13 @@ import util.Todo;
 public class MaxArgument {
     // ///////////////////////////////////////////
     // expression
-    private int maxExp(Exp.T exp) throws Exception {
-        throw new Todo();
+    private int maxExp(Exp.T exp) {
+        throw new Todo(exp);
     }
 
     // ///////////////////////////////////////////
     // statement
-    public int maxStm(Stm.T stm) throws Exception {
-        throw new Todo();
+    public int maxStm(Stm.T stm) {
+        throw new Todo(stm);
     }
 }
