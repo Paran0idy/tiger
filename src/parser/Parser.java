@@ -128,7 +128,7 @@ public class Parser {
     // TimesExp -> ! TimesExp
     // -> NotExp
     private void parseTimesExp() throws Exception {
-        throw new Todo();
+        throw new Todo("");
 
     }
 
@@ -136,7 +136,7 @@ public class Parser {
     // -> TimesExp
     private void parseAddSubExp() throws Exception {
         parseTimesExp();
-        throw new Todo();
+        throw new Todo("");
     }
 
     // LtExp -> AddSubExp + AddSubExp
@@ -254,16 +254,15 @@ public class Parser {
     }
 
     // Program -> MainClass ClassDecl*
-    private Ast.Program.T parseProgram() throws Exception {
+    private void parseProgram() throws Exception {
         parseMainClass();
         parseClassDecls();
         eatToken(Token.Kind.EOF);
-        return null;
+        return;
     }
 
     public Ast.Program.T parse() throws Exception {
-        // generate and return an AST from the parser:
-        Ast.Program.T ast = parseProgram();
-        return ast;
+        parseProgram();
+        return null;
     }
 }
