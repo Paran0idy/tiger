@@ -8,7 +8,8 @@ public class Slp {
     // expression
     public static class Exp {
         // the type
-        public interface T {
+        public sealed interface T
+                permits Id, Num, Op, Eseq {
         }
 
         // x
@@ -33,7 +34,8 @@ public class Slp {
     // statement
     public static class Stm {
         // the type
-        public interface T {
+        public sealed interface T
+                permits Compound, Assign, Print {
         }
 
         // s1; s2

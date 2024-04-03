@@ -10,7 +10,7 @@ import java.util.List;
 public class PrettyPrint {
     // ///////////////////////////////////////////
     // print expression
-    private void ppExp(Exp.T exp) throws Exception {
+    private void ppExp(Exp.T exp) {
         switch (exp) {
             case Exp.Num(int n) -> {
                 System.out.print(n);
@@ -30,15 +30,12 @@ public class PrettyPrint {
                 ppExp(e);
                 System.out.print(")");
             }
-            default -> {
-                throw new Bug();
-            }
         }
     }
 
     // ///////////////////////////////////////////
     // print statement
-    public void ppStm(Stm.T stm) throws Exception {
+    public void ppStm(Stm.T stm) {
         switch (stm) {
             case Stm.Compound(Stm.T s1, Stm.T s2) -> {
                 ppStm(s1);
@@ -56,9 +53,6 @@ public class PrettyPrint {
                     System.out.print(", ");
                 }
                 System.out.print(")");
-            }
-            default -> {
-                throw new Bug();
             }
         }
     }

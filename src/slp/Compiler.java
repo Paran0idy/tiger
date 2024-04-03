@@ -6,7 +6,6 @@ import slp.Slp.Exp.Id;
 import slp.Slp.Exp.Num;
 import slp.Slp.Exp.Op;
 import slp.Slp.Stm;
-import util.Bug;
 import util.Todo;
 
 import java.io.FileWriter;
@@ -26,13 +25,17 @@ public class Compiler {
         buf.append(s);
     }
 
-    private void compileExp(Exp.T exp) throws Exception {
+    private void compileExp(Exp.T exp) {
         switch (exp) {
             case Id(String x) -> {
-                emit("\tmovq\t" + x + ", %rax\n");
+                emit(STR."""
+\tmovq\t\{x}, %rax
+""");
             }
             case Num(int n) -> {
-                emit("\tmovq\t$" + n + ", %rax\n");
+                emit(STR."""
+\tmovq\t$\{n}, %rax
+""");
             }
             case Op(Exp.T left, String op, Exp.T right) -> {
                 compileExp(left);
@@ -53,23 +56,17 @@ public class Compiler {
                     case "/" -> {
                         throw new Todo();
                     }
-                    default -> {
-                        throw new Bug();
-                    }
                 }
             }
             case Eseq(Stm.T s, Exp.T e) -> {
                 compileStm0(s);
                 compileExp(e);
             }
-            default -> {
-                throw new Bug();
-            }
         }
     }
 
     // to compile a statement
-    private void compileStm0(Stm.T s) throws Exception {
+    private void compileStm0(Stm.T s) {
         switch (s) {
             case Stm.Compound(Stm.T s1, Stm.T s2) -> {
                 compileStm0(s1);
@@ -78,7 +75,9 @@ public class Compiler {
             case Stm.Assign(String x, Exp.T e) -> {
                 ids.add(x);
                 compileExp(e);
-                emit("\tmovq\t%rax, " + x + "\n");
+                emit(STR."""
+\tmovq\t%rax, \{x}
+""");
             }
             case Stm.Print(List<Exp.T> exps) -> {
                 for (Exp.T e : exps) {
@@ -93,9 +92,6 @@ public class Compiler {
                             movq\t$new_line, %rdi
                             callq\tprintf
                         """);
-            }
-            default -> {
-                throw new Bug();
             }
         }
     }
