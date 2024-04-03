@@ -54,7 +54,7 @@ public class Compiler {
                         emit("\timulq\t%rdx\n");
                     }
                     case "/" -> {
-                        throw new Todo();
+                        throw new Todo("/");
                     }
                 }
             }

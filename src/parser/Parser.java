@@ -127,7 +127,7 @@ public class Parser {
     // TimesExp -> ! TimesExp
     // -> NotExp
     private void parseTimesExp() throws Exception {
-        throw new Todo();
+        throw new Todo("");
 
     }
 
@@ -135,7 +135,7 @@ public class Parser {
     // -> TimesExp
     private void parseAddSubExp() throws Exception {
         parseTimesExp();
-        throw new Todo();
+        throw new Todo("");
     }
 
     // LtExp -> AddSubExp + AddSubExp

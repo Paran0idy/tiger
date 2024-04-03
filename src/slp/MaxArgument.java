@@ -8,12 +8,12 @@ public class MaxArgument {
     // ///////////////////////////////////////////
     // expression
     private int maxExp(Exp.T exp) {
-        throw new Todo();
+        throw new Todo(exp);
     }
 
     // ///////////////////////////////////////////
     // statement
     public int maxStm(Stm.T stm) {
-        throw new Todo();
+        throw new Todo(stm);
     }
 }
