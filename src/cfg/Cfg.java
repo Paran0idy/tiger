@@ -1,611 +1,503 @@
 package cfg;
 
-import java.util.LinkedList;
+import util.Label;
 
-public class Cfg
-{
-  // //////////////////////////////////////////////////
-  // type
-  public static class Type
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
+import java.util.List;
+
+public class Cfg {
+
+    // the pretty printer
+    private static int indentLevel = 0;
+
+    private static void indent() {
+        indentLevel += 4;
     }
 
-    public static class ClassType extends T
-    {
-      public String id;
-
-      public ClassType(String id)
-      {
-        this.id = id;
-      }
-
-      @Override
-      public String toString()
-      {
-        return this.id;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+    private static void unIndent() {
+        indentLevel -= 4;
     }
 
-    public static class IntType extends T
-    {
-      public IntType()
-      {
-      }
-
-      @Override
-      public String toString()
-      {
-        return "@int";
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+    private static void printSpaces() {
+        int i = indentLevel;
+        while (i-- != 0) {
+            say(" ");
+        }
     }
 
-    public static class IntArrayType extends T
-    {
-      public IntArrayType()
-      {
-      }
-
-      @Override
-      public String toString()
-      {
-        return "@int[]";
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+    private static <T> void sayln(T s) {
+        System.out.println(s);
     }
 
-  }// end of type
-
-  // //////////////////////////////////////////////////
-  // dec
-  public static class Dec
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
+    private static <T> void say(T s) {
+        System.out.print(s);
     }
 
-    public static class DecSingle extends T
-    {
-      public Type.T type;
-      public String id;
+    //  ///////////////////////////////////////////////////////////
+    //  type
+    public static class Type {
+        public sealed interface T
+                permits ClassType, Int, IntArray, Ptr {
+        }
 
-      public DecSingle(Type.T type, String id)
-      {
-        this.type = type;
-        this.id = id;
-      }
+        public record Int() implements T {
+        }
 
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+        public record ClassType(String id) implements T {
+        }
+
+        public record IntArray() implements T {
+        }
+
+        public record Ptr() implements T {
+        }
+
+        public static void pp(T ty) {
+            switch (ty) {
+                case Int() -> {
+                    say("int");
+                }
+                case ClassType(String id) -> {
+                    say(id);
+                }
+                case IntArray() -> {
+                    say("int[]");
+                }
+                case Ptr() -> {
+                    say("Ptr");
+                }
+            }
+        }
     }
 
-  }// end of dec
+    // ///////////////////////////////////////////////////
+    // declaration
+    public static class Dec {
+        public sealed interface T permits Singleton {
+        }
 
-  // //////////////////////////////////////////////////
-  // Operand
-  public static class Operand
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
-    }
+        public record Singleton(Type.T type,
+                                String id) implements T {
+        }
 
-    public static class Int extends T
-    {
-      public int i;
-
-      public Int(int i)
-      {
-        this.i = i;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class Var extends T
-    {
-      public String id;
-
-      public Var(String id)
-      {
-        this.id = id;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-  }// end of operand
-
-  // //////////////////////////////////////////////////
-  // statement
-  public static class Stm
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
-    }
-
-    public static class Add extends T
-    {
-      public String dst;
-      // type of the destination variable
-      public Type.T ty;
-      public Operand.T left;
-      public Operand.T right;
-
-      public Add(String dst, Type.T ty, Operand.T left, Operand.T right)
-      {
-        this.dst = dst;
-        this.ty = ty;
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class InvokeVirtual extends T
-    {
-      public String dst;
-      public String obj;
-      public String f;
-      // type of the destination variable
-      public java.util.LinkedList<Operand.T> args;
-
-      public InvokeVirtual(String dst, String obj, String f,
-          LinkedList<Operand.T> args)
-      {
-        this.dst = dst;
-        this.obj = obj;
-        this.f = f;
-        this.args = args;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class Lt extends T
-    {
-      public String dst;
-      // type of the destination variable
-      public Type.T ty;
-      public Operand.T left;
-      public Operand.T right;
-
-      public Lt(String dst, Type.T ty, Operand.T left, Operand.T right)
-      {
-        this.dst = dst;
-        this.ty = ty;
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class Move extends T
-    {
-      public String dst;
-      // type of the destination variable
-      public Type.T ty;
-      public Operand.T src;
-
-      public Move(String dst, Type.T ty, Operand.T src)
-      {
-        this.dst = dst;
-        this.ty = ty;
-        this.src = src;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class NewObject extends T
-    {
-      public String dst;
-      // type of the destination variable
-      public String c;
-
-      public NewObject(String dst, String c)
-      {
-        this.dst = dst;
-        this.c = c;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class Print extends T
-    {
-      public Operand.T arg;
-
-      public Print(Operand.T arg)
-      {
-        this.arg = arg;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class Sub extends T
-    {
-      public String dst;
-      // type of the destination variable
-      public Type.T ty;
-      public Operand.T left;
-      public Operand.T right;
-
-      public Sub(String dst, Type.T ty, Operand.T left, Operand.T right)
-      {
-        this.dst = dst;
-        this.ty = ty;
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class Times extends T
-    {
-      public String dst;
-      // type of the destination variable
-      public Type.T ty;
-      public Operand.T left;
-      public Operand.T right;
-
-      public Times(String dst, Type.T ty, Operand.T left, Operand.T right)
-      {
-        this.dst = dst;
-        this.ty = ty;
-        this.left = left;
-        this.right = right;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-  }// end of statement
-
-  // //////////////////////////////////////////////////
-  // transfer
-  public static class Transfer
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
-    }
-
-    public static class Goto extends T
-    {
-      public util.Label label;
-
-      public Goto(util.Label label)
-      {
-        this.label = label;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class If extends T
-    {
-      public Operand.T operand;
-      public util.Label truee;
-      public util.Label falsee;
-
-      public If(Operand.T operand, util.Label truee, util.Label falsee)
-      {
-        this.operand = operand;
-        this.truee = truee;
-        this.falsee = falsee;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-    public static class Return extends T
-    {
-      public Operand.T operand;
-
-      public Return(Operand.T operand)
-      {
-        this.operand = operand;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-  }// end of transfer
-
-  // //////////////////////////////////////////////////
-  // block
-  public static class Block
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
-    }
-
-    public static class BlockSingle extends T
-    {
-      public util.Label label;
-      public LinkedList<Stm.T> stms;
-      public Transfer.T transfer;
-
-      public BlockSingle(util.Label label, LinkedList<Stm.T> stms,
-          Transfer.T transfer)
-      {
-        this.label = label;
-        this.stms = stms;
-        this.transfer = transfer;
-      }
-
-      @Override
-      public boolean equals(Object o)
-      {
-        if (o == null)
-          return false;
-
-        if (!(o instanceof BlockSingle))
-          return false;
-
-        BlockSingle ob = (BlockSingle) o;
-        return this.label.equals(ob.label);
-      }
-
-      @Override
-      public String toString()
-      {
-        StringBuffer strb = new StringBuffer();
-        strb.append(this.label.toString() + ":\\n");
-        // Lab5. Your code here:
-        strb.append("Your code here:\\n");
-
-        return strb.toString();
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-  }// end of block
-
-  // //////////////////////////////////////////////////
-  // method
-  public static class Method
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
-    }
-
-    public static class MethodSingle extends T
-    {
-      public Type.T retType;
-      public String id;
-      public String classId;
-      public LinkedList<Dec.T> formals;
-      public LinkedList<Dec.T> locals;
-      public LinkedList<Block.T> blocks;
-      public util.Label entry;
-      public util.Label exit;
-      public Operand.T retValue;
-
-      public MethodSingle(Type.T retType, String id, String classId,
-          LinkedList<Dec.T> formals, LinkedList<Dec.T> locals,
-          LinkedList<Block.T> blocks, util.Label entry, util.Label exit,
-          Operand.T retValue)
-      {
-        this.retType = retType;
-        this.id = id;
-        this.classId = classId;
-        this.formals = formals;
-        this.locals = locals;
-        this.blocks = blocks;
-        this.entry = null;
-        this.exit = null;
-        this.retValue = null;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
-    }
-
-  }// end of method
-
-  // //////////////////////////////////////////////////
-  // main method
-  public static class MainMethod
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
-    }
-
-    public static class MainMethodSingle extends T
-    {
-      public LinkedList<Dec.T> locals;
-      public LinkedList<Block.T> blocks;
-
-      public MainMethodSingle(LinkedList<Dec.T> locals,
-          LinkedList<Block.T> blocks)
-      {
-        this.locals = locals;
-        this.blocks = blocks;
-      }
-
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
+        public static void pp(T dec) {
+            switch (dec) {
+                case Singleton(Type.T type, String id) -> {
+                    Type.pp(type);
+                    say(" " + id);
+                }
+            }
+        }
 
     }
 
-  }// end of main method
+    // /////////////////////////////////////////////////////////
+    // virtual function table
+    public static class Vtable {
+        public sealed interface T permits Singleton {
+        }
 
-  // //////////////////////////////////////////////////
-  // vtable
-  public static class Vtable
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
+        public record Entry(Type.T retType,
+                            String clsName,
+                            String funcName,
+                            List<Dec.T> argTypes) {
+        }
+
+        public record Singleton(String name,
+                                List<Entry> funcTypes) implements T {
+        }
+
+        public static void pp(T vtable) {
+            switch (vtable) {
+                case Singleton(String name, List<Entry> funcTypes) -> {
+                    printSpaces();
+                    say("struct V_" + name + " {\n");
+                    // all entries
+                    indent();
+                    for (Entry e : funcTypes) {
+                        printSpaces();
+                        Type.pp(e.retType);
+                        say(" " + e.funcName + "(");
+                        for (Dec.T dec : e.argTypes) {
+                            Dec.pp(dec);
+                            say(", ");
+                        }
+                        say(");\n");
+                    }
+                    unIndent();
+                    printSpaces();
+                    say("} V_" + name + "_ = {\n");
+                    indent();
+                    for (Entry e : funcTypes) {
+                        printSpaces();
+                        say("." + e.funcName + " = " + e.clsName + "_" + e.funcName);
+                        say(",\n");
+                    }
+                    unIndent();
+                    printSpaces();
+                    say("};\n\n");
+                }
+            }
+        }
     }
 
-    public static class VtableSingle extends T
-    {
-      public String id; // name of the class
-      public LinkedList<cfg.Ftuple> ms; // all methods
+    // /////////////////////////////////////////////////////////
+    // structures
+    public static class Struct {
+        public sealed interface T permits Singleton {
+        }
 
-      public VtableSingle(String id, LinkedList<cfg.Ftuple> ms)
-      {
-        this.id = id;
-        this.ms = ms;
-      }
+        public record Singleton(String clsName,
+                                List<Cfg.Dec.T> fields) implements T {
+        }
 
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+        public static void pp(T s) {
+            switch (s) {
+                case Singleton(String clsName, List<Cfg.Dec.T> fields) -> {
+                    printSpaces();
+                    say("struct S_" + clsName + " {\n");
+                    indent();
+                    // the first field is special
+                    printSpaces();
+                    say("struct V_" + clsName + " *vptr;\n");
+                    for (Cfg.Dec.T dec : fields) {
+                        printSpaces();
+                        Dec.pp(dec);
+                    }
+                    unIndent();
+                    printSpaces();
+                    say("} S_" + clsName + "_ = {\n");
+                    indent();
+                    printSpaces();
+                    say(".vptr = " + "&V_" + clsName + "_;\n");
+                    unIndent();
+                    printSpaces();
+                    say("};\n\n");
+                }
+            }
+        }
     }
 
-  }
+    // /////////////////////////////////////////////////////////
+    // values
+    public static class Value {
+        public sealed interface T
+                permits Int, Id {
+        }
 
-  // //////////////////////////////////////////////////
-  // class
-  public static class Class
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
+        // integer constant
+        public record Int(int n) implements T {
+        }
+
+        // variable
+        public record Id(String x, Type.T ty) implements T {
+        }
+
+        public static void pp(T ty) {
+            switch (ty) {
+                case Int(int n) -> {
+                    say(Integer.toString(n));
+                }
+                case Id(String x, _) -> {
+                    say(x);
+                }
+            }
+        }
+    }
+    // end of value
+
+    // /////////////////////////////////////////////////////////
+    // statement
+    public static class Stm {
+        public sealed interface T
+                permits Assign, AssignBop, AssignCall, AssignNew, AssignArray, Print, GetMethod {
+        }
+
+        // assign
+        public record Assign(String id, Value.T right, Type.T type) implements T {
+        }
+
+        // assign
+        public record AssignBop(String id, Value.T left, String bop, Value.T right, Type.T type) implements T {
+        }
+
+        // assign
+        public record AssignCall(String id, String func, List<Value.T> args, Type.T retType) implements T {
+        }
+
+        public record AssignNew(String id, String cls) implements T {
+        }
+
+
+        // assign-array
+        public record AssignArray(String id, Value.T index, Value.T right) implements T {
+        }
+
+        // Print
+        public record Print(Value.T value) implements T {
+        }
+
+        // get virtual method
+        public record GetMethod(String id, Value.T value, Type.T cls, String methodName) implements T {
+        }
+
+        public static void pp(T t) {
+            switch (t) {
+                case Assign(String id, Value.T right, Type.T type) -> {
+                    printSpaces();
+                    say(id + " = ");
+                    Value.pp(right);
+                    say(";  @ty:");
+                    Type.pp(type);
+                    sayln("");
+                }
+                case AssignBop(String id, Value.T left, String op, Value.T right, Type.T type) -> {
+                    printSpaces();
+                    say(id + " = ");
+                    Value.pp(left);
+                    say(" " + op + " ");
+                    Value.pp(right);
+                    say(";  @ty:");
+                    Type.pp(type);
+                    sayln("");
+                }
+                case AssignCall(String id, String func, List<Value.T> args, Type.T retType) -> {
+                    printSpaces();
+                    say(id + " = " + func + "(");
+                    for (Value.T arg : args) {
+                        Value.pp(arg);
+                        say(", ");
+                    }
+                    say(");  @ty:");
+                    Type.pp(retType);
+                    sayln("");
+                }
+                case AssignNew(String id, String cls) -> {
+                    printSpaces();
+                    say(id + " = new " + cls + "();\n");
+                }
+                case Print(Value.T value) -> {
+                    printSpaces();
+                    say("print(");
+                    Value.pp(value);
+                    say(");\n");
+                }
+                case GetMethod(String id, Value.T value, Type.T cls, String methodName) -> {
+                    printSpaces();
+                    say(id + " = getMethod(");
+                    Value.pp(value);
+                    say(", \"" + methodName + "\");  @ty:");
+                    Type.pp(cls);
+                    say("\n");
+                }
+                default -> {
+                    System.out.println("to do\n");
+                }
+            }
+        }
+    }
+    // end of statement
+
+
+    // /////////////////////////////////////////////////////////
+    // transfer
+    public static class Transfer {
+        public sealed interface T permits If, Jmp, Ret {
+        }
+
+        public record If(Value.T value, Block.T trueBlock, Block.T falseBlock)
+                implements T {
+        }
+
+        public record Jmp(Block.T target) implements T {
+        }
+
+        public record Ret(Value.T retValue) implements T {
+
+        }
+
+        public static void pp(T t) {
+            switch (t) {
+                case If(Value.T value, Block.T thenn, Block.T elsee) -> {
+                    printSpaces();
+                    say("if(");
+                    Value.pp(value);
+                    say(", " + Block.getName(thenn) + ", " + Block.getName(elsee) + ");");
+                }
+                case Jmp(Block.T target) -> {
+                    printSpaces();
+                    say("jmp " + Block.getName(target));
+
+                }
+                case Ret(Value.T value) -> {
+                    printSpaces();
+                    say("ret ");
+                    Value.pp(value);
+                }
+            }
+        }
     }
 
-    public static class ClassSingle extends T
-    {
-      public String id;
-      public LinkedList<cfg.Tuple> decs;
+    // /////////////////////////////////////////////////////////
+    // block
+    public static class Block {
+        public sealed interface T permits Singleton {
+        }
 
-      public ClassSingle(String id, LinkedList<cfg.Tuple> decs)
-      {
-        this.id = id;
-        this.decs = decs;
-      }
+        public record Singleton(Label label,
+                                List<Stm.T> stms,
+                                // this is a special hack
+                                // the transfer field is final, so that
+                                // we use a list instead of a singleton field
+                                List<Transfer.T> transfer) implements T {
+        }
 
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-      }
+        public static void add(T b, Stm.T s) {
+            switch (b) {
+                case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
+                    stms.add(s);
+                }
+            }
+        }
 
+        public static void addTransfer(T b, Transfer.T s) {
+            switch (b) {
+                case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
+                    transfer.add(s);
+                }
+            }
+        }
+
+        public static String getName(Block.T t) {
+            switch (t) {
+                case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
+                    return label.toString();
+                }
+            }
+        }
+
+        public static void pp(T b) {
+            switch (b) {
+                case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
+                    printSpaces();
+                    say(label.toString() + ":\n");
+                    indent();
+                    for (Stm.T s : stms) {
+                        Stm.pp(s);
+                    }
+                    Transfer.pp(transfer.get(0));
+                    unIndent();
+                    sayln("");
+                }
+            }
+        }
     }
 
-  }// enf of clazz
+    // /////////////////////////////////////////////////////////
+    // function
+    public static class Function {
+        public sealed interface T permits Singleton {
+        }
 
-  // //////////////////////////////////////////////////
-  // program
-  public static class Program
-  {
-    public static abstract class T implements cfg.Acceptable
-    {
+        public record Singleton(Type.T retType,
+                                String id,
+                                List<Dec.T> formals,
+                                List<Dec.T> locals,
+                                List<Block.T> blocks) implements T {
+        }
+
+        public static void addBlock(T func, Block.T block) {
+            switch (func) {
+                case Singleton(
+                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                ) -> {
+                    blocks.add(block);
+                }
+            }
+        }
+
+        public static void addFirstFormal(T func, Dec.T formal) {
+            switch (func) {
+                case Singleton(
+                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                ) -> {
+                    formals.addFirst(formal);
+                }
+            }
+        }
+
+        public static void addDecs(T func, List<Dec.T> decs) {
+            switch (func) {
+                case Singleton(
+                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                ) -> {
+                    locals.addAll(decs);
+                }
+            }
+        }
+
+        public static void pp(T f) {
+            switch (f) {
+                case Singleton(
+                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                ) -> {
+                    printSpaces();
+                    Type.pp(retType);
+                    say(" " + id + "(");
+                    for (Dec.T dec : formals) {
+                        Dec.pp(dec);
+                        say(", ");
+                    }
+                    say("){\n");
+                    indent();
+                    for (Dec.T dec : locals) {
+                        printSpaces();
+                        Dec.pp(dec);
+                        sayln(";");
+                    }
+                    for (Block.T block : blocks) {
+                        Block.pp(block);
+                    }
+                    unIndent();
+                    printSpaces();
+                    say("}\n\n");
+                }
+
+            }
+        }
     }
 
-    public static class ProgramSingle extends T
-    {
-      public LinkedList<Class.T> classes;
-      public LinkedList<Vtable.T> vtables;
-      public LinkedList<Method.T> methods;
-      public MainMethod.T mainMethod;
+    // whole program
+    public static class Program {
+        public sealed interface T permits Singleton {
+        }
 
-      public ProgramSingle(LinkedList<Class.T> classes,
-          LinkedList<Vtable.T> vtables, LinkedList<Method.T> methods,
-          MainMethod.T mainMethod)
-      {
-        this.classes = classes;
-        this.vtables = vtables;
-        this.methods = methods;
-        this.mainMethod = mainMethod;
-      }
+        public record Singleton(String entryFuncName, // name of the entry function
+                                List<Vtable.T> vtables,
+                                List<Struct.T> structs,
+                                List<Function.T> functions) implements T {
+        }
 
-      @Override
-      public void accept(Visitor v)
-      {
-        v.visit(this);
-        return;
-      }
+        public static void pp(T prog) {
+            switch (prog) {
+                case Singleton(
+                        String entryFuncName, List<Vtable.T> vtables, List<Struct.T> structs, List<Function.T> functions
+                ) -> {
+                    printSpaces();
+                    sayln("// the entry function name: " + entryFuncName);
+                    // vtables
+                    for (Vtable.T vtable : vtables) {
+                        Vtable.pp(vtable);
+                    }
+                    // structs
+                    for (Struct.T struct : structs) {
+                        Struct.pp(struct);
+                    }
+                    // functions:
+                    for (Function.T func : functions) {
+                        Function.pp(func);
+                    }
+                }
+            }
+        }
     }
-  }// end of program
 }
