@@ -3,6 +3,7 @@ package codegen;
 import util.Label;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 public class X64 {
 
@@ -32,6 +33,44 @@ public class X64 {
     private static <T> void say(T s) {
         System.out.print(s);
     }
+
+    //  ///////////////////////////////////////////////////////////
+    //  word size and alignment
+    public static class WordSize {
+        public static int bytesOfWord = 8;
+
+    }
+
+    //  ///////////////////////////////////////////////////////////
+    //  physical registers
+    public static class Register {
+        public static List<String> all = List.of(
+                "rax",
+                "rbx",
+                "rcx",
+                "rdx",
+                "rdi",
+                "rsi",
+                "rbp",
+                "rsp",
+                "r8",
+                "r9",
+                "r10",
+                "r11",
+                "r12",
+                "r13",
+                "r14",
+                "r15");
+
+        // the first 6 arguments are passed through the following registers:
+        public static List<String> argPassingRegs = List.of(
+                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+
+        // the return value register
+        public static String retReg = "rax";
+
+    }
+
 
     //  ///////////////////////////////////////////////////////////
     //  type
@@ -97,45 +136,25 @@ public class X64 {
         public sealed interface T permits Singleton {
         }
 
-        public record Entry(Type.T retType,
-                            String clsName,
-                            String funcName,
-                            List<Dec.T> argTypes) {
-        }
-
         public record Singleton(String name,
-                                List<Entry> funcTypes) implements T {
+                                List<String> funcs) implements T {
         }
 
         public static void pp(T vtable) {
             switch (vtable) {
-                case Singleton(String name, List<Entry> funcTypes) -> {
+                case Singleton(
+                        String name,
+                        List<String> funcs
+                ) -> {
                     printSpaces();
-                    say("struct V_" + name + " {\n");
+                    say(".V_" + name + ":\n");
                     // all entries
                     indent();
-                    for (Entry e : funcTypes) {
+                    for (String s : funcs) {
                         printSpaces();
-                        Type.pp(e.retType);
-                        say(" " + e.funcName + "(");
-                        for (Dec.T dec : e.argTypes) {
-                            Dec.pp(dec);
-                            say(", ");
-                        }
-                        say(");\n");
+                        sayln("\t.long long " + s);
                     }
                     unIndent();
-                    printSpaces();
-                    say("} V_" + name + "_ = {\n");
-                    indent();
-                    for (Entry e : funcTypes) {
-                        printSpaces();
-                        say("." + e.funcName + " = " + e.clsName + "_" + e.funcName);
-                        say(",\n");
-                    }
-                    unIndent();
-                    printSpaces();
-                    say("};\n\n");
                 }
             }
         }
@@ -180,25 +199,25 @@ public class X64 {
 
     // /////////////////////////////////////////////////////////
     // values
-    public static class Value {
+    public static class VirtualReg {
         public sealed interface T
-                permits Int, Id {
-        }
-
-        // integer constant
-        public record Int(int n) implements T {
+                permits Id, Reg {
         }
 
         // variable
         public record Id(String x, Type.T ty) implements T {
         }
 
+        // physical register
+        public record Reg(String x, Type.T ty) implements T {
+        }
+
         public static void pp(T ty) {
             switch (ty) {
-                case Int(int n) -> {
-                    say(Integer.toString(n));
-                }
                 case Id(String x, _) -> {
+                    say(x);
+                }
+                case Reg(String x, Type.T tye) -> {
                     say(x);
                 }
             }
@@ -209,95 +228,132 @@ public class X64 {
     // /////////////////////////////////////////////////////////
     // instruction
     public static class Instr {
-        public sealed interface T
-                permits MoveConst, AssignBop, AssignCall, AssignNew, AssignArray, Print, GetMethod {
+        public sealed interface T permits
+                Bop,
+                CallDirect,
+                CallIndirect,
+                Comment,
+                Load,
+                Move,
+                MoveConst {
         }
+
 
         // assign
-        public record MoveConst(String id, int n, Type.T type) implements T {
-            @Override
-            public String toString() {
-                return "movq\t";
-            }
+        public record Bop(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                          List<VirtualReg.T> uses,
+                          List<VirtualReg.T> defs) implements T {
         }
 
-        // assign
-        public record AssignBop(String id, Value.T left, String bop, Value.T right, Type.T type) implements T {
+        // call-direct
+        public record CallDirect(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                                 List<VirtualReg.T> uses,
+                                 List<VirtualReg.T> defs) implements T {
         }
 
-        // assign
-        public record AssignCall(String id, String func, List<Value.T> args, Type.T retType) implements T {
+        // call-direct
+        public record CallIndirect(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                                   List<VirtualReg.T> uses,
+                                   List<VirtualReg.T> defs) implements T {
         }
 
-        public record AssignNew(String id, String cls) implements T {
+        // comment
+        public record Comment(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                              List<VirtualReg.T> uses,
+                              List<VirtualReg.T> defs) implements T {
         }
 
 
-        // assign-array
-        public record AssignArray(String id, Value.T index, Value.T right) implements T {
+        public record Load(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                           List<VirtualReg.T> uses,
+                           List<VirtualReg.T> defs) implements T {
         }
 
-        // Print
-        public record Print(Value.T value) implements T {
+        public record Move(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                           List<VirtualReg.T> uses,
+                           List<VirtualReg.T> defs) implements T {
         }
 
-        // get virtual method
-        public record GetMethod(String id, Value.T value, Type.T cls, String methodName) implements T {
+        public record MoveConst(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                                List<VirtualReg.T> uses,
+                                List<VirtualReg.T> defs) implements T {
         }
+
 
         public static void pp(T t) {
             switch (t) {
-                case Assign(String id, Value.T right, Type.T type) -> {
-                    printSpaces();
-                    say(id + " = ");
-                    Value.pp(right);
-                    say(";  @ty:");
-                    Type.pp(type);
-                    sayln("");
+                case Bop(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
                 }
-                case AssignBop(String id, Value.T left, String op, Value.T right, Type.T type) -> {
-                    printSpaces();
-                    say(id + " = ");
-                    Value.pp(left);
-                    say(" " + op + " ");
-                    Value.pp(right);
-                    say(";  @ty:");
-                    Type.pp(type);
-                    sayln("");
+                case CallDirect(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
                 }
-                case AssignCall(String id, String func, List<Value.T> args, Type.T retType) -> {
-                    printSpaces();
-                    say(id + " = " + func + "(");
-                    for (Value.T arg : args) {
-                        Value.pp(arg);
-                        say(", ");
-                    }
-                    say(");  @ty:");
-                    Type.pp(retType);
-                    sayln("");
+                case CallIndirect(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
                 }
-                case AssignNew(String id, String cls) -> {
-                    printSpaces();
-                    say(id + " = new " + cls + "();\n");
+                case Comment(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
                 }
-                case Print(Value.T value) -> {
-                    printSpaces();
-                    say("print(");
-                    Value.pp(value);
-                    say(");\n");
+                case Load(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
                 }
-                case GetMethod(String id, Value.T value, Type.T cls, String methodName) -> {
-                    printSpaces();
-                    say(id + " = getMethod(");
-                    Value.pp(value);
-                    say(", \"" + methodName + "\");  @ty:");
-                    Type.pp(cls);
-                    say("\n");
+                case Move(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                }
+                case MoveConst(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
                 }
                 default -> {
-                    System.out.println("to do\n");
+                    throw new AssertionError();
                 }
             }
+        }
+
+        private static void printInstrBody(BiFunction<List<VirtualReg.T>,
+                List<VirtualReg.T>, String> instrFn,
+                                           List<VirtualReg.T> uses,
+                                           List<VirtualReg.T> defs) {
+            printSpaces();
+            say(instrFn.apply(uses, defs));
+            say("\t// uses=[");
+            for (VirtualReg.T use : uses) {
+                VirtualReg.pp(use);
+                say(", ");
+            }
+            say("], defs=[");
+            for (VirtualReg.T def : defs) {
+                VirtualReg.pp(def);
+                say(", ");
+            }
+            sayln("]");
         }
     }
     // end of statement
@@ -309,34 +365,33 @@ public class X64 {
         public sealed interface T permits If, Jmp, Ret {
         }
 
-        public record If(Value.T value, Block.T trueBlock, Block.T falseBlock)
+        public record If(String instr, Block.T trueBlock, Block.T falseBlock)
                 implements T {
         }
 
         public record Jmp(Block.T target) implements T {
         }
 
-        public record Ret(Value.T retValue) implements T {
-
+        public record Ret() implements T {
         }
 
         public static void pp(T t) {
             switch (t) {
-                case If(Value.T value, Block.T thenn, Block.T elsee) -> {
+                case If(String instr, Block.T thenn, Block.T elsee) -> {
                     printSpaces();
-                    say("if(");
-                    Value.pp(value);
-                    say(", " + Block.getName(thenn) + ", " + Block.getName(elsee) + ");");
+                    say(instr + " ");
+                    sayln(Block.getName(thenn));
+                    printSpaces();
+                    say("jmp ");
+                    sayln(Block.getName(elsee));
                 }
                 case Jmp(Block.T target) -> {
                     printSpaces();
-                    say("jmp " + Block.getName(target));
-
+                    sayln("jmp " + Block.getName(target));
                 }
-                case Ret(Value.T value) -> {
+                case Ret() -> {
                     printSpaces();
-                    say("ret ");
-                    Value.pp(value);
+                    sayln("ret ");
                 }
             }
         }
@@ -356,25 +411,17 @@ public class X64 {
                                 List<Transfer.T> transfer) implements T {
         }
 
-        public static void add(T b, Instr.T s) {
-            switch (b) {
-                case Singleton(Label label, List<Instr.T> instrs, List<Transfer.T> transfer) -> {
-                    instrs.add(s);
-                }
-            }
-        }
-
-        public static void addTransfer(T b, Transfer.T s) {
-            switch (b) {
-                case Singleton(Label _, List<Instr.T> _, List<Transfer.T> transfer) -> {
-                    transfer.add(s);
+        public static Label getLabel(Block.T t) {
+            switch (t) {
+                case Singleton(Label label, _, _) -> {
+                    return label;
                 }
             }
         }
 
         public static String getName(Block.T t) {
             switch (t) {
-                case Singleton(Label label, List<Instr.T> _, List<Transfer.T> _) -> {
+                case Singleton(Label label, _, _) -> {
                     return label.toString();
                 }
             }
@@ -382,16 +429,19 @@ public class X64 {
 
         public static void pp(T b) {
             switch (b) {
-                case Singleton(Label label, List<Instr.T> stms, List<Transfer.T> transfer) -> {
+                case Singleton(
+                        Label label,
+                        List<Instr.T> stms,
+                        List<Transfer.T> transfers
+                ) -> {
                     printSpaces();
                     say(label.toString() + ":\n");
                     indent();
                     for (Instr.T s : stms) {
                         Instr.pp(s);
                     }
-                    Transfer.pp(transfer.getFirst());
+                    Transfer.pp(transfers.getFirst());
                     unIndent();
-                    sayln("");
                 }
             }
         }
@@ -436,6 +486,26 @@ public class X64 {
                         Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
                 ) -> {
                     locals.addAll(decs);
+                }
+            }
+        }
+
+        public static Block.T getBlock(T func, Label label) {
+            switch (func) {
+                case Singleton(
+                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                ) -> {
+                    return blocks.stream().filter(x -> X64.Block.getLabel(x).equals(label)).toList().getFirst();
+                }
+            }
+        }
+
+        public static List<Block.T> getBlocks(T func) {
+            switch (func) {
+                case Singleton(
+                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                ) -> {
+                    return blocks;
                 }
             }
         }
@@ -488,7 +558,9 @@ public class X64 {
                         String entryFuncName, List<Vtable.T> vtables, List<Struct.T> structs, List<Function.T> functions
                 ) -> {
                     printSpaces();
-                    sayln("// the entry function name: " + entryFuncName);
+                    sayln("// x64 assembly generated by the Tiger compiler.");
+                    printSpaces();
+                    sayln(STR."// the entry function: \{entryFuncName}");
                     // vtables
                     for (Vtable.T vtable : vtables) {
                         Vtable.pp(vtable);

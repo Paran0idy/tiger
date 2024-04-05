@@ -237,6 +237,7 @@ public class Cfg {
         }
 
         // get virtual method
+        // id = GetMethod(value, cls, methodName);
         public record GetMethod(String id, Value.T value, Type.T cls, String methodName) implements T {
         }
 
@@ -363,6 +364,14 @@ public class Cfg {
             switch (b) {
                 case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
                     transfer.add(s);
+                }
+            }
+        }
+
+        public static Label getLabel(Block.T t) {
+            switch (t) {
+                case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
+                    return label;
                 }
             }
         }

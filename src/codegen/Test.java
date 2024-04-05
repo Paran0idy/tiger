@@ -14,5 +14,7 @@ public class Test {
         Cfg.Program.T cfg = trans.translate(SamplePrograms.progSumRec);
         Cfg.Program.pp(cfg);
         //
+        X64.Program.T x64 = new Munch().munchProgram(cfg);
+        X64.Program.pp(x64);
     }
 }

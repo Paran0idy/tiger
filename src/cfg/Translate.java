@@ -87,7 +87,9 @@ public class Translate {
                 return new Cfg.Value.Int(num);
             }
             case Ast.Exp.Call(
-                    Ast.Exp.T exp1, String id, List<Ast.Exp.T> args,
+                    Ast.Exp.T exp1,
+                    String id,
+                    List<Ast.Exp.T> args,
                     List<Ast.Type.T> calleeType,
                     List<Ast.Type.T> at,
                     List<Ast.Type.T> rt
