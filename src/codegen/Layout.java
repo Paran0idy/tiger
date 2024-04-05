@@ -19,10 +19,13 @@ public class Layout {
         }
     }
 
+    //
     HashMap<String, ClassLayoutBinding> map;
+    public int vtablePtrOffsetInObject;
 
     Layout() {
         this.map = new HashMap<String, ClassLayoutBinding>();
+        this.vtablePtrOffsetInObject = 0;
     }
 
     public int classSize(String clazz) {

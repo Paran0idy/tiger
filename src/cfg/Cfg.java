@@ -181,7 +181,8 @@ public class Cfg {
     // values
     public static class Value {
         public sealed interface T
-                permits Int, Id {
+                permits Id,
+                Int {
         }
 
         // integer constant
@@ -237,8 +238,11 @@ public class Cfg {
         }
 
         // get virtual method
-        // id = GetMethod(value, cls, methodName);
-        public record GetMethod(String id, Value.T value, Type.T cls, String methodName) implements T {
+        // id = GetMethod(value, clsName, methodName);
+        public record GetMethod(String id,
+                                Value.T value,
+                                String clsName,
+                                String methodName) implements T {
         }
 
         public static void pp(T t) {
@@ -282,12 +286,11 @@ public class Cfg {
                     Value.pp(value);
                     say(");\n");
                 }
-                case GetMethod(String id, Value.T value, Type.T cls, String methodName) -> {
+                case GetMethod(String id, Value.T value, String clsName, String methodName) -> {
                     printSpaces();
-                    say(id + " = getMethod(");
+                    say(STR."\{id} = getMethod(");
                     Value.pp(value);
-                    say(", \"" + methodName + "\");  @ty:");
-                    Type.pp(cls);
+                    say(STR.", \"\{methodName}\");  @ty:\{clsName}");
                     say("\n");
                 }
                 default -> {
@@ -447,7 +450,11 @@ public class Cfg {
         public static void pp(T f) {
             switch (f) {
                 case Singleton(
-                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType,
+                        String id,
+                        List<Dec.T> formals,
+                        List<Dec.T> locals,
+                        List<Block.T> blocks
                 ) -> {
                     printSpaces();
                     Type.pp(retType);
@@ -489,7 +496,10 @@ public class Cfg {
         public static void pp(T prog) {
             switch (prog) {
                 case Singleton(
-                        String entryFuncName, List<Vtable.T> vtables, List<Struct.T> structs, List<Function.T> functions
+                        String entryFuncName,
+                        List<Vtable.T> vtables,
+                        List<Struct.T> structs,
+                        List<Function.T> functions
                 ) -> {
                     printSpaces();
                     sayln("// the entry function name: " + entryFuncName);

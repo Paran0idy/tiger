@@ -69,6 +69,15 @@ public class X64 {
         // the return value register
         public static String retReg = "rax";
 
+        // callee-saved regs
+        public static List<String> calleeSavedRegs = List.of(
+                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+
+        // caller-saved regs
+        public static List<String> callerSavedRegs = List.of(
+                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+
+
     }
 
 
@@ -76,7 +85,11 @@ public class X64 {
     //  type
     public static class Type {
         public sealed interface T
-                permits ClassType, Int, IntArray, Ptr {
+                permits ClassType,
+                Int,
+                IntArray,
+                Ptr,
+                PtrCode {
         }
 
         public record Int() implements T {
@@ -89,6 +102,10 @@ public class X64 {
         }
 
         public record Ptr() implements T {
+        }
+
+        // a pointer to code
+        public record PtrCode() implements T {
         }
 
         public static void pp(T ty) {
@@ -104,6 +121,9 @@ public class X64 {
                 }
                 case Ptr() -> {
                     say("Ptr");
+                }
+                case PtrCode() -> {
+                    say("PtrCode");
                 }
             }
         }
@@ -147,12 +167,14 @@ public class X64 {
                         List<String> funcs
                 ) -> {
                     printSpaces();
-                    say(".V_" + name + ":\n");
+                    say(STR."""
+.V_\{name}:
+""");
                     // all entries
                     indent();
                     for (String s : funcs) {
                         printSpaces();
-                        sayln("\t.long long " + s);
+                        sayln(STR."\t.long long \{s}");
                     }
                     unIndent();
                 }
@@ -174,21 +196,29 @@ public class X64 {
             switch (s) {
                 case Singleton(String clsName, List<Dec.T> fields) -> {
                     printSpaces();
-                    say("struct S_" + clsName + " {\n");
+                    say(STR."""
+struct S_\{clsName} {
+""");
                     indent();
                     // the first field is special
                     printSpaces();
-                    say("struct V_" + clsName + " *vptr;\n");
+                    say(STR."""
+struct V_\{clsName} *vptr;
+""");
                     for (Dec.T dec : fields) {
                         printSpaces();
                         Dec.pp(dec);
                     }
                     unIndent();
                     printSpaces();
-                    say("} S_" + clsName + "_ = {\n");
+                    say(STR."""
+} S_\{clsName}_ = {
+""");
                     indent();
                     printSpaces();
-                    say(".vptr = " + "&V_" + clsName + "_;\n");
+                    say(STR."""
+.vptr = &V_\{clsName}_;
+""");
                     unIndent();
                     printSpaces();
                     say("};\n\n");
@@ -217,7 +247,7 @@ public class X64 {
                 case Id(String x, _) -> {
                     say(x);
                 }
-                case Reg(String x, Type.T tye) -> {
+                case Reg(String x, Type.T type) -> {
                     say(x);
                 }
             }
@@ -287,7 +317,9 @@ public class X64 {
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
+                            (List<VirtualReg.T>) uses,
+                            (List<VirtualReg.T>) defs);
                 }
                 case CallDirect(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
@@ -463,7 +495,11 @@ public class X64 {
         public static void addBlock(T func, Block.T block) {
             switch (func) {
                 case Singleton(
-                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType,
+                        String id,
+                        List<Dec.T> formals,
+                        List<Dec.T> locals,
+                        List<Block.T> blocks
                 ) -> {
                     blocks.add(block);
                 }
@@ -473,7 +509,11 @@ public class X64 {
         public static void addFirstFormal(T func, Dec.T formal) {
             switch (func) {
                 case Singleton(
-                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType,
+                        String id,
+                        List<Dec.T> formals,
+                        List<Dec.T> locals,
+                        List<Block.T> blocks
                 ) -> {
                     formals.addFirst(formal);
                 }
@@ -483,7 +523,11 @@ public class X64 {
         public static void addDecs(T func, List<Dec.T> decs) {
             switch (func) {
                 case Singleton(
-                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType,
+                        String id,
+                        List<Dec.T> formals,
+                        List<Dec.T> locals,
+                        List<Block.T> blocks
                 ) -> {
                     locals.addAll(decs);
                 }
@@ -493,7 +537,11 @@ public class X64 {
         public static Block.T getBlock(T func, Label label) {
             switch (func) {
                 case Singleton(
-                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType,
+                        String id,
+                        List<Dec.T> formals,
+                        List<Dec.T> locals,
+                        List<Block.T> blocks
                 ) -> {
                     return blocks.stream().filter(x -> X64.Block.getLabel(x).equals(label)).toList().getFirst();
                 }

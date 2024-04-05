@@ -104,7 +104,17 @@ public class Translate {
                 String newId = Temp.fresh();
                 Cfg.Type.T newType = new Cfg.Type.Ptr();
                 emitDec(new Cfg.Dec.Singleton(newType, newId));
-                emit(new Cfg.Stm.GetMethod(newId, callee, transType(calleeType.get(0)), id));
+                Cfg.Type.T ty = transType(calleeType.get(0));
+                String strTy = "";
+                switch (ty) {
+                    case Cfg.Type.ClassType(String id1) -> {
+                        strTy = id1;
+                    }
+                    default -> {
+                        throw new AssertionError();
+                    }
+                }
+                emit(new Cfg.Stm.GetMethod(newId, callee, strTy, id));
 
                 LinkedList<Cfg.Value.T> newArgs = new LinkedList<>();
                 newArgs.add(callee);
