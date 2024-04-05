@@ -47,8 +47,7 @@ public class Compiler {
                         emit("\taddq\t%rdx, %rax\n");
                     }
                     case "-" -> {
-                        emit("\tsubq\t%rax, %rdx\n");
-                        emit("\tmovq\t%rdx, %rax\n");
+                        throw new Todo("-");
                     }
                     case "*" -> {
                         emit("\timulq\t%rdx\n");
@@ -103,7 +102,7 @@ public class Compiler {
         this.ids = new HashSet<>();
         this.buf = new StringBuffer();
 
-        // do the real hard work
+        // do the real work
         compileStm0(prog);
 
         FileWriter fileWriter = new FileWriter("slp_gen.s");
@@ -119,7 +118,9 @@ public class Compiler {
                             .string "\\n"
                         """);
         for (String s : this.ids) {
-            fileWriter.write(s + ":\n");
+            fileWriter.write(STR."""
+\{s}:
+""");
             fileWriter.write("\t.long 0\n");
         }
         fileWriter.write(
