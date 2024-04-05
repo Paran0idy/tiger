@@ -1,5 +1,6 @@
 package parser;
 
+import ast.Ast;
 import lexer.Lexer;
 import lexer.Token;
 import util.Todo;
@@ -260,7 +261,8 @@ public class Parser {
         return;
     }
 
-    public void parse() throws Exception {
+    public Ast.Program.T parse() throws Exception {
         parseProgram();
+        return null;
     }
 }
