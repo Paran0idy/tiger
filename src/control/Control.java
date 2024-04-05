@@ -15,5 +15,12 @@ public class Control {
     public static class Lexer {
         public static boolean dumpToken = false;
     }
+
+    // codegen
+    public static class Codegen {
+        public static boolean embedComments = true;
+        public static boolean finalAssembly = true;
+        public static String assemFile = "a.s";
+    }
 }
 

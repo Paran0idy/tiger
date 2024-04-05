@@ -1,5 +1,6 @@
 package codegen;
 
+import control.Control;
 import util.Label;
 
 import java.util.List;
@@ -64,20 +65,41 @@ public class X64 {
 
         // the first 6 arguments are passed through the following registers:
         public static List<String> argPassingRegs = List.of(
-                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+                "rdi",
+                "rsi",
+                "rdx",
+                "rcx",
+                "r8",
+                "r9");
 
         // the return value register
         public static String retReg = "rax";
 
         // callee-saved regs
         public static List<String> calleeSavedRegs = List.of(
-                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+                "rbx",
+                //"rbp", // we reserve rbp
+                "r12",
+                "r13",
+                "r14",
+                "r15");
 
         // caller-saved regs
         public static List<String> callerSavedRegs = List.of(
-                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+                "rax",
+                "rcx",
+                "rdx",
+                "rdi",
+                "rsi",
+                //"rsp", // we reserve rsp
+                "r8",
+                "r9",
+                "r10",
+                "r11");
 
-
+        // we used these two registers for stack-based allocation
+        public static String callerR10 = "r10";
+        public static String callerR11 = "r11";
     }
 
 
@@ -231,15 +253,30 @@ struct V_\{clsName} *vptr;
     // values
     public static class VirtualReg {
         public sealed interface T
-                permits Id, Reg {
+                permits Id,
+                Reg {
         }
 
         // variable
         public record Id(String x, Type.T ty) implements T {
+            @Override
+            public String toString() {
+                if (Control.Codegen.finalAssembly) {
+                    return x;
+                }
+                return x;
+            }
         }
 
         // physical register
         public record Reg(String x, Type.T ty) implements T {
+            @Override
+            public String toString() {
+                if (Control.Codegen.finalAssembly) {
+                    return x;
+                }
+                return x;
+            }
         }
 
         public static void pp(T ty) {
@@ -252,12 +289,15 @@ struct V_\{clsName} *vptr;
                 }
             }
         }
+
+
     }
     // end of value
 
     // /////////////////////////////////////////////////////////
     // instruction
     public static class Instr {
+        // name should be alphabetically ordered
         public sealed interface T permits
                 Bop,
                 CallDirect,
@@ -265,7 +305,8 @@ struct V_\{clsName} *vptr;
                 Comment,
                 Load,
                 Move,
-                MoveConst {
+                MoveConst,
+                Store {
         }
 
 
@@ -307,6 +348,11 @@ struct V_\{clsName} *vptr;
         public record MoveConst(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                                 List<VirtualReg.T> uses,
                                 List<VirtualReg.T> defs) implements T {
+        }
+
+        public record Store(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                            List<VirtualReg.T> uses,
+                            List<VirtualReg.T> defs) implements T {
         }
 
 
@@ -357,6 +403,13 @@ struct V_\{clsName} *vptr;
                     printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
                 }
                 case MoveConst(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                }
+                case Store(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
@@ -455,6 +508,26 @@ struct V_\{clsName} *vptr;
             switch (t) {
                 case Singleton(Label label, _, _) -> {
                     return label.toString();
+                }
+            }
+        }
+
+        public static void addInstrsFirst(Block.T b, List<Instr.T> ins) {
+            switch (b) {
+                case Singleton(_, List<Instr.T> instrs, _) -> {
+                    for (Instr.T t : ins.reversed()) {
+                        instrs.addFirst(t);
+                    }
+                }
+            }
+        }
+
+        public static void addInstrsLast(Block.T b, List<Instr.T> ins) {
+            switch (b) {
+                case Singleton(_, List<Instr.T> instrs, _) -> {
+                    for (Instr.T t : ins) {
+                        instrs.addLast(t);
+                    }
                 }
             }
         }
