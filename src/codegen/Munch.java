@@ -77,7 +77,7 @@ public class Munch {
         List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Reg(dest, new X64.Type.PtrCode()));
         X64.Instr.T instr = new X64.Instr.MoveConst(
                 (uarg, darg) ->
-                        STR."movq\t$\{label}, %\{darg.getFirst()}",
+                        STR."leaq\t\{label}(%rip), %\{darg.getFirst()}",
                 uses,
                 defs);
         instrs.add(instr);
@@ -138,14 +138,9 @@ public class Munch {
     public void genBop(String dest,
                        Cfg.Value.T value,
                        String bop,
-                       // whether the value will be assigned to "dest"
-                       boolean assigned,
                        List<X64.Instr.T> instrs) {
         List<X64.VirtualReg.T> uses, defs;
-        if (assigned)
-            defs = List.of(new X64.VirtualReg.Id(dest, new X64.Type.Int()));
-        else
-            defs = List.of();
+        defs = List.of(new X64.VirtualReg.Id(dest, new X64.Type.Int()));
 
         switch (value) {
             case Cfg.Value.Int(int n) -> {
@@ -221,7 +216,7 @@ public class Munch {
                         List<X64.VirtualReg.T> defs = List.of();
                         X64.Instr.T instr = new X64.Instr.Comment(
                                 (uarg, darg) ->
-                                        STR."cmp\t%\{uarg.get(0)}, %\{uarg.get(1)}",
+                                        STR."cmpq\t%\{uarg.get(1)}, %\{uarg.get(0)}",
                                 uses,
                                 defs);
                         instrs.add(instr);
@@ -233,7 +228,7 @@ public class Munch {
                         List<X64.VirtualReg.T> defs = List.of();
                         X64.Instr.T instr = new X64.Instr.Comment(
                                 (uarg, darg) ->
-                                        STR."cmp\t%\{uarg.get(0)}, $\{n}",
+                                        STR."cmpq\t$\{n}, %\{uarg.get(0)}",
                                 uses,
                                 defs);
                         instrs.add(instr);
@@ -263,11 +258,11 @@ public class Munch {
                 switch (bop) {
                     case "+" -> {
                         genMove(id, left, targetType, instrs);
-                        genBop(id, right, "addq", true, instrs);
+                        genBop(id, right, "addq", instrs);
                     }
                     case "-" -> {
                         genMove(id, left, targetType, instrs);
-                        genBop(id, right, "subq", true, instrs);
+                        genBop(id, right, "subq", instrs);
                     }
                     case "<" -> {
 //                        genMove(id, left, targetType, instrs);
@@ -394,7 +389,7 @@ public class Munch {
                 X64.Block.T newFalseBlock = X64.Function.getBlock(newFunc, falseLabel);
                 switch (value) {
                     case Cfg.Value.Id(String id, _) -> {
-                        genBop(id, new Cfg.Value.Int(1), "test", false, instrs);
+                        genCmp(value, new Cfg.Value.Int(1), instrs);
                         newTransfer.add(new X64.Transfer.If("je", newTrueBlock, newFalseBlock));
                     }
                     case Cfg.Value.Int(_) -> {

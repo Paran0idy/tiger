@@ -4,6 +4,7 @@ import cfg.Cfg;
 import codegen.X64;
 import util.Label;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -222,7 +223,8 @@ class RegAllocStack {
         instrs.add(instr);
     }
 
-    public List<X64.VirtualReg.T> mapVirtualRegs(List<X64.VirtualReg.T> virtualRegs) {
+    public List<X64.VirtualReg.T> mapVirtualRegs(List<X64.VirtualReg.T> virtualRegs,
+                                                 HashMap<String, String> allocated) {
         int i = 0;
         List<X64.VirtualReg.T> newRegs = new LinkedList<>();
         for (X64.VirtualReg.T vr : virtualRegs) {
@@ -240,6 +242,7 @@ class RegAllocStack {
                         case TempMap.Position.InStack(int offset) -> {
                             String r1 = this.tempRegs.get(i++);
                             newRegs.add(new X64.VirtualReg.Reg(r1, ty));
+                            allocated.put(x, r1);
                             // generate load instructions to load the uses
                             genLoad(r1, "rbp", ((TempMap.Position.InStack) pos).offset(), ty);
                         }
@@ -250,7 +253,10 @@ class RegAllocStack {
         return newRegs;
     }
 
-    public List<X64.VirtualReg.T> mapVirtualDefRegs(List<X64.VirtualReg.T> virtualRegs, List<X64.Instr.T> outInstrs) {
+    public List<X64.VirtualReg.T> mapVirtualDefRegs
+            (List<X64.VirtualReg.T> virtualRegs,
+             HashMap<String, String> allocated,
+             List<X64.Instr.T> outInstrs) {
         int i = 0;
         List<X64.VirtualReg.T> newRegs = new LinkedList<>();
         for (X64.VirtualReg.T vr : virtualRegs) {
@@ -263,10 +269,14 @@ class RegAllocStack {
                     TempMap.Position.T pos = this.tempMap.get(x);
                     if (pos == null)
                         throw new AssertionError(x);
-                    String r1 = this.tempRegs.get(i++);
-                    newRegs.add(new X64.VirtualReg.Reg(r1, ty));
+                    String allocReg = allocated.getOrDefault(x, null);
+                    if (allocReg == null) {
+                        allocReg = this.tempRegs.get(i++);
+                    } else {
+                    }
+                    newRegs.add(new X64.VirtualReg.Reg(allocReg, ty));
                     // generate store instructions to store the defs
-                    genStore(r1, "rbp", ((TempMap.Position.InStack) pos).offset(), ty, outInstrs);
+                    genStore(allocReg, "rbp", ((TempMap.Position.InStack) pos).offset(), ty, outInstrs);
                 }
             }
         }
@@ -280,9 +290,11 @@ class RegAllocStack {
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                var newUses = mapVirtualRegs(uses);
+                // we track the variables that allocated in the uses
+                HashMap<String, String> allocated = new HashMap<>();
+                var newUses = mapVirtualRegs(uses, allocated);
                 var localInstrs = new LinkedList<X64.Instr.T>();
-                var newDefs = mapVirtualDefRegs(defs, localInstrs);
+                var newDefs = mapVirtualDefRegs(defs, allocated, localInstrs);
                 var newInstr = instr.apply(newUses, newDefs);
                 this.newInstrs.add(new X64.Instr.Bop(
                         (uarg, darg) -> newInstr,
@@ -297,9 +309,10 @@ class RegAllocStack {
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                var newUses = mapVirtualRegs(uses);
+                HashMap<String, String> allocated = new HashMap<>();
+                var newUses = mapVirtualRegs(uses, allocated);
                 var localInstrs = new LinkedList<X64.Instr.T>();
-                var newDefs = mapVirtualDefRegs(defs, localInstrs);
+                var newDefs = mapVirtualDefRegs(defs, allocated, localInstrs);
                 var newInstr = instr.apply(newUses, newDefs);
                 this.newInstrs.add(new X64.Instr.CallDirect(
                         (uarg, darg) -> newInstr,
@@ -311,9 +324,10 @@ class RegAllocStack {
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
             ) -> {
-                var newUses = mapVirtualRegs(uses);
+                HashMap<String, String> allocated = new HashMap<>();
+                var newUses = mapVirtualRegs(uses, allocated);
                 var localInstrs = new LinkedList<X64.Instr.T>();
-                var newDefs = mapVirtualDefRegs(defs, localInstrs);
+                var newDefs = mapVirtualDefRegs(defs, allocated, localInstrs);
                 var newInstr = instr.apply(newUses, newDefs);
                 this.newInstrs.add(new X64.Instr.CallIndirect(
                         (uarg, darg) -> newInstr,
@@ -325,9 +339,10 @@ class RegAllocStack {
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
             ) -> {
-                var newUses = mapVirtualRegs(uses);
+                HashMap<String, String> allocated = new HashMap<>();
+                var newUses = mapVirtualRegs(uses, allocated);
                 var localInstrs = new LinkedList<X64.Instr.T>();
-                var newDefs = mapVirtualDefRegs(defs, localInstrs);
+                var newDefs = mapVirtualDefRegs(defs, allocated, localInstrs);
                 var newInstr = instr.apply(newUses, newDefs);
                 this.newInstrs.add(new X64.Instr.Comment(
                         (uarg, darg) -> newInstr,
@@ -339,9 +354,10 @@ class RegAllocStack {
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
             ) -> {
-                var newUses = mapVirtualRegs(uses);
+                HashMap<String, String> allocated = new HashMap<>();
+                var newUses = mapVirtualRegs(uses, allocated);
                 var localInstrs = new LinkedList<X64.Instr.T>();
-                var newDefs = mapVirtualDefRegs(defs, localInstrs);
+                var newDefs = mapVirtualDefRegs(defs, allocated, localInstrs);
                 var newInstr = instr.apply(newUses, newDefs);
                 this.newInstrs.add(new X64.Instr.Load(
                         (uarg, darg) -> newInstr,
@@ -353,9 +369,10 @@ class RegAllocStack {
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
             ) -> {
-                var newUses = mapVirtualRegs(uses);
+                HashMap<String, String> allocated = new HashMap<>();
+                var newUses = mapVirtualRegs(uses, allocated);
                 var localInstrs = new LinkedList<X64.Instr.T>();
-                var newDefs = mapVirtualDefRegs(defs, localInstrs);
+                var newDefs = mapVirtualDefRegs(defs, allocated, localInstrs);
                 var newInstr = instr.apply(newUses, newDefs);
                 this.newInstrs.add(new X64.Instr.Move(
                         (uarg, darg) -> newInstr,
@@ -367,9 +384,10 @@ class RegAllocStack {
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
             ) -> {
-                var newUses = mapVirtualRegs(uses);
+                HashMap<String, String> allocated = new HashMap<>();
+                var newUses = mapVirtualRegs(uses, allocated);
                 var localInstrs = new LinkedList<X64.Instr.T>();
-                var newDefs = mapVirtualDefRegs(defs, localInstrs);
+                var newDefs = mapVirtualDefRegs(defs, allocated, localInstrs);
                 var newInstr = instr.apply(newUses, newDefs);
                 this.newInstrs.add(new X64.Instr.MoveConst(
                         (uarg, darg) -> newInstr,
@@ -381,9 +399,10 @@ class RegAllocStack {
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
             ) -> {
-                var newUses = mapVirtualRegs(uses);
+                HashMap<String, String> allocated = new HashMap<>();
+                var newUses = mapVirtualRegs(uses, allocated);
                 var localInstrs = new LinkedList<X64.Instr.T>();
-                var newDefs = mapVirtualDefRegs(defs, localInstrs);
+                var newDefs = mapVirtualDefRegs(defs, allocated, localInstrs);
                 var newInstr = instr.apply(newUses, newDefs);
                 this.newInstrs.add(new X64.Instr.Store(
                         (uarg, darg) -> newInstr,
