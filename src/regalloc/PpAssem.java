@@ -320,7 +320,7 @@ public class PpAssem {
                 sayln(STR."ret");
                 unIndent();
 
-                // extra information to make the assember happy...
+                // extra information to make the assembler happy...
 
                 printSpaces();
                 sayln("");
