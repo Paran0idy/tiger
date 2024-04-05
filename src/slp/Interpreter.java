@@ -14,12 +14,12 @@ public class Interpreter {
     // ///////////////////////////////////////////
     // interpret an expression
     private int interpExp(Exp.T exp) {
-        throw new Todo();
+        throw new Todo(exp);
     }
 
     // ///////////////////////////////////////////
     // interpret a statement
     public void interpStm(Stm.T stm) {
-        throw new Todo();
+        throw new Todo(stm);
     }
 }
