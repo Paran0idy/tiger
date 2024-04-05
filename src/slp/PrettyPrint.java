@@ -2,7 +2,6 @@ package slp;
 
 import slp.Slp.Exp;
 import slp.Slp.Stm;
-import util.Bug;
 
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class PrettyPrint {
                 ppStm(s2);
             }
             case Stm.Assign(String x, Exp.T e) -> {
-                System.out.print(x + " = ");
+                System.out.print(STR."\{x} = ");
                 ppExp(e);
             }
             case Stm.Print(List<Exp.T> exps) -> {
