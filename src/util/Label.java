@@ -9,6 +9,11 @@ public class Label {
     }
 
     @Override
+    public boolean equals(Object o) {
+        return this.toString().equals(o.toString());
+    }
+
+    @Override
     public String toString() {
         return "L_" + (this.i);
     }
