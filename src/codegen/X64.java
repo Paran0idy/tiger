@@ -1,5 +1,6 @@
 package codegen;
 
+import control.Control;
 import util.Label;
 
 import java.util.List;
@@ -76,23 +77,29 @@ public class X64 {
 
         // callee-saved regs
         public static List<String> calleeSavedRegs = List.of(
-                "rdi",
-                "rsi",
-                "rdx",
-                "rcx",
-                "r8",
-                "r9");
+                "rbx",
+                //"rbp", // we reserve rbp as the stack base pointer
+                "r12",
+                "r13",
+                "r14",
+                "r15");
 
         // caller-saved regs
         public static List<String> callerSavedRegs = List.of(
+                "rax",
+                "rcx",
+                "rdx",
                 "rdi",
                 "rsi",
-                "rdx",
-                "rcx",
+                //"rsp", // we reserve rsp as the stack top pointer
                 "r8",
-                "r9");
+                "r9",
+                "r10",
+                "r11");
 
-
+        // we used these two registers for stack-based allocation
+        public static String callerR10 = "r10";
+        public static String callerR11 = "r11";
     }
 
 
@@ -147,8 +154,7 @@ public class X64 {
     // ///////////////////////////////////////////////////
     // declaration
     public static class Dec {
-        public sealed interface T permits
-                Singleton {
+        public sealed interface T permits Singleton {
         }
 
         public record Singleton(Type.T type,
@@ -169,8 +175,7 @@ public class X64 {
     // /////////////////////////////////////////////////////////
     // virtual function table
     public static class Vtable {
-        public sealed interface T permits
-                Singleton {
+        public sealed interface T permits Singleton {
         }
 
         public record Singleton(String name,
@@ -245,7 +250,7 @@ struct V_\{clsName} *vptr;
     }
 
     // /////////////////////////////////////////////////////////
-    // values
+    // a virtual register may be a pseudo- or physical one.
     public static class VirtualReg {
         public sealed interface T permits
                 Id,
@@ -254,10 +259,24 @@ struct V_\{clsName} *vptr;
 
         // variable
         public record Id(String x, Type.T ty) implements T {
+            @Override
+            public String toString() {
+                if (Control.Codegen.finalAssembly) {
+                    return x;
+                }
+                return x;
+            }
         }
 
         // physical register
         public record Reg(String x, Type.T ty) implements T {
+            @Override
+            public String toString() {
+                if (Control.Codegen.finalAssembly) {
+                    return x;
+                }
+                return x;
+            }
         }
 
         public static void pp(T ty) {
@@ -276,6 +295,7 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // instruction
     public static class Instr {
+        // names should be alphabetically ordered
         public sealed interface T permits
                 Bop,
                 CallDirect,
@@ -283,48 +303,57 @@ struct V_\{clsName} *vptr;
                 Comment,
                 Load,
                 Move,
-                MoveConst {
+                MoveConst,
+                Store {
         }
 
 
-        // assign
+        // binary opertions
         public record Bop(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                           List<VirtualReg.T> uses,
                           List<VirtualReg.T> defs) implements T {
         }
 
-        // call-direct
+        // call direct
         public record CallDirect(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                                  List<VirtualReg.T> uses,
                                  List<VirtualReg.T> defs) implements T {
         }
 
-        // call-direct
+        // call indirect, that is, the function address is in a register
         public record CallIndirect(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                                    List<VirtualReg.T> uses,
                                    List<VirtualReg.T> defs) implements T {
         }
 
-        // comment
+        // comment, for debugging purpose
         public record Comment(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                               List<VirtualReg.T> uses,
                               List<VirtualReg.T> defs) implements T {
         }
 
-
+        // load memory content into registers
         public record Load(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                            List<VirtualReg.T> uses,
                            List<VirtualReg.T> defs) implements T {
         }
 
+        // move between registers
         public record Move(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                            List<VirtualReg.T> uses,
                            List<VirtualReg.T> defs) implements T {
         }
 
+        // move constants into registers
         public record MoveConst(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                                 List<VirtualReg.T> uses,
                                 List<VirtualReg.T> defs) implements T {
+        }
+
+        // store into memory address
+        public record Store(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
+                            List<VirtualReg.T> uses,
+                            List<VirtualReg.T> defs) implements T {
         }
 
 
@@ -356,7 +385,7 @@ struct V_\{clsName} *vptr;
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case Load(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
@@ -373,6 +402,13 @@ struct V_\{clsName} *vptr;
                     printInstrBody(instrFn, uses, defs);
                 }
                 case MoveConst(
+                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+                        List<VirtualReg.T> uses,
+                        List<VirtualReg.T> defs
+                ) -> {
+                    printInstrBody(instrFn, uses, defs);
+                }
+                case Store(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
@@ -404,21 +440,17 @@ struct V_\{clsName} *vptr;
             sayln("]");
         }
     }
-    // end of instructions
+    // end of instruction
 
 
     // /////////////////////////////////////////////////////////
     // transfer
     public static class Transfer {
-        public sealed interface T permits
-                If,
-                Jmp,
-                Ret {
+        public sealed interface T permits If, Jmp, Ret {
         }
 
-        public record If(String instr,
-                         Block.T trueBlock,
-                         Block.T falseBlock) implements T {
+        public record If(String instr, Block.T trueBlock, Block.T falseBlock)
+                implements T {
         }
 
         public record Jmp(Block.T target) implements T {
@@ -429,11 +461,7 @@ struct V_\{clsName} *vptr;
 
         public static void pp(T t) {
             switch (t) {
-                case If(
-                        String instr,
-                        Block.T thenn,
-                        Block.T elsee
-                ) -> {
+                case If(String instr, Block.T thenn, Block.T elsee) -> {
                     printSpaces();
                     say(STR."\{instr} ");
                     sayln(Block.getName(thenn));
@@ -483,6 +511,26 @@ struct V_\{clsName} *vptr;
             }
         }
 
+        public static void addInstrsFirst(Block.T b, List<Instr.T> ins) {
+            switch (b) {
+                case Singleton(_, List<Instr.T> instrs, _) -> {
+                    for (Instr.T t : ins.reversed()) {
+                        instrs.addFirst(t);
+                    }
+                }
+            }
+        }
+
+        public static void addInstrsLast(Block.T b, List<Instr.T> ins) {
+            switch (b) {
+                case Singleton(_, List<Instr.T> instrs, _) -> {
+                    for (Instr.T t : ins) {
+                        instrs.addLast(t);
+                    }
+                }
+            }
+        }
+
         public static void pp(T b) {
             switch (b) {
                 case Singleton(
@@ -491,7 +539,9 @@ struct V_\{clsName} *vptr;
                         List<Transfer.T> transfers
                 ) -> {
                     printSpaces();
-                    sayln(STR."\{label.toString()}:");
+                    say(STR."""
+\{label.toString()}:
+""");
                     indent();
                     for (Instr.T s : stms) {
                         Instr.pp(s);
@@ -538,7 +588,7 @@ struct V_\{clsName} *vptr;
                     printSpaces();
                     Type.pp(retType);
                     say(STR." \{id}(");
-                    for (X64.Dec.T dec : formals) {
+                    for (Dec.T dec : formals) {
                         Dec.pp(dec);
                         say(", ");
                     }
@@ -556,9 +606,10 @@ struct V_\{clsName} *vptr;
                     printSpaces();
                     say("}\n\n");
                 }
+
             }
         }
-    }
+    }// end of function
 
     // whole program
     public static class Program {
@@ -595,5 +646,5 @@ struct V_\{clsName} *vptr;
                 }
             }
         }
-    }
+    }// end of programs
 }
