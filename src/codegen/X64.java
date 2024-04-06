@@ -1,6 +1,5 @@
 package codegen;
 
-import control.Control;
 import util.Label;
 
 import java.util.List;
@@ -261,9 +260,6 @@ struct V_\{clsName} *vptr;
         public record Id(String x, Type.T ty) implements T {
             @Override
             public String toString() {
-                if (Control.Codegen.finalAssembly) {
-                    return x;
-                }
                 return x;
             }
         }
@@ -272,9 +268,6 @@ struct V_\{clsName} *vptr;
         public record Reg(String x, Type.T ty) implements T {
             @Override
             public String toString() {
-                if (Control.Codegen.finalAssembly) {
-                    return x;
-                }
                 return x;
             }
         }
