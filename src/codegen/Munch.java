@@ -2,6 +2,7 @@ package codegen;
 
 import cfg.Cfg;
 import util.Label;
+import util.Todo;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -325,7 +326,7 @@ public class Munch {
                 for (int i = 0; i < args.size(); i++) {
                     // we only process no more than 6 arguments
                     if (i > 5) {
-                        throw new AssertionError("#arguments > 6");
+                        throw new Todo("#arguments > 6");
                     }
                     Cfg.Value.T value = args.get(i);
                     String argReg = X64.Register.argPassingRegs.get(i);
@@ -405,7 +406,7 @@ public class Munch {
         }
     }
 
-    // this round will create empty block first
+    // this pass will create empty block first
     public X64.Block.T munchBlock1(Cfg.Block.T block) {
         switch (block) {
             case Cfg.Block.Singleton(
@@ -474,6 +475,9 @@ public class Munch {
                         // to move arguments:
                         int index = 0;
                         for (X64.Dec.T formal : formals) {
+                            if (index > 5) {
+                                throw new Todo("arguments > 6");
+                            }
                             switch (formal) {
                                 case X64.Dec.Singleton(
                                         X64.Type.T type,

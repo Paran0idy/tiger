@@ -71,7 +71,7 @@ public class Layout {
         }
     }
 
-    public HashMap<String, ClassLayoutBinding> layoutProgram(Cfg.Program.T cfg) {
+    public void layoutProgram(Cfg.Program.T cfg) {
         switch (cfg) {
             case Cfg.Program.Singleton(
                     String entryFuncName,
@@ -87,7 +87,5 @@ public class Layout {
                 }
             }
         }
-
-        return map;
     }
 }
