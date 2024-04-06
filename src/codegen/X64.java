@@ -44,7 +44,7 @@ public class X64 {
     //  ///////////////////////////////////////////////////////////
     //  physical registers
     public static class Register {
-        public static List<String> all = List.of(
+        public static List<String> allRegs = List.of(
                 "rax",
                 "rbx",
                 "rcx",
@@ -64,18 +64,33 @@ public class X64 {
 
         // the first 6 arguments are passed through the following registers:
         public static List<String> argPassingRegs = List.of(
-                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+                "rdi",
+                "rsi",
+                "rdx",
+                "rcx",
+                "r8",
+                "r9");
 
         // the return value register
         public static String retReg = "rax";
 
         // callee-saved regs
         public static List<String> calleeSavedRegs = List.of(
-                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+                "rdi",
+                "rsi",
+                "rdx",
+                "rcx",
+                "r8",
+                "r9");
 
         // caller-saved regs
         public static List<String> callerSavedRegs = List.of(
-                "rdi", "rsi", "rdx", "rcx", "r8", "r9");
+                "rdi",
+                "rsi",
+                "rdx",
+                "rcx",
+                "r8",
+                "r9");
 
 
     }
@@ -84,8 +99,8 @@ public class X64 {
     //  ///////////////////////////////////////////////////////////
     //  type
     public static class Type {
-        public sealed interface T
-                permits ClassType,
+        public sealed interface T permits
+                ClassType,
                 Int,
                 IntArray,
                 Ptr,
@@ -132,7 +147,8 @@ public class X64 {
     // ///////////////////////////////////////////////////
     // declaration
     public static class Dec {
-        public sealed interface T permits Singleton {
+        public sealed interface T permits
+                Singleton {
         }
 
         public record Singleton(Type.T type,
@@ -143,7 +159,7 @@ public class X64 {
             switch (dec) {
                 case Singleton(Type.T type, String id) -> {
                     Type.pp(type);
-                    say(" " + id);
+                    say(STR." \{id}");
                 }
             }
         }
@@ -153,7 +169,8 @@ public class X64 {
     // /////////////////////////////////////////////////////////
     // virtual function table
     public static class Vtable {
-        public sealed interface T permits Singleton {
+        public sealed interface T permits
+                Singleton {
         }
 
         public record Singleton(String name,
@@ -230,8 +247,9 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // values
     public static class VirtualReg {
-        public sealed interface T
-                permits Id, Reg {
+        public sealed interface T permits
+                Id,
+                Reg {
         }
 
         // variable
@@ -253,7 +271,7 @@ struct V_\{clsName} *vptr;
             }
         }
     }
-    // end of value
+    // end of virtual register
 
     // /////////////////////////////////////////////////////////
     // instruction
@@ -317,23 +335,21 @@ struct V_\{clsName} *vptr;
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
-                            (List<VirtualReg.T>) uses,
-                            (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case CallDirect(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case CallIndirect(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case Comment(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
@@ -347,21 +363,21 @@ struct V_\{clsName} *vptr;
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case Move(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case MoveConst(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 default -> {
                     throw new AssertionError();
@@ -388,17 +404,21 @@ struct V_\{clsName} *vptr;
             sayln("]");
         }
     }
-    // end of statement
+    // end of instructions
 
 
     // /////////////////////////////////////////////////////////
     // transfer
     public static class Transfer {
-        public sealed interface T permits If, Jmp, Ret {
+        public sealed interface T permits
+                If,
+                Jmp,
+                Ret {
         }
 
-        public record If(String instr, Block.T trueBlock, Block.T falseBlock)
-                implements T {
+        public record If(String instr,
+                         Block.T trueBlock,
+                         Block.T falseBlock) implements T {
         }
 
         public record Jmp(Block.T target) implements T {
@@ -409,9 +429,13 @@ struct V_\{clsName} *vptr;
 
         public static void pp(T t) {
             switch (t) {
-                case If(String instr, Block.T thenn, Block.T elsee) -> {
+                case If(
+                        String instr,
+                        Block.T thenn,
+                        Block.T elsee
+                ) -> {
                     printSpaces();
-                    say(instr + " ");
+                    say(STR."\{instr} ");
                     sayln(Block.getName(thenn));
                     printSpaces();
                     say("jmp ");
@@ -419,7 +443,7 @@ struct V_\{clsName} *vptr;
                 }
                 case Jmp(Block.T target) -> {
                     printSpaces();
-                    sayln("jmp " + Block.getName(target));
+                    sayln(STR."jmp \{Block.getName(target)}");
                 }
                 case Ret() -> {
                     printSpaces();
@@ -467,7 +491,7 @@ struct V_\{clsName} *vptr;
                         List<Transfer.T> transfers
                 ) -> {
                     printSpaces();
-                    say(label.toString() + ":\n");
+                    sayln(STR."\{label.toString()}:");
                     indent();
                     for (Instr.T s : stms) {
                         Instr.pp(s);
@@ -492,48 +516,6 @@ struct V_\{clsName} *vptr;
                                 List<Block.T> blocks) implements T {
         }
 
-        public static void addBlock(T func, Block.T block) {
-            switch (func) {
-                case Singleton(
-                        Type.T retType,
-                        String id,
-                        List<Dec.T> formals,
-                        List<Dec.T> locals,
-                        List<Block.T> blocks
-                ) -> {
-                    blocks.add(block);
-                }
-            }
-        }
-
-        public static void addFirstFormal(T func, Dec.T formal) {
-            switch (func) {
-                case Singleton(
-                        Type.T retType,
-                        String id,
-                        List<Dec.T> formals,
-                        List<Dec.T> locals,
-                        List<Block.T> blocks
-                ) -> {
-                    formals.addFirst(formal);
-                }
-            }
-        }
-
-        public static void addDecs(T func, List<Dec.T> decs) {
-            switch (func) {
-                case Singleton(
-                        Type.T retType,
-                        String id,
-                        List<Dec.T> formals,
-                        List<Dec.T> locals,
-                        List<Block.T> blocks
-                ) -> {
-                    locals.addAll(decs);
-                }
-            }
-        }
-
         public static Block.T getBlock(T func, Label label) {
             switch (func) {
                 case Singleton(
@@ -548,16 +530,6 @@ struct V_\{clsName} *vptr;
             }
         }
 
-        public static List<Block.T> getBlocks(T func) {
-            switch (func) {
-                case Singleton(
-                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
-                ) -> {
-                    return blocks;
-                }
-            }
-        }
-
         public static void pp(T f) {
             switch (f) {
                 case Singleton(
@@ -565,12 +537,12 @@ struct V_\{clsName} *vptr;
                 ) -> {
                     printSpaces();
                     Type.pp(retType);
-                    say(" " + id + "(");
-                    for (Dec.T dec : formals) {
+                    say(STR." \{id}(");
+                    for (X64.Dec.T dec : formals) {
                         Dec.pp(dec);
                         say(", ");
                     }
-                    say("){\n");
+                    sayln("){");
                     indent();
                     for (Dec.T dec : locals) {
                         printSpaces();
@@ -584,7 +556,6 @@ struct V_\{clsName} *vptr;
                     printSpaces();
                     say("}\n\n");
                 }
-
             }
         }
     }
@@ -610,7 +581,7 @@ struct V_\{clsName} *vptr;
                     printSpaces();
                     sayln(STR."// the entry function: \{entryFuncName}");
                     // vtables
-                    for (Vtable.T vtable : vtables) {
+                    for (X64.Vtable.T vtable : vtables) {
                         Vtable.pp(vtable);
                     }
                     // structs
