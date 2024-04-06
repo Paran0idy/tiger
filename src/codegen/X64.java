@@ -45,7 +45,7 @@ public class X64 {
     //  ///////////////////////////////////////////////////////////
     //  physical registers
     public static class Register {
-        public static List<String> all = List.of(
+        public static List<String> allRegs = List.of(
                 "rax",
                 "rbx",
                 "rcx",
@@ -78,7 +78,7 @@ public class X64 {
         // callee-saved regs
         public static List<String> calleeSavedRegs = List.of(
                 "rbx",
-                //"rbp", // we reserve rbp
+                //"rbp", // we reserve rbp as the stack base pointer
                 "r12",
                 "r13",
                 "r14",
@@ -91,7 +91,7 @@ public class X64 {
                 "rdx",
                 "rdi",
                 "rsi",
-                //"rsp", // we reserve rsp
+                //"rsp", // we reserve rsp as the stack top pointer
                 "r8",
                 "r9",
                 "r10",
@@ -106,8 +106,8 @@ public class X64 {
     //  ///////////////////////////////////////////////////////////
     //  type
     public static class Type {
-        public sealed interface T
-                permits ClassType,
+        public sealed interface T permits
+                ClassType,
                 Int,
                 IntArray,
                 Ptr,
@@ -165,7 +165,7 @@ public class X64 {
             switch (dec) {
                 case Singleton(Type.T type, String id) -> {
                     Type.pp(type);
-                    say(" " + id);
+                    say(STR." \{id}");
                 }
             }
         }
@@ -250,10 +250,10 @@ struct V_\{clsName} *vptr;
     }
 
     // /////////////////////////////////////////////////////////
-    // values
+    // a virtual register may be a pseudo- or physical one.
     public static class VirtualReg {
-        public sealed interface T
-                permits Id,
+        public sealed interface T permits
+                Id,
                 Reg {
         }
 
@@ -289,15 +289,13 @@ struct V_\{clsName} *vptr;
                 }
             }
         }
-
-
     }
-    // end of value
+    // end of virtual register
 
     // /////////////////////////////////////////////////////////
     // instruction
     public static class Instr {
-        // name should be alphabetically ordered
+        // names should be alphabetically ordered
         public sealed interface T permits
                 Bop,
                 CallDirect,
@@ -310,46 +308,49 @@ struct V_\{clsName} *vptr;
         }
 
 
-        // assign
+        // binary opertions
         public record Bop(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                           List<VirtualReg.T> uses,
                           List<VirtualReg.T> defs) implements T {
         }
 
-        // call-direct
+        // call direct
         public record CallDirect(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                                  List<VirtualReg.T> uses,
                                  List<VirtualReg.T> defs) implements T {
         }
 
-        // call-direct
+        // call indirect, that is, the function address is in a register
         public record CallIndirect(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                                    List<VirtualReg.T> uses,
                                    List<VirtualReg.T> defs) implements T {
         }
 
-        // comment
+        // comment, for debugging purpose
         public record Comment(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                               List<VirtualReg.T> uses,
                               List<VirtualReg.T> defs) implements T {
         }
 
-
+        // load memory content into registers
         public record Load(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                            List<VirtualReg.T> uses,
                            List<VirtualReg.T> defs) implements T {
         }
 
+        // move between registers
         public record Move(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                            List<VirtualReg.T> uses,
                            List<VirtualReg.T> defs) implements T {
         }
 
+        // move constants into registers
         public record MoveConst(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                                 List<VirtualReg.T> uses,
                                 List<VirtualReg.T> defs) implements T {
         }
 
+        // store into memory address
         public record Store(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                             List<VirtualReg.T> uses,
                             List<VirtualReg.T> defs) implements T {
@@ -363,58 +364,56 @@ struct V_\{clsName} *vptr;
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
-                            (List<VirtualReg.T>) uses,
-                            (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case CallDirect(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case CallIndirect(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case Comment(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case Load(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case Move(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case MoveConst(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 case Store(
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
                 ) -> {
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                    printInstrBody(instrFn, uses, defs);
                 }
                 default -> {
                     throw new AssertionError();
@@ -441,7 +440,7 @@ struct V_\{clsName} *vptr;
             sayln("]");
         }
     }
-    // end of statement
+    // end of instruction
 
 
     // /////////////////////////////////////////////////////////
@@ -464,7 +463,7 @@ struct V_\{clsName} *vptr;
             switch (t) {
                 case If(String instr, Block.T thenn, Block.T elsee) -> {
                     printSpaces();
-                    say(instr + " ");
+                    say(STR."\{instr} ");
                     sayln(Block.getName(thenn));
                     printSpaces();
                     say("jmp ");
@@ -472,7 +471,7 @@ struct V_\{clsName} *vptr;
                 }
                 case Jmp(Block.T target) -> {
                     printSpaces();
-                    sayln("jmp " + Block.getName(target));
+                    sayln(STR."jmp \{Block.getName(target)}");
                 }
                 case Ret() -> {
                     printSpaces();
@@ -540,7 +539,9 @@ struct V_\{clsName} *vptr;
                         List<Transfer.T> transfers
                 ) -> {
                     printSpaces();
-                    say(label.toString() + ":\n");
+                    say(STR."""
+\{label.toString()}:
+""");
                     indent();
                     for (Instr.T s : stms) {
                         Instr.pp(s);
@@ -565,48 +566,6 @@ struct V_\{clsName} *vptr;
                                 List<Block.T> blocks) implements T {
         }
 
-        public static void addBlock(T func, Block.T block) {
-            switch (func) {
-                case Singleton(
-                        Type.T retType,
-                        String id,
-                        List<Dec.T> formals,
-                        List<Dec.T> locals,
-                        List<Block.T> blocks
-                ) -> {
-                    blocks.add(block);
-                }
-            }
-        }
-
-        public static void addFirstFormal(T func, Dec.T formal) {
-            switch (func) {
-                case Singleton(
-                        Type.T retType,
-                        String id,
-                        List<Dec.T> formals,
-                        List<Dec.T> locals,
-                        List<Block.T> blocks
-                ) -> {
-                    formals.addFirst(formal);
-                }
-            }
-        }
-
-        public static void addDecs(T func, List<Dec.T> decs) {
-            switch (func) {
-                case Singleton(
-                        Type.T retType,
-                        String id,
-                        List<Dec.T> formals,
-                        List<Dec.T> locals,
-                        List<Block.T> blocks
-                ) -> {
-                    locals.addAll(decs);
-                }
-            }
-        }
-
         public static Block.T getBlock(T func, Label label) {
             switch (func) {
                 case Singleton(
@@ -621,16 +580,6 @@ struct V_\{clsName} *vptr;
             }
         }
 
-        public static List<Block.T> getBlocks(T func) {
-            switch (func) {
-                case Singleton(
-                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
-                ) -> {
-                    return blocks;
-                }
-            }
-        }
-
         public static void pp(T f) {
             switch (f) {
                 case Singleton(
@@ -638,12 +587,12 @@ struct V_\{clsName} *vptr;
                 ) -> {
                     printSpaces();
                     Type.pp(retType);
-                    say(" " + id + "(");
+                    say(STR." \{id}(");
                     for (Dec.T dec : formals) {
                         Dec.pp(dec);
                         say(", ");
                     }
-                    say("){\n");
+                    sayln("){");
                     indent();
                     for (Dec.T dec : locals) {
                         printSpaces();
@@ -660,7 +609,7 @@ struct V_\{clsName} *vptr;
 
             }
         }
-    }
+    }// end of function
 
     // whole program
     public static class Program {
@@ -683,7 +632,7 @@ struct V_\{clsName} *vptr;
                     printSpaces();
                     sayln(STR."// the entry function: \{entryFuncName}");
                     // vtables
-                    for (Vtable.T vtable : vtables) {
+                    for (X64.Vtable.T vtable : vtables) {
                         Vtable.pp(vtable);
                     }
                     // structs
@@ -697,5 +646,5 @@ struct V_\{clsName} *vptr;
                 }
             }
         }
-    }
+    }// end of programs
 }

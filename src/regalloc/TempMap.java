@@ -8,7 +8,6 @@ public class TempMap {
         public sealed interface T
                 permits InReg,
                 InStack {
-
         }
 
         public record InReg(String reg) implements T {
