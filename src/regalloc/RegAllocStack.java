@@ -322,7 +322,8 @@ class RegAllocStack {
             }
             case X64.Instr.CallIndirect(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
-                    List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
+                    List<X64.VirtualReg.T> uses,
+                    List<X64.VirtualReg.T> defs
             ) -> {
                 HashMap<String, String> allocated = new HashMap<>();
                 var newUses = mapVirtualRegs(uses, allocated);
@@ -337,7 +338,8 @@ class RegAllocStack {
             }
             case X64.Instr.Comment(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
-                    List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
+                    List<X64.VirtualReg.T> uses,
+                    List<X64.VirtualReg.T> defs
             ) -> {
                 HashMap<String, String> allocated = new HashMap<>();
                 var newUses = mapVirtualRegs(uses, allocated);
@@ -352,7 +354,8 @@ class RegAllocStack {
             }
             case X64.Instr.Load(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
-                    List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
+                    List<X64.VirtualReg.T> uses,
+                    List<X64.VirtualReg.T> defs
             ) -> {
                 HashMap<String, String> allocated = new HashMap<>();
                 var newUses = mapVirtualRegs(uses, allocated);
@@ -367,7 +370,8 @@ class RegAllocStack {
             }
             case X64.Instr.Move(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
-                    List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
+                    List<X64.VirtualReg.T> uses,
+                    List<X64.VirtualReg.T> defs
             ) -> {
                 HashMap<String, String> allocated = new HashMap<>();
                 var newUses = mapVirtualRegs(uses, allocated);
@@ -382,7 +386,8 @@ class RegAllocStack {
             }
             case X64.Instr.MoveConst(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
-                    List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
+                    List<X64.VirtualReg.T> uses,
+                    List<X64.VirtualReg.T> defs
             ) -> {
                 HashMap<String, String> allocated = new HashMap<>();
                 var newUses = mapVirtualRegs(uses, allocated);
@@ -397,7 +402,8 @@ class RegAllocStack {
             }
             case X64.Instr.Store(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
-                    List<X64.VirtualReg.T> uses, List<X64.VirtualReg.T> defs
+                    List<X64.VirtualReg.T> uses,
+                    List<X64.VirtualReg.T> defs
             ) -> {
                 HashMap<String, String> allocated = new HashMap<>();
                 var newUses = mapVirtualRegs(uses, allocated);

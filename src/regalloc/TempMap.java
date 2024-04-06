@@ -5,8 +5,8 @@ import java.util.HashMap;
 public class TempMap {
 
     public static class Position {
-        public sealed interface T
-                permits InReg,
+        public sealed interface T permits
+                InReg,
                 InStack {
         }
 
@@ -17,10 +17,10 @@ public class TempMap {
         }
     }
 
-    // a data structure
+    // the data structure
     public HashMap<String, Position.T> map;
 
-    //
+    // constructors and methods
     TempMap() {
         this.map = new HashMap<>();
     }
