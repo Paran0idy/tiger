@@ -1,109 +1,73 @@
 package control;
 
-public class CompilerPass {
-    private String name;
+import java.util.function.Function;
+
+// a compiler pass is a type from "FromType" to "ToType"
+public class CompilerPass<FromType, ToType> {
+    // name of this pass
+    private final String passName;
+    // when does this pass start
     private long startTime;
+    // when does this pass end
     private long endTime;
-    private Object obj;
-    private Object x;
-    private static int indent = 0;
-    private final int nest = 3;
+    // the translator
+    private Function<FromType, ToType> transformation;
+    // the source data structure
+    private FromType from;
+
+    // pretty printing
+    private static int indentSize = 0;
+    private final int steps = 3;
 
     private void printSpaces() {
-        int n = indent;
+        int n = indentSize;
         if (n < 0) {
-            System.out.println("compiler bug");
-            System.exit(1);
+            throw new util.Error("compiler bug");
         }
         while (n-- != 0) {
             System.out.print(" ");
         }
-        return;
     }
 
-    public CompilerPass(String name, Object obj, Object x) {
-        this.name = name;
+    private void indent() {
+        indentSize += steps;
+    }
+
+    private void unindent() {
+        indentSize -= steps;
+    }
+
+    public CompilerPass(String passName, Function<FromType, ToType> transformation, FromType from) {
+        this.passName = passName;
         this.startTime = 0;
         this.endTime = 0;
-        this.obj = obj;
-        this.x = x;
+        this.transformation = transformation;
+        this.from = from;
     }
 
-    public void doit() {
+    public ToType apply() {
         if (Control.verbose != Control.Verbose.SILENT) {
             printSpaces();
-            indent += nest;
-            System.out.println(this.name + " starting");
+            indent();
+            System.out.println(STR."\{this.passName} starting");
             if (Control.verbose == Control.Verbose.DETAILED) {
                 this.startTime = System.nanoTime();
             }
         }
 
-        // a dirty hack, it's NOT type safe!
-        int i;
-        try {
-            java.lang.reflect.Method[] methods = this.obj.getClass().getMethods();
-            for (i = 0; i < methods.length; i++) {
-                if (methods[i].getName().equals("accept"))
-                    break;
-            }
-            methods[i].invoke(this.obj, this.x);
-        } catch (Throwable o) {
-            System.out.println("compiler bug");
-            o.printStackTrace();
-            System.exit(1);
-        }
+        ToType to = this.transformation.apply(this.from);
 
         if (Control.verbose != Control.Verbose.SILENT) {
-            indent -= nest;
+            unindent();
             printSpaces();
-            System.out.print(this.name + " finished");
+            System.out.print(STR."\{this.passName} finished");
             if (Control.verbose == Control.Verbose.DETAILED) {
                 this.endTime = System.nanoTime();
-                System.out.print(": @ " + (this.endTime - this.startTime) / 1000
-                        + "ms");
+                System.out.print(STR.": @ \{(this.endTime - this.startTime) / 1000}ms");
             }
-            System.out.println("");
+            System.out.println();
         }
-        return;
-    }
-
-    public void doitName(String name) {
-        if (Control.verbose != Control.Verbose.SILENT) {
-            printSpaces();
-            indent += nest;
-            System.out.println(this.name + " starting");
-            if (Control.verbose == Control.Verbose.DETAILED) {
-                this.startTime = System.nanoTime();
-            }
-        }
-
-        // a dirty hack, it's NOT type safe!
-        int i;
-        try {
-            java.lang.reflect.Method[] methods = this.obj.getClass().getMethods();
-            for (i = 0; i < methods.length; i++) {
-                if (methods[i].getName().equals(name))
-                    break;
-            }
-            methods[i].invoke(this.obj, this.x);
-        } catch (Throwable o) {
-            System.out.println("compiler bug");
-            o.printStackTrace();
-            System.exit(1);
-        }
-
-        if (Control.verbose != Control.Verbose.SILENT) {
-            indent -= nest;
-            printSpaces();
-            System.out.print(this.name + " finished");
-            if (Control.verbose == Control.Verbose.DETAILED) {
-                this.endTime = System.nanoTime();
-                System.out.print(": @ " + (this.endTime - this.startTime) / 1000
-                        + "ms");
-            }
-            System.out.println("");
-        }
-        return;
+        return to;
     }
 }
+

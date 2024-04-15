@@ -2,109 +2,81 @@ package util;
 
 import control.Control;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.LinkedList;
 
 public class Dot {
-    private static final int Bmp = 1, Pdf = 1, Ps = 1, Jpg = 1;
+    public record Element<X, Y, Z>(X x, Y y, Z z) {
+//        Entry<X, Y, Z> e;
 
-    public static record Entry<X, Y, Z>(X x, Y y, Z z) {
-
-    }
-
-    class DotElement<X, Y, Z> {
-        Entry<X, Y, Z> e;
-
-        public DotElement(X x, Y y, Z z) {
-            this.e = new Entry<>(x, y, z);
-        }
-
+        @Override
         public String toString() {
             String s = "";
-            if (this.e.z != null) s = this.e.z.toString();
-
-            return ("\"" + e.x.toString() + "\"" + "->" + "\"" + e.y.toString() + "\"" + s + ";\n");
+            if (z != null)
+                s = z.toString();
+            
+            return (STR."""
+"\{x.toString()}"->"\{y.toString()}"\{s};
+""");
         }
     }
 
-    LinkedList<DotElement<String, String, String>> list;
+    LinkedList<Element<String, String, String>> list;
 
     public Dot() {
-        this.list = new LinkedList<DotElement<String, String, String>>();
+        this.list = new LinkedList<>();
     }
 
     public void insert(String from, String to) {
-        this.list.addFirst(new DotElement<String, String, String>(from, to, null));
+        this.list.addFirst(new Element<>(from, to, null));
     }
 
     public void insert(String from, String to, String info) {
-
-        String s = "[label=\"" + info + "\"]";
+        String s = STR."[label=\"\{info}\"]";
         // System.out.println(s);
-        this.list.addFirst(new DotElement<String, String, String>(from, to, s));
+        this.list.addFirst(new Element<>(from, to, s));
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder stringBuilder = new StringBuilder();
 
-        for (DotElement<String, String, String> e : this.list) {
-            sb.append(e.toString());
+        for (Element<String, String, String> e : this.list) {
+            stringBuilder.append(e.toString());
         }
-
-        String result = sb.toString();
-
-        return result;
+        return stringBuilder.toString();
     }
 
     public void toDot(String fname) {
-        String fn = fname + ".dot";
+        String fn = STR."\{fname}.dot";
         try {
             File f = new File(fn);
             FileWriter fw = new FileWriter(f);
             BufferedWriter w = new BufferedWriter(fw);
 
-            StringBuffer sb = new StringBuffer();
-            sb.append("digraph g{\n");
-            sb.append("\tsize = \"10, 10\";\n");
-            sb.append("\tnode [color=lightblue2, style=filled];\n");
+            String sb = STR."""
+digraph g{
+\tsize = "10, 10";
+\tnode [color=lightblue2, style=filled];
+\{this.toString()}}
+""";
 
-            sb.append(this.toString());
-
-            sb.append("}\n");
-
-            w.write(sb.toString());
+            w.write(sb);
             w.close();
             fw.close();
         } catch (Throwable o) {
-            new util.Bug();
+            throw new util.Error();
         }
-        return;
     }
 
     void visualize(String name) {
         toDot(name);
-        String format = "";
-        String postfix = "";
-        switch (Control.visualize) {
-            case 1:
-                format = "-Tbmp";
-                postfix = "bmp";
-                break;
-            default:
-                new Bug();
-                break;
-        }
-        String[] args = {"dot", format, name + ".dot", "-o", name + "." + postfix};
+        String format = Control.Cfg.dotOutputFormat;
+        String[] args = {"dot", "-T", format, "-O", STR."\{name}.dot"};
         try {
-            // Read this article:
+            // Refer to this article:
             // http://walsh.iteye.com/blog/449051
             final class StreamDrainer implements Runnable {
-                private InputStream ins;
+                private final InputStream ins;
 
                 public StreamDrainer(InputStream ins) {
                     this.ins = ins;
@@ -113,12 +85,12 @@ public class Dot {
                 public void run() {
                     try {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
-                        String line = null;
+                        String line;
                         while ((line = reader.readLine()) != null) {
                             System.out.println(line);
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        throw new util.Error(e);
                     }
                 }
 
@@ -129,12 +101,11 @@ public class Dot {
             process.getOutputStream().close();
             int exitValue = process.waitFor();
             if (!Control.debug) {
-                if (new File(name + ".dot").delete()) ;
-                else throw new Throwable();
+                if (!new File(STR."\{name}.dot").delete())
+                    throw new util.Error("Can't delete dot");
             }
         } catch (Throwable o) {
-            o.printStackTrace();
+            throw new util.Error(o);
         }
-        return;
     }
 }

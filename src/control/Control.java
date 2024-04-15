@@ -2,7 +2,6 @@ package control;
 
 public class Control {
     public static Object ConAst;
-    public static int visualize;
     public static boolean debug = false;
 
     public enum Verbose {
@@ -14,6 +13,11 @@ public class Control {
     // the lexer
     public static class Lexer {
         public static boolean dumpToken = false;
+    }
+
+    // control-flow graph
+    public static class Cfg {
+        public static String dotOutputFormat;
     }
 
     // codegen

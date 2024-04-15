@@ -1,10 +1,8 @@
 package control;
 
-import lexer.Token;
 import util.Bug;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public class CommandLine {
@@ -180,7 +178,7 @@ public class CommandLine {
     }
 
     public void usage() {
-        int startYear = 2013;
+        final int startYear = 2013;
         System.out.println(STR."""
                 The Tiger compiler. Copyright (C) \{startYear}-, SSE of USTC.
                 Usage: java Tiger [options] <filename>

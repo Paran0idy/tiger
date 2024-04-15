@@ -2,9 +2,10 @@ package util;
 
 import java.util.LinkedList;
 
+// a allNodes is parameterized by its containing datatype "X"
 public class Graph<X> {
 
-    // graph node
+    // allNodes node
     public class Node {
         X data;
         public LinkedList<Edge> edges;
@@ -16,8 +17,7 @@ public class Graph<X> {
 
         public Node(X data) {
             this.data = data;
-            this.edges = new LinkedList<Edge>();
-            ;
+            this.edges = new LinkedList<>();
         }
 
         @Override
@@ -26,7 +26,7 @@ public class Graph<X> {
         }
     }
 
-    // graph edge
+    // allNodes edge
     public class Edge {
         Node from;
         Node to;
@@ -46,34 +46,36 @@ public class Graph<X> {
 
         @Override
         public String toString() {
-            return (this.from.toString() + "->" + this.to.toString());
+            return STR."\{this.from.toString()}->\{this.to.toString()}";
         }
     }
 
-    // the graph
-    LinkedList<Node> graph;
-    String gname;
+    // the allNodes
+    LinkedList<Node> allNodes;
+    String graphName;
 
     public Graph(String name) {
-        this.gname = name;
-        this.graph = new LinkedList<Node>();
+        this.graphName = name;
+        this.allNodes = new LinkedList<>();
     }
 
     private void addNode(Node node) {
-        this.graph.addLast(node);
+        this.allNodes.addLast(node);
     }
 
     public void addNode(X data) {
-        for (Node n : this.graph)
-            if (n.data.equals(data)) new util.Bug();
+        for (Node n : this.allNodes)
+            if (n.data.equals(data))
+                throw new util.Error();
 
         Node node = new Node(data);
         this.addNode(node);
     }
 
     public Node lookupNode(X data) {
-        for (Node node : this.graph) {
-            if (node.data.equals(data)) return node;
+        for (Node node : this.allNodes) {
+            if (node.data.equals(data))
+                return node;
         }
         return null;
     }
@@ -86,7 +88,8 @@ public class Graph<X> {
         Node f = this.lookupNode(from);
         Node t = this.lookupNode(to);
 
-        if (f == null || t == null) new util.Bug();
+        if (f == null || t == null)
+            throw new util.Error();
 
         this.addEdge(f, t);
     }
@@ -96,42 +99,33 @@ public class Graph<X> {
         // System.out.println("now visiting: "+n);
 
         for (Edge edge : n.edges)
-            if (!visited.contains(edge.to)) dfsDoit(edge.to, visited);
-        return;
+            if (!visited.contains(edge.to))
+                dfsDoit(edge.to, visited);
     }
 
     public void dfs(X start) {
         Node startNode = this.lookupNode(start);
-        if (startNode == null) new util.Bug();
+        if (startNode == null)
+            throw new util.Error();
 
-        java.util.HashSet<Node> visited = new java.util.HashSet<Node>();
+        java.util.HashSet<Node> visited = new java.util.HashSet<>();
 
-        this.dfsDoit(startNode, visited);
+        dfsDoit(startNode, visited);
 
-        // For control-flow graph, we don't need this.
-        /*
-         * for (Node n : this.graph){ if (!visited.contains(n)) dfsDoit(n, visited);
-         * }
-         */
-        return;
+//        // For control-flow allNodes, we do not need this, as
+        // // the "startNode" will reach all other nodes.
+//        for (Node n : this.allNodes) {
+//            if (!visited.contains(n))
+//                dfsDoit(n, visited);
+//        }
     }
 
     public void visualize() {
         Dot dot = new Dot();
-        String fname;
-
-        fname = this.gname;
-
-        for (Node node : this.graph) {
+        for (Node node : this.allNodes) {
             for (Edge edge : node.edges)
                 dot.insert(edge.from.toString(), edge.to.toString());
         }
-
-        try {
-            dot.visualize(fname);
-        } catch (Exception e) {
-            e.printStackTrace();
-            new util.Bug();
-        }
+        dot.visualize(this.graphName);
     }
 }
