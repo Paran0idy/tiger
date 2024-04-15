@@ -1,11 +1,14 @@
 package util;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
-// a allNodes is parameterized by its containing datatype "X"
+
+// a graph is parameterized by its containing datatype "X"
 public class Graph<X> {
 
-    // allNodes node
+    // graph node
     public class Node {
         X data;
         public LinkedList<Edge> edges;
@@ -26,7 +29,7 @@ public class Graph<X> {
         }
     }
 
-    // allNodes edge
+    // graph edge
     public class Edge {
         Node from;
         Node to;
@@ -119,6 +122,24 @@ public class Graph<X> {
 //                dfsDoit(n, visited);
 //        }
     }
+
+
+    // topological-sort the nodes
+    public List<Node> topologicalSort() {
+        throw new util.Todo();
+    }
+
+    // calculate the dominator tree
+    // the tree Node is the graph Node.
+    public Tree<Node> dominatorTree() {
+        throw new util.Todo();
+    }
+
+    //
+    public HashMap<Node, Node> dominanceFrontier() {
+        throw new util.Todo();
+    }
+
 
     public void visualize() {
         Dot dot = new Dot();
