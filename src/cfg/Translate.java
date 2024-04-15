@@ -94,14 +94,14 @@ public class Translate {
                     List<Ast.Type.T> at,
                     List<Ast.Type.T> rt
             ) -> {
-                String newVar = Temp.fresh();
+                String newVar = new Temp().toString();
                 // a fake type
                 Cfg.Type.T newRetType = new Cfg.Type.Int();
                 emitDec(new Cfg.Dec.Singleton(newRetType, newVar));
 
                 Cfg.Value.T callee = transExp(exp1);
 
-                String newId = Temp.fresh();
+                String newId = new Temp().toString();
                 Cfg.Type.T newType = new Cfg.Type.Ptr();
                 emitDec(new Cfg.Dec.Singleton(newType, newId));
                 Cfg.Type.T ty = transType(calleeType.get(0));
@@ -128,7 +128,7 @@ public class Translate {
             case Ast.Exp.Bop(Ast.Exp.T left, String op, Ast.Exp.T right) -> {
                 Cfg.Value.T lvalue = transExp(left);
                 Cfg.Value.T rvalue = transExp(right);
-                String newVar = Temp.fresh();
+                String newVar = new Temp().toString();
                 switch (op) {
                     case "+" -> {
                         Cfg.Type.T newType = new Cfg.Type.Int();
@@ -157,7 +157,7 @@ public class Translate {
                 return new Cfg.Value.Id("this", new Cfg.Type.ClassType(this.currentClassName));
             }
             case Ast.Exp.NewObject(String id) -> {
-                String newVar = Temp.fresh();
+                String newVar = new Temp().toString();
                 Cfg.Type.T newType = new Cfg.Type.ClassType(id);
                 emitDec(new Cfg.Dec.Singleton(newType, newVar));
                 emit(new Cfg.Stm.AssignNew(newVar, id));
