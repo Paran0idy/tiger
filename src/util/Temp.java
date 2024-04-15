@@ -1,14 +1,16 @@
 package util;
 
 public class Temp {
+    private final int i;
     private static int count = 0;
 
-    private Temp() {
+    public Temp() {
+        i = count++;
     }
 
-    // Factory pattern
-    public static String fresh() {
-        return "x_" + (Temp.count++);
+    @Override
+    public String toString() {
+        return STR."x_\{this.i}";
     }
 }
 
