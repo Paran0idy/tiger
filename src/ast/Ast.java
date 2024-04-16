@@ -1,73 +1,86 @@
 package ast;
 
-import com.sun.jdi.ClassType;
 import util.Todo;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class Ast {
     //  ///////////////////////////////////////////////////////////
     //  type
     public static class Type {
-        public interface T {
-            // boolean: -1
-            // int: 0
-            // int[]: 1
-            // class: 2
-            // Such that one can easily tell who is who
-            public abstract int getNum();
+        public sealed interface T
+                permits Boolean, ClassType, Int, IntArray {
         }
 
         // boolean
-        public record Boolean() implements T {
-            @Override
-            public int getNum() {
-                return -1;
-            }
+        private record Boolean() implements T {
         }
 
-        // class
-        public record ClassType(String id) implements T {
-            @Override
-            public int getNum() {
-                return 2;
-            }
+        // class "id"
+        private record ClassType(String id) implements T {
         }
 
         // int
-        public record Int() implements T {
-            @Override
-            public int getNum() {
-                return 0;
-            }
+        private record Int() implements T {
         }
 
         // int[]
-        public record IntArray() implements T {
-            @Override
-            public int getNum() {
-                return 1;
-            }
+        private record IntArray() implements T {
         }
 
-        public static boolean equals(Type.T ty1, Type.T ty2) {
-            if (ty1 == ty2)
-                return true;
-            if (ty1 instanceof ClassType classType1 &&
-                    ty2 instanceof ClassType classType2) {
-                return classType1.id.equals(classType2.id);
-            }
-            return ty1.getClass().equals(ty2.getClass());
+        // singleton design pattern
+        private static final Type.T boolTy = new IntArray();
+        private static final Type.T intTy = new Int();
+        private static final Type.T intArrayTy = new IntArray();
+        private static final HashMap<String, Type.T> classTyContainer = new HashMap<>();
+
+        public static Type.T getInt() {
+            return intTy;
         }
 
-        public static void output(Type.T ty) throws Exception {
+        public static Type.T getBool() {
+            return boolTy;
+        }
+
+        public static Type.T getIntArray() {
+            return intArrayTy;
+        }
+
+        public static Type.T getClassType(String id) {
+            Type.T ty = classTyContainer.get(id);
+            if (ty == null) {
+                ty = new ClassType(id);
+                classTyContainer.put(id, ty);
+            }
+            return ty;
+        }
+
+        // do not confuse with the "equals" method from Object.
+        public static boolean equalsType(Type.T ty1, Type.T ty2) {
+            // compare the two references
+            return ty1 == ty2;
+        }
+
+        public static void output(Type.T ty) {
             switch (ty) {
-                case Type.Int() -> {
-                    System.out.print("int");
-                }
+                case Type.Boolean() -> System.out.println("boolean");
+                case Type.Int() -> System.out.print("int");
                 default -> {
                     throw new Todo();
                 }
+            }
+        }
+
+        public static String convertString(Type.T ty) {
+            switch (ty) {
+                case Type.Boolean() -> {
+                    return "boolean";
+                }
+                case Type.Int() -> {
+                    return "int";
+                }
+                default -> throw new Todo();
             }
         }
     }
@@ -75,7 +88,8 @@ public class Ast {
     // ///////////////////////////////////////////////////
     // declaration
     public static class Dec {
-        public interface T {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(Type.T type,
@@ -87,7 +101,14 @@ public class Ast {
     // /////////////////////////////////////////////////////////
     // expression
     public static class Exp {
-        public interface T {
+        // alphabetically-ordered
+        public sealed interface T
+                permits ArraySelect, Bop, BopBool, Call,
+                False, Id, Length, NewIntArray, NewObject, Num, This, True, Uop {
+        }
+
+        // ArraySelect
+        public record ArraySelect(T array, T index) implements T {
         }
 
         // binary operations
@@ -96,10 +117,6 @@ public class Ast {
 
         // and, op is a boolean operator
         public record BopBool(T left, String op, T right) implements T {
-        }
-
-        // ArraySelect
-        public record ArraySelect(T array, T index) implements T {
         }
 
         // Call
@@ -131,10 +148,6 @@ public class Ast {
         public record NewObject(String id) implements T {
         }
 
-        // !
-        public record Uop(String op, T exp) implements T {
-        }
-
         // number
         public record Num(int num) implements T {
         }
@@ -147,13 +160,18 @@ public class Ast {
         public record True() implements T {
         }
 
+        // !
+        public record Uop(String op, T exp) implements T {
+        }
     }
     // end of expression
 
     // /////////////////////////////////////////////////////////
     // statement
     public static class Stm {
-        public interface T {
+        // alphabetically-ordered
+        public sealed interface T
+                permits Assign, AssignArray, Block, If, Print, While {
         }
 
         // assign
@@ -185,7 +203,8 @@ public class Ast {
     // /////////////////////////////////////////////////////////
     // method
     public static class Method {
-        public interface T {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(Type.T retType,
@@ -199,7 +218,8 @@ public class Ast {
 
     // class
     public static class Class {
-        public interface T {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(String id,
@@ -211,19 +231,20 @@ public class Ast {
 
     // main class
     public static class MainClass {
-        public interface T {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(String id,
                                 String arg,
-                                Stm.T stm)
-                implements T {
+                                Stm.T stm) implements T {
         }
     }
 
     // whole program
     public static class Program {
-        public interface T {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(MainClass.T mainClass,

@@ -47,9 +47,9 @@ public class SamplePrograms {
             "Fac", null,
             List.of(), // arguments
             List.of(new Method.Singleton(
-                    new Type.Int(), "ComputeFac",
-                    List.of(new Dec.Singleton(new Type.Int(), "num")),
-                    List.of(new Dec.Singleton(new Type.Int(), "num_aux")),
+                    Type.getInt(), "ComputeFac",
+                    List.of(new Dec.Singleton(Type.getInt(), "num")),
+                    List.of(new Dec.Singleton(Type.getInt(), "num_aux")),
                     List.of(new If(
                             new Bop(new Id("num", null, false), "<", new Num(1)),
                             new Assign("num_aux", new Num(1), null),
@@ -68,21 +68,19 @@ public class SamplePrograms {
 
 
     // to encode "test/SumRec.java"
-//    class Sum {
+//    class SumRec {
 //        public static void main(String[] a) {
-//            System.out.println(new Doit().doit(101));
+//            System.out.println(new Doit().doit(100));
 //        }
 //    }
 //
 //    class Doit {
 //        public int doit(int n) {
 //            int sum;
-//            int i;
-//
-//            i = 0;
-//            sum = 0;
-//            while (i<n)
-//                sum = sum + i;
+//            if (n < 1)
+//                sum = 0;
+//            else
+//                sum = n + (this.doit(n - 1));
 //            return sum;
 //        }
 //    }
@@ -97,10 +95,10 @@ public class SamplePrograms {
             null,
             List.of(),
             List.of(new Method.Singleton(
-                    new Type.Int(),
+                    Type.getInt(),
                     "doit",
-                    List.of(new Dec.Singleton(new Type.Int(), "n")),
-                    List.of(new Dec.Singleton(new Type.Int(), "sum")),
+                    List.of(new Dec.Singleton(Type.getInt(), "n")),
+                    List.of(new Dec.Singleton(Type.getInt(), "sum")),
                     List.of(new If(
                             new Bop(new Id("n", null, false), "<", new Num(1)),
                             new Assign("sum", new Num(0), null),

@@ -13,12 +13,12 @@ public class CommandLine {
         StringList,
     }
 
-    record Arg<X>(
+    record Arg(
             String name,
             String option,
             String description,
             Kind kind,
-            Consumer<X> action) {
+            Consumer<Object> action) {
     }
 
     private final List<Arg> args;
@@ -31,17 +31,17 @@ public class CommandLine {
 
     public CommandLine() {
         this.args = List.of(
-                new Arg<>("dump",
+                new Arg("dump",
                         "{token}",
                         "dump tokens from lexical analysis",
                         Kind.String,
-                        (String x) -> {
-                            switch (x) {
+                        (Object x) -> {
+                            switch ((String) x) {
                                 case "token" -> Control.Lexer.dumpToken = true;
                                 default -> error(STR."unknown argument: \{x}");
                             }
                         }),
-                new Arg<>(
+                new Arg(
                         "help",
                         null,
                         "show this help information",
