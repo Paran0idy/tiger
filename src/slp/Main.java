@@ -2,19 +2,19 @@ package slp;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Main obj = new Main();
         obj.doit(SamplePrograms.sample1);
         obj.doit(SamplePrograms.sample2);
     }
 
-    public void doit(Slp.Stm.T prog) throws Exception {
+    public void doit(Slp.Stm.T prog) {
         PrettyPrint pp = new PrettyPrint();
         pp.ppStm(prog);
 
         // maximum argument:
         MaxArgument max = new MaxArgument();
-        max.maxStm(prog);
+        System.out.println(max.maxStm(prog));
 
         // interpreter:
         Interpreter interp = new Interpreter();
@@ -22,6 +22,10 @@ public class Main {
 
         // compiler to x64:
         Compiler compiler = new Compiler();
-        compiler.compileStm(prog);
+        try {
+            compiler.compileStm(prog);
+        } catch (Exception e) {
+            throw new util.Error();
+        }
     }
 }
