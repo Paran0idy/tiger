@@ -11,9 +11,9 @@ public class CompilerPass<FromType, ToType> {
     // when does this pass end
     private long endTime;
     // the translator
-    private Function<FromType, ToType> transformation;
+    private final Function<FromType, ToType> transformation;
     // the source data structure
-    private FromType from;
+    private final FromType from;
 
     // pretty printing
     private static int indentSize = 0;
