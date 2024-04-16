@@ -87,8 +87,10 @@ public class Translate {
                 return new Cfg.Value.Int(num);
             }
             case Ast.Exp.Call(
-                    Ast.Exp.T exp1, String id, List<Ast.Exp.T> args,
-                    List<Ast.Type.T> calleeType,
+                    Ast.Exp.T exp1,
+                    String id,
+                    List<Ast.Exp.T> args,
+                    String calleeType,
                     List<Ast.Type.T> at,
                     List<Ast.Type.T> rt
             ) -> {
@@ -102,7 +104,7 @@ public class Translate {
                 String newId = new Temp().toString();
                 Cfg.Type.T newType = new Cfg.Type.Ptr();
                 emitDec(new Cfg.Dec.Singleton(newType, newId));
-                emit(new Cfg.Stm.GetMethod(newId, callee, transType(calleeType.get(0)), id));
+                emit(new Cfg.Stm.GetMethod(newId, callee, transType(Ast.Type.getClassType(calleeType)), id));
 
                 LinkedList<Cfg.Value.T> newArgs = new LinkedList<>();
                 newArgs.add(callee);

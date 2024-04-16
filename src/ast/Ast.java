@@ -2,6 +2,7 @@ package ast;
 
 import util.Todo;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class Ast {
@@ -10,64 +11,76 @@ public class Ast {
     public static class Type {
         public sealed interface T
                 permits Boolean, ClassType, Int, IntArray {
-            // boolean: -1
-            // int: 0
-            // int[]: 1
-            // class: 2
-            // Such that one can easily tell who is who
-            public abstract int getNum();
         }
 
         // boolean
         public record Boolean() implements T {
-            @Override
-            public int getNum() {
-                return -1;
-            }
         }
 
-        // class
+        // class "id"
         public record ClassType(String id) implements T {
-            @Override
-            public int getNum() {
-                return 2;
-            }
         }
 
         // int
         public record Int() implements T {
-            @Override
-            public int getNum() {
-                return 0;
-            }
         }
 
         // int[]
         public record IntArray() implements T {
-            @Override
-            public int getNum() {
-                return 1;
-            }
         }
 
-        public static boolean equals(Type.T ty1, Type.T ty2) {
-            if (ty1 == ty2)
-                return true;
-            if (ty1 instanceof ClassType classType1 &&
-                    ty2 instanceof ClassType classType2) {
-                return classType1.id.equals(classType2.id);
-            }
-            return ty1.getClass().equals(ty2.getClass());
+        // singleton design pattern
+        private static final Type.T boolTy = new IntArray();
+        private static final Type.T intTy = new Int();
+        private static final Type.T intArrayTy = new IntArray();
+        private static final HashMap<String, Type.T> classTyContainer = new HashMap<>();
+
+        public static Type.T getInt() {
+            return intTy;
         }
 
-        public static void output(Type.T ty) throws Exception {
+        public static Type.T getBool() {
+            return boolTy;
+        }
+
+        public static Type.T getIntArray() {
+            return intArrayTy;
+        }
+
+        public static Type.T getClassType(String id) {
+            Type.T ty = classTyContainer.get(id);
+            if (ty == null) {
+                ty = new ClassType(id);
+                classTyContainer.put(id, ty);
+            }
+            return ty;
+        }
+
+        // do not confuse with the "equals" method from Object.
+        public static boolean equalsType(Type.T ty1, Type.T ty2) {
+            // compare the two references
+            return ty1 == ty2;
+        }
+
+        public static void output(Type.T ty) {
             switch (ty) {
-                case Type.Int() -> {
-                    System.out.print("int");
-                }
+                case Type.Boolean() -> System.out.println("boolean");
+                case Type.Int() -> System.out.print("int");
                 default -> {
                     throw new Todo();
                 }
+            }
+        }
+
+        public static String convertString(Type.T ty) {
+            switch (ty) {
+                case Type.Boolean() -> {
+                    return "boolean";
+                }
+                case Type.Int() -> {
+                    return "int";
+                }
+                default -> throw new Todo();
             }
         }
     }
@@ -75,38 +88,12 @@ public class Ast {
     // ///////////////////////////////////////////////////
     // declaration
     public static class Dec {
-        public sealed interface T permits Singleton {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(Type.T type,
                                 String id) implements T {
-            @Override
-            public boolean equals(Object obj) {
-                if (obj == null)
-                    return false;
-//                if(!instanceof(obj, Singleton))
-//                    return false;
-                return Dec.isEqual(this, (Singleton) obj);
-            }
-        }
-
-        // operations
-        public static boolean isEqual(T x, T y) {
-            switch (x) {
-                case Singleton(
-                        Type.T type1,
-                        String id1
-                ) -> {
-                    switch (y) {
-                        case Singleton(
-                                Type.T type2,
-                                String id2
-                        ) -> {
-                            return id1.equals(id2);
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -114,7 +101,14 @@ public class Ast {
     // /////////////////////////////////////////////////////////
     // expression
     public static class Exp {
-        public interface T {
+        // alphabetically-ordered
+        public sealed interface T
+                permits ArraySelect, Bop, BopBool, Call,
+                False, Id, Length, NewIntArray, NewObject, Num, This, True, Uop {
+        }
+
+        // ArraySelect
+        public record ArraySelect(T array, T index) implements T {
         }
 
         // binary operations
@@ -125,18 +119,13 @@ public class Ast {
         public record BopBool(T left, String op, T right) implements T {
         }
 
-        // ArraySelect
-        public record ArraySelect(T array, T index) implements T {
-        }
-
         // Call
         public record Call(T exp,
                            String id,
                            List<T> args,
-                           // these fields will
-                           List<Type.T> calleeType_0,     // type of first field "exp"
-                           List<Type.T> argTypes, // arguments type
-                           List<Type.T> retType_0) implements T {
+                           String type,     // type of first field "exp"
+                           List<Type.T> at, // arg's type
+                           List<Type.T> rt) implements T {
         }
 
         // False
@@ -159,10 +148,6 @@ public class Ast {
         public record NewObject(String id) implements T {
         }
 
-        // !
-        public record Uop(String op, T exp) implements T {
-        }
-
         // number
         public record Num(int num) implements T {
         }
@@ -175,12 +160,16 @@ public class Ast {
         public record True() implements T {
         }
 
+        // !
+        public record Uop(String op, T exp) implements T {
+        }
     }
     // end of expression
 
     // /////////////////////////////////////////////////////////
     // statement
     public static class Stm {
+        // alphabetically-ordered
         public sealed interface T
                 permits Assign, AssignArray, Block, If, Print, While {
         }
@@ -214,7 +203,8 @@ public class Ast {
     // /////////////////////////////////////////////////////////
     // method
     public static class Method {
-        public sealed interface T permits Singleton {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(Type.T retType,
@@ -228,7 +218,8 @@ public class Ast {
 
     // class
     public static class Class {
-        public sealed interface T permits Singleton {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(String id,
@@ -237,9 +228,9 @@ public class Ast {
                                 List<ast.Ast.Method.T> methods) implements T {
         }
 
-        public static String getName(T cls) {
-            switch (cls) {
-                case Singleton(String id, _, _, _) -> {
+        public static String getName(T c) {
+            switch (c) {
+                case Singleton(String id, String extends_, List<Dec.T> decs, List<Method.T> methods) -> {
                     return id;
                 }
             }
@@ -248,7 +239,8 @@ public class Ast {
 
     // main class
     public static class MainClass {
-        public sealed interface T permits Singleton {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(String id,
@@ -259,56 +251,44 @@ public class Ast {
 
     // whole program
     public static class Program {
-        public sealed interface T permits Singleton {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(MainClass.T mainClass,
                                 List<Class.T> classes) implements T {
         }
 
-        // operations on the whole programs
-        public static Class.T searchClass(T prog, String className) {
-            switch (prog) {
-                case Singleton(
-                        _,
-                        List<Class.T> classes
-                ) -> {
-                    for (Class.T cls : classes) {
-                        switch (cls) {
-                            case Ast.Class.Singleton(
-                                    String id,
-                                    _,
-                                    _,
-                                    _
-                            ) -> {
-                                if (id.equals(className))
-                                    return cls;
-                            }
-                        }
-                    }
-                    return null;
-                }
-            }
-        }
-
-        public static List<Class.T> getClasses(T prog) {
-            switch (prog) {
-                case Singleton(
-                        _,
-                        List<Class.T> classes
-                ) -> {
+        public static List<Class.T> getClasses(T p) {
+            switch (p) {
+                case Singleton(MainClass.T mainClass, List<Class.T> classes) -> {
                     return classes;
                 }
             }
         }
 
-        public static MainClass.T getMainClass(T prog) {
-            switch (prog) {
-                case Singleton(
-                        MainClass.T mainClass,
-                        _
-                ) -> {
+        public static MainClass.T getMainClass(T p) {
+            switch (p) {
+                case Singleton(MainClass.T mainClass, List<Class.T> classes) -> {
                     return mainClass;
+                }
+            }
+        }
+
+        public static Class.T searchClass(T p, String clsName) {
+            switch (p) {
+                case Singleton(MainClass.T mainClass, List<Class.T> classes) -> {
+                    for (Class.T t : classes) {
+                        switch (t) {
+                            case Class.Singleton(
+                                    String id, String extends_, List<Dec.T> decs, List<Method.T> methods
+                            ) -> {
+                                if (id.equals(clsName))
+                                    return t;
+                            }
+                        }
+                    }
+                    return null;
                 }
             }
         }

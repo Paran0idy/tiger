@@ -1,7 +1,6 @@
 package ast;
 
 import ast.Ast.*;
-import util.Bug;
 import util.Todo;
 
 import java.util.List;
@@ -37,18 +36,18 @@ public class PrettyPrinter {
 
     // /////////////////////////////////////////////////////
     // expressions
-    public void ppExp(Exp.T e) throws Exception {
+    public void ppExp(Exp.T e) {
         switch (e) {
             case Exp.Call(
                     Exp.T callee,
                     String id,
                     List<Exp.T> args,
-                    List<Type.T> calleeType,
+                    String ty,
                     List<Type.T> argTypes,
                     List<Type.T> retType
             ) -> {
                 ppExp(callee);
-                say("." + id + "(");
+                say(STR.".\{id}(");
                 for (Exp.T arg : args) {
                     ppExp(arg);
                     say(", ");
@@ -56,14 +55,14 @@ public class PrettyPrinter {
                 say(")");
             }
             case Exp.NewObject(String id) -> {
-                say("new " + id + "()");
+                say(STR."new \{id}()");
             }
             case Exp.Num(int n) -> {
                 say(n);
             }
             case Exp.Bop(Exp.T left, String bop, Exp.T right) -> {
                 ppExp(left);
-                say(" " + bop + " ");
+                say(STR." \{bop} ");
                 ppExp(right);
             }
             case Exp.Id(String x, Type.T ty, boolean isField) -> {
@@ -79,7 +78,7 @@ public class PrettyPrinter {
     }
 
     // statement
-    public void ppStm(Stm.T s) throws Exception {
+    public void ppStm(Stm.T s) {
         switch (s) {
             case Stm.If(Exp.T cond, Stm.T then_, Stm.T else_) -> {
                 printSpaces();
@@ -105,7 +104,7 @@ public class PrettyPrinter {
             }
             case Stm.Assign(String x, Exp.T exp, Type.T ty) -> {
                 printSpaces();
-                say(x + " = ");
+                say(STR."\{x} = ");
                 ppExp(exp);
                 sayln(";");
             }
@@ -116,19 +115,24 @@ public class PrettyPrinter {
     }
 
     // type
-    public void ppType(Type.T t) throws Exception {
-        switch (t) {
-            case Type.Int() -> {
-                say("int");
-            }
-            default -> {
-                throw new Todo();
-            }
-        }
+    public void ppType(Type.T t) {
+        // we have made the constructors for type private,
+        // hence, we cannot pattern matching it.
+//        switch (t) {
+//            case Type.Int() -> {
+//                say("int");
+//            }
+//            default -> {
+//                throw new Todo();
+//            }
+//        }
+        // instead, we convert it explicitly.
+        String s = Type.convertString(t);
+        say(s);
     }
 
     // dec
-    public void ppDec(Dec.T dec) throws Exception {
+    public void ppDec(Dec.T dec) {
         Dec.Singleton d = (Dec.Singleton) dec;
         ppType(d.type());
         say(" ");
@@ -136,12 +140,12 @@ public class PrettyPrinter {
     }
 
     // method
-    public void ppMethod(Method.T mtd) throws Exception {
+    public void ppMethod(Method.T mtd) {
         Method.Singleton m = (Method.Singleton) mtd;
         printSpaces();
         this.say("public ");
         ppType(m.retType());
-        this.say(" " + m.id() + "(");
+        this.say(STR." \{m.id()}(");
         for (Dec.T d : m.formals()) {
             ppDec(d);
             say(", ");
@@ -166,11 +170,11 @@ public class PrettyPrinter {
     }
 
     // class
-    public void ppOneClass(Ast.Class.T cls) throws Exception {
+    public void ppOneClass(Ast.Class.T cls) {
         Ast.Class.Singleton c = (Ast.Class.Singleton) cls;
-        this.say("class " + c.id());
+        this.say(STR."class \{c.id()}");
         if (c.extends_() != null)
-            this.say(" extends " + c.extends_());
+            this.say(STR." extends \{c.extends_()}");
         else
             this.say("");
         this.sayln("{");
@@ -185,10 +189,10 @@ public class PrettyPrinter {
     }
 
     // main class
-    public void ppMainClass(MainClass.T m) throws Exception {
+    public void ppMainClass(MainClass.T m) {
         MainClass.Singleton mc = (MainClass.Singleton) m;
-        this.sayln("class " + mc.id() + "{");
-        this.sayln("\tpublic static void main(String [] " + mc.arg() + "){");
+        this.sayln(STR."class \{mc.id()}{");
+        this.sayln(STR."\tpublic static void main(String [] \{mc.arg()}){");
         indent();
         indent();
         ppStm(mc.stm());
@@ -200,7 +204,7 @@ public class PrettyPrinter {
     }
 
     // program
-    public void ppProgram(Program.T prog) throws Exception {
+    public void ppProgram(Program.T prog) {
         Program.Singleton p = (Program.Singleton) prog;
         ppMainClass(p.mainClass());
         this.sayln("");
