@@ -90,7 +90,7 @@ public class Translate {
                     Ast.Exp.T exp1,
                     String id,
                     List<Ast.Exp.T> args,
-                    List<Ast.Type.T> calleeType,
+                    String calleeType,
                     List<Ast.Type.T> at,
                     List<Ast.Type.T> rt
             ) -> {
@@ -104,17 +104,7 @@ public class Translate {
                 String newId = new Temp().toString();
                 Cfg.Type.T newType = new Cfg.Type.Ptr();
                 emitDec(new Cfg.Dec.Singleton(newType, newId));
-                Cfg.Type.T ty = transType(calleeType.get(0));
-                String strTy = "";
-                switch (ty) {
-                    case Cfg.Type.ClassType(String id1) -> {
-                        strTy = id1;
-                    }
-                    default -> {
-                        throw new AssertionError();
-                    }
-                }
-                emit(new Cfg.Stm.GetMethod(newId, callee, strTy, id));
+                emit(new Cfg.Stm.GetMethod(newId, callee, calleeType, id));
 
                 LinkedList<Cfg.Value.T> newArgs = new LinkedList<>();
                 newArgs.add(callee);

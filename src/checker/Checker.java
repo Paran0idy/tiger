@@ -1,11 +1,10 @@
 package checker;
 
-import ast.Ast;
 import ast.Ast.Class;
 import ast.Ast.*;
-import util.Bug;
 import util.Todo;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class Checker {
@@ -23,12 +22,12 @@ public class Checker {
     }
 
     private void error(String s) {
-        System.out.println("type mismatch: " + s);
+        System.out.println(STR."Error: type mismatch: \{s}");
         System.exit(1);
     }
 
-    private void error(String s, Type.T expected, Type.T got) throws Exception {
-        System.out.println("type mismatch: " + s);
+    private void error(String s, Type.T expected, Type.T got) {
+        System.out.println(STR."Error: type mismatch: \{s}");
         Type.output(expected);
         Type.output(got);
         System.exit(1);
@@ -37,25 +36,23 @@ public class Checker {
     // /////////////////////////////////////////////////////
     // expressions
     // type check an expression will return its type.
-    public Type.T checkExp(Exp.T e) throws Exception {
+    public Type.T checkExp(Exp.T e) {
         switch (e) {
             case Exp.Call(
                     Exp.T callee,
                     String id,
                     List<Exp.T> args,
-                    List<Type.T> calleeType_0,  // only [0]
+                    String type,
                     List<Type.T> argTypes,
-                    List<Type.T> retType_0 // only
+                    List<Type.T> retType
             ) -> {
-                Type.T theCalleeType = checkExp(callee);
-                calleeType_0.add(theCalleeType);
-                return new Type.Int();
+                return Type.getInt();
             }
             case Exp.NewObject(String id) -> {
-                return new Type.ClassType(id);
+                Type.getClassType(id);
             }
             case Exp.Num(int n) -> {
-                return new Type.Int();
+                return Type.getInt();
             }
             case Exp.Bop(Exp.T left, String bop, Exp.T right) -> {
                 Type.T tyLeft = checkExp(left);
@@ -63,22 +60,22 @@ public class Checker {
 
                 switch (bop) {
                     case "+" -> {
-                        if (!Type.equals(tyLeft, new Type.Int()) ||
-                                !Type.equals(tyRight, new Type.Int())) {
+                        if (!Type.equalsType(tyLeft, Type.getInt()) ||
+                                !Type.equalsType(tyRight, Type.getInt())) {
                             error("+");
                         }
-                        return new Type.Int();
+                        return Type.getInt();
                     }
                     case "-" -> {
                         System.out.print("-");
                         throw new Todo();
                     }
                     case "<" -> {
-                        if (!Type.equals(tyLeft, new Type.Int()) ||
-                                !Type.equals(tyRight, new Type.Int())) {
+                        if (!Type.equalsType(tyLeft, Type.getInt()) ||
+                                !Type.equalsType(tyRight, Type.getInt())) {
                             error("<");
                         }
-                        return new Type.Boolean();
+                        return Type.getBool();
                     }
                     default -> {
                         throw new Todo();
@@ -87,23 +84,24 @@ public class Checker {
             }
             case Exp.Id(String x, Type.T ty, boolean isField) -> {
                 ty = null;
-                return new Type.Int();
+                return Type.getInt();
             }
             case Exp.This() -> {
-                return new Type.ClassType(this.currentClass);
+                return Type.getClassType(this.currentClass);
             }
             default -> {
                 throw new Todo();
             }
         }
+        throw new util.Error();
     }
 
     // statements
-    public void checkStm(Stm.T s) throws Exception {
+    public void checkStm(Stm.T s) {
         switch (s) {
             case Stm.If(Exp.T cond, Stm.T then_, Stm.T else_) -> {
                 Type.T tyCond = checkExp(cond);
-                if (!Type.equals(tyCond, new Type.Boolean())) {
+                if (!Type.equalsType(tyCond, Type.getBool())) {
                     error("if require a boolean type");
                 }
                 checkStm(then_);
@@ -111,7 +109,7 @@ public class Checker {
             }
             case Stm.Print(Exp.T exp) -> {
                 Type.T tyExp = checkExp(exp);
-                if (!Type.equals(tyExp, new Type.Int())) {
+                if (!Type.equalsType(tyExp, Type.getInt())) {
                     error("print requires an integer type");
                 }
             }
@@ -119,27 +117,26 @@ public class Checker {
                 // first lookup in the method table
                 Type.T tyVar = checkExp(new Exp.Id(x, null, false));
                 Type.T tyExp = checkExp(exp);
-                if (!Type.equals(tyVar, tyExp)) {
+                if (!Type.equalsType(tyVar, tyExp)) {
                     error("=");
                 }
             }
-            default -> {
-                throw new Todo();
-            }
+            default -> throw new Todo();
         }
     }
 
     // type
     public void checkType(Type.T t) {
+        throw new Todo();
     }
-
 
     // dec
     public void checkDec(Dec.T d) {
+        throw new Todo();
     }
 
     // method
-    public void checkMethod(Method.T mtd) throws Exception {
+    public void checkMethod(Method.T mtd) {
         Method.Singleton m = (Method.Singleton) mtd;
         // construct the method table
         this.methodTable = new MethodTable();
@@ -148,13 +145,13 @@ public class Checker {
             checkStm(stm);
         }
         Type.T realRetType = checkExp(m.retExp());
-        if (!Type.equals(realRetType, m.retType())) {
+        if (!Type.equalsType(realRetType, m.retType())) {
             error("ret type mismatch", m.retType(), realRetType);
         }
     }
 
     // class
-    public void checkClass(Class.T c) throws Exception {
+    public void checkClass(Class.T c) {
         Class.Singleton cls = (Class.Singleton) c;
         this.currentClass = cls.id();
         for (Method.T mtd : cls.methods()) {
@@ -163,7 +160,7 @@ public class Checker {
     }
 
     // main class
-    public void checkMainClass(MainClass.T c) throws Exception {
+    public void checkMainClass(MainClass.T c) {
         MainClass.Singleton mainClass = (MainClass.Singleton) c;
         this.currentClass = mainClass.id();
         // "main" method has an argument "arg" of type "String[]", but
@@ -175,14 +172,19 @@ public class Checker {
     // step 1: create class table for Main class
     private void buildMainClass(MainClass.T main) {
         MainClass.Singleton mc = (MainClass.Singleton) main;
-        this.classTable.put(mc.id(), new ClassBinding(null));
+        this.classTable.put(mc.id(),
+                new ClassTable.Binding(null,
+                        new HashMap<>(),
+                        new HashMap<>()));
     }
 
     // create class table for normal classes
     private void buildClass(Class.T cls) {
         Class.Singleton c = (Class.Singleton) cls;
         this.classTable.put(c.id(),
-                new ClassBinding(c.extends_()));
+                new ClassTable.Binding(c.extends_(),
+                        new HashMap<>(),
+                        new HashMap<>()));
         // add all instance variables into the class table
         for (Dec.T dec : c.decs()) {
             Dec.Singleton d = (Dec.Singleton) dec;
@@ -196,14 +198,14 @@ public class Checker {
                     // for now, do not worry to check
                     // method formals, as we will check
                     // this during method table construction.
-                    new MethodType(m.retType(),
+                    new ClassTable.MethodType(m.retType(),
                             m.formals()));
         }
     }
 
 
     // to check a program
-    public void checkProgram(Program.T p) throws Exception {
+    public void checkProgram(Program.T p) {
         // "p" is singleton
         Program.Singleton prog = (Program.Singleton) p;
         // ////////////////////////////////////////////////
