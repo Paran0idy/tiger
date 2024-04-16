@@ -1,27 +1,24 @@
 package control;
 
-import lexer.Token;
-import util.Bug;
-
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public class CommandLine {
+    // alphabetically-ordered
     enum Kind {
-        Empty,
         Bool,
+        Empty,
         Int,
         String,
         StringList,
     }
 
-    record Arg(
+    record Arg<X>(
             String name,
             String option,
             String description,
             Kind kind,
-            Consumer<Object> action) {
+            Consumer<X> action) {
     }
 
     private final List<Arg> args;
@@ -34,23 +31,17 @@ public class CommandLine {
 
     public CommandLine() {
         this.args = List.of(
-
-                new Arg("dump",
+                new Arg<>("dump",
                         "{token}",
                         "dump tokens from lexical analysis",
                         Kind.String,
-                        (Object x) -> {
-                            String s = (String) x;
-                            switch (s) {
-                                case "token" -> {
-                                    Control.Lexer.dumpToken = true;
-                                }
-                                default -> {
-                                    error(STR."unknown argument: \{s}");
-                                }
+                        (String x) -> {
+                            switch (x) {
+                                case "token" -> Control.Lexer.dumpToken = true;
+                                default -> error(STR."unknown argument: \{x}");
                             }
                         }),
-                new Arg(
+                new Arg<>(
                         "help",
                         null,
                         "show this help information",
@@ -89,9 +80,7 @@ public class CommandLine {
                 foundArg = true;
                 String param = "";
                 switch (arg.kind) {
-                    case Kind.Empty -> {
-                        arg.action.accept(null);
-                    }
+                    case Kind.Empty -> arg.action.accept(null);
                     default -> {
                         if (i >= cmdLineArgs.length)
                             error("wants more arguments");
@@ -101,20 +90,12 @@ public class CommandLine {
                     }
                 }
                 switch (arg.kind) {
-                    case Kind.Empty -> {
-                        arg.action.accept(null);
-                    }
+                    case Kind.Empty -> arg.action.accept(null);
                     case Kind.Bool -> {
                         switch (param) {
-                            case "true" -> {
-                                arg.action.accept(true);
-                            }
-                            case "false" -> {
-                                arg.action.accept(false);
-                            }
-                            default -> {
-                                error(STR."\{arg.name} requires a boolean");
-                            }
+                            case "true" -> arg.action.accept(true);
+                            case "false" -> arg.action.accept(false);
+                            default -> error(STR."\{arg.name} requires a boolean");
                         }
                     }
                     case Int -> {
@@ -126,16 +107,12 @@ public class CommandLine {
                         }
                         arg.action.accept(num);
                     }
-                    case String -> {
-                        arg.action.accept(param);
-                    }
+                    case String -> arg.action.accept(param);
                     case StringList -> {
                         String[] strArray = param.split(",");
                         arg.action.accept(strArray);
                     }
-                    default -> {
-                        error("");
-                    }
+                    default -> error("bad argument");
                 }
             }
             if (!foundArg) {
@@ -145,9 +122,9 @@ public class CommandLine {
         return filename;
     }
 
-    private void outputSpace(int n) throws Exception {
+    private void outputSpace(int n) {
         if (n < 0)
-            throw new Bug();
+            throw new util.Error();
 
         while (n-- != 0)
             System.out.print(" ");
@@ -173,14 +150,14 @@ public class CommandLine {
             try {
                 outputSpace(max - current + 1);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new util.Error(e);
             }
             System.out.println(a.description);
         }
     }
 
     public void usage() {
-        int startYear = 2013;
+        final int startYear = 2013;
         System.out.println(STR."""
                 The Tiger compiler. Copyright (C) \{startYear}-, SSE of USTC.
                 Usage: java Tiger [options] <filename>

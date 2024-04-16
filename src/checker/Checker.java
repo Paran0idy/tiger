@@ -3,7 +3,7 @@ package checker;
 import ast.Ast;
 import ast.Ast.Class;
 import ast.Ast.*;
-import util.Bug;
+import util.Error;
 import util.Todo;
 
 import java.util.List;
@@ -95,7 +95,7 @@ public class Checker {
                 throw new Todo();
             }
         }
-        throw new Bug();
+        throw new util.Error();
     }
 
     // statements

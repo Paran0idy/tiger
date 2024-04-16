@@ -1,7 +1,7 @@
 package ast;
 
 import ast.Ast.*;
-import util.Bug;
+import util.Error;
 import util.Todo;
 
 import java.util.List;
