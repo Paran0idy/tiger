@@ -1,18 +1,22 @@
 package parser;
 
-import ast.Ast;
 import lexer.Lexer;
 import lexer.Token;
 import util.Todo;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+
+import static java.lang.System.exit;
+
 public class Parser {
+    String inputFileName;
+    BufferedInputStream inputStream;
     Lexer lexer;
     Token current;
 
-    public Parser(String fileName,
-                  java.io.InputStream fileStream) {
-        lexer = new Lexer(fileName, fileStream);
-        current = lexer.nextToken();
+    public Parser(String fileName) {
+        this.inputFileName = fileName;
     }
 
     // /////////////////////////////////////////////
@@ -28,12 +32,12 @@ public class Parser {
         }
         System.out.println(STR."Expects: \{kind}");
         System.out.println(STR."But got: \{current.kind}");
-        System.exit(1);
+        error("syntax error");
     }
 
-    private void error() {
-        System.out.println("Syntax error: compilation aborting...\n");
-        System.exit(1);
+    private void error(String errMsg) {
+        System.out.println(STR."Error: \{errMsg}, compilation aborting...\n");
+        exit(1);
     }
 
     // ////////////////////////////////////////////////////////////
@@ -89,13 +93,11 @@ public class Parser {
                         eatToken(Token.Kind.RPAREN);
                         return;
                     default:
-                        error();
-                        return;
+                        throw new Todo();
                 }
             }
             default:
-                error();
-                return;
+                throw new Todo();
         }
     }
 
@@ -129,7 +131,7 @@ public class Parser {
     // TimesExp -> ! TimesExp
     // -> NotExp
     private void parseTimesExp() {
-        throw new Todo("");
+        throw new Todo();
 
     }
 
@@ -137,7 +139,7 @@ public class Parser {
     // -> TimesExp
     private void parseAddSubExp() {
         parseTimesExp();
-        throw new Todo("");
+        throw new Todo();
     }
 
     // LtExp -> AddSubExp + AddSubExp
@@ -262,8 +264,29 @@ public class Parser {
         return;
     }
 
-    public Ast.Program.T parse() {
+    private void initParser() {
+        try {
+            this.inputStream = new BufferedInputStream(new FileInputStream(this.inputFileName));
+        } catch (Exception e) {
+            error(STR."unable to open file \{this.inputFileName}");
+        }
+
+        this.lexer = new Lexer(this.inputFileName, this.inputStream);
+        this.current = lexer.nextToken();
+    }
+
+    private void finalizeParser() {
+        try {
+            this.inputStream.close();
+        } catch (Exception e) {
+            error("unable to close file");
+        }
+    }
+
+    public Object parse() {
+        initParser();
         parseProgram();
-        throw new util.Todo();
+        finalizeParser();
+        return null;
     }
 }
