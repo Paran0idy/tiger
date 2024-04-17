@@ -133,7 +133,7 @@ public class ClassTable {
 
     // lab 2, exercise 7:
     public void dump() {
-        new Todo();
+        throw new Todo();
     }
 
     @Override
