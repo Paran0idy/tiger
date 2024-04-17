@@ -192,15 +192,16 @@ public class PrettyPrinter {
     public void ppMainClass(MainClass.T m) {
         MainClass.Singleton mc = (MainClass.Singleton) m;
         this.sayln(STR."class \{mc.id()}{");
-        this.sayln(STR."\tpublic static void main(String [] \{mc.arg()}){");
         indent();
+        printSpaces();
+        this.sayln(STR."public static void main(String [] \{mc.arg()}){");
         indent();
         ppStm(mc.stm());
         unIndent();
-        unIndent();
-        this.sayln("\t}");
+        printSpaces();
         this.sayln("}");
-        return;
+        unIndent();
+        this.sayln("}");
     }
 
     // program
