@@ -82,10 +82,11 @@ public class CommandLine {
                 switch (arg.kind) {
                     case Kind.Empty -> arg.action.accept(null);
                     default -> {
+                        i++;
                         if (i >= cmdLineArgs.length)
                             error("wants more arguments");
                         else {
-                            param = cmdLineArgs[i++];
+                            param = cmdLineArgs[i];
                         }
                     }
                 }
