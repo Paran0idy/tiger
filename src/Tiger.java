@@ -1,6 +1,7 @@
 import ast.Ast;
 import cfg.Cfg;
 import checker.Checker;
+import codegen.X64;
 import control.CommandLine;
 import control.CompilerPass;
 import control.Control;
@@ -43,6 +44,12 @@ public class Tiger {
                         (f) -> new cfg.Translate().translate(f),
                         newAst);
         Cfg.Program.T cfg = transPass.apply();
+
+        CompilerPass<Cfg.Program.T, X64.Program.T> codeGenPass =
+                new CompilerPass<>("code generation",
+                        (f) -> new codegen.Munch().munchProgram(f),
+                        cfg);
+        X64.Program.T x64 = codeGenPass.apply();
 
 
     }
