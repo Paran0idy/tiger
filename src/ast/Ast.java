@@ -58,7 +58,7 @@ public class Ast {
 
         // do not confuse with the "equals" method from Object.
         public static boolean equalsType(Type.T ty1, Type.T ty2) {
-            // compare the two references
+            // compare the two references' value
             return ty1 == ty2;
         }
 
