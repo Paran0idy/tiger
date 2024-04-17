@@ -1,5 +1,7 @@
 package control;
 
+import ast.SamplePrograms;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -31,13 +33,26 @@ public class CommandLine {
 
     public CommandLine() {
         this.args = List.of(
-                new Arg("dump",
-                        "{token}",
-                        "dump tokens from lexical analysis",
+                new Arg("builtin",
+                        "<file>",
+                        "use the builtin AST, instead of parsing",
                         Kind.String,
                         (Object x) -> {
                             switch ((String) x) {
+                                case "SumRec.java" -> Control.bultinAst =
+                                        SamplePrograms.progSumRec;
+                                default -> error(STR."unknown argument: \{x}");
+                            }
+                        }),
+                new Arg("dump",
+                        "{ast|token|type}",
+                        "dump intermediate results",
+                        Kind.String,
+                        (Object x) -> {
+                            switch ((String) x) {
+                                case "ast" -> Control.Parser.dump = true;
                                 case "token" -> Control.Lexer.dumpToken = true;
+                                case "type" -> Control.Type.dump = true;
                                 default -> error(STR."unknown argument: \{x}");
                             }
                         }),
@@ -49,6 +64,18 @@ public class CommandLine {
                         (_) -> {
                             usage();
                             System.exit(1);
+                        }),
+                new Arg("verbose",
+                        "{0|1|2}",
+                        "how verbose to be",
+                        Kind.Int,
+                        (Object x) -> {
+                            switch ((Integer) x) {
+                                case 0 -> Control.verbose = Control.Verbose.SILENT;
+                                case 1 -> Control.verbose = Control.Verbose.PASS;
+                                case 2 -> Control.verbose = Control.Verbose.DETAIL;
+                                default -> error(STR."bad argument: \{x}");
+                            }
                         })
         );
     }
@@ -82,10 +109,11 @@ public class CommandLine {
                 switch (arg.kind) {
                     case Kind.Empty -> arg.action.accept(null);
                     default -> {
+                        i++;
                         if (i >= cmdLineArgs.length)
                             error("wants more arguments");
                         else {
-                            param = cmdLineArgs[i++];
+                            param = cmdLineArgs[i];
                         }
                     }
                 }
@@ -103,7 +131,7 @@ public class CommandLine {
                         try {
                             num = Integer.parseInt(param);
                         } catch (java.lang.NumberFormatException e) {
-                            error(STR."\{arg.name} requires an integer");
+                            error(STR."\{arg.name} requires an integer, but got \{param}");
                         }
                         arg.action.accept(num);
                     }
