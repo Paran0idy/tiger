@@ -90,7 +90,7 @@ public class Translate {
                     Ast.Exp.T exp1,
                     String id,
                     List<Ast.Exp.T> args,
-                    String calleeType,
+                    List<String> typeExp_0,
                     List<Ast.Type.T> at,
                     List<Ast.Type.T> rt
             ) -> {
@@ -104,7 +104,7 @@ public class Translate {
                 String newId = new Temp().toString();
                 Cfg.Type.T newType = new Cfg.Type.Ptr();
                 emitDec(new Cfg.Dec.Singleton(newType, newId));
-                emit(new Cfg.Stm.GetMethod(newId, callee, calleeType, id));
+                emit(new Cfg.Stm.GetMethod(newId, callee, typeExp_0.get(0), id));
 
                 LinkedList<Cfg.Value.T> newArgs = new LinkedList<>();
                 newArgs.add(callee);

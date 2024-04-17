@@ -42,7 +42,7 @@ public class PrettyPrinter {
                     Exp.T callee,
                     String id,
                     List<Exp.T> args,
-                    String ty,
+                    List<String> typeExp_0,
                     List<Type.T> argTypes,
                     List<Type.T> retType
             ) -> {

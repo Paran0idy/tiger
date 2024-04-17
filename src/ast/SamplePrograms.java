@@ -90,7 +90,7 @@ public class SamplePrograms {
             new Print(new Call(new NewObject("Doit"),
                     "doit",
                     List.of(new Num(100)),
-                    null,
+                    new LinkedList<>(),
                     new LinkedList<>(),
                     new LinkedList<>())));
 
@@ -113,7 +113,7 @@ public class SamplePrograms {
                                             new Call(new This(), "doit",
                                                     List.of(new Bop(new Id("n", null, false),
                                                             "-", new Num(1))),
-                                                    null,
+                                                    new LinkedList<>(),
                                                     new LinkedList<>(),
                                                     new LinkedList<>())),
                                     null))),
