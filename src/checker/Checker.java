@@ -45,10 +45,19 @@ public class Checker {
                     Exp.T callee,
                     String id,
                     List<Exp.T> args,
-                    String type,
+                    List<String> typeExp_0,
                     List<Type.T> argTypes,
                     List<Type.T> retType
             ) -> {
+                Type.T calleeType = checkExp(callee);
+                switch (calleeType) {
+                    case Type.ClassType(String id1) -> {
+                        typeExp_0.add(id1);
+                    }
+                    default -> {
+                        error("class type wanted");
+                    }
+                }
                 return Type.getInt();
             }
             case Exp.NewObject(String id) -> {
