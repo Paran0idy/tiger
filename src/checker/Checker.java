@@ -1,7 +1,10 @@
 package checker;
 
+import ast.Ast;
 import ast.Ast.Class;
 import ast.Ast.*;
+import ast.PrettyPrinter;
+import control.Control;
 import util.Todo;
 
 import java.util.HashMap;
@@ -200,7 +203,7 @@ public class Checker {
 
 
     // to check a program
-    public void checkProgram(Program.T p) {
+    public Ast.Program.T checkProgram(Program.T p) {
         // "p" is singleton
         Program.Singleton prog = (Program.Singleton) p;
         // ////////////////////////////////////////////////
@@ -225,6 +228,10 @@ public class Checker {
             checkClass(c);
         }
 
+        if (Control.Type.dump)
+            new PrettyPrinter().ppProgram(p);
+
+        return p;
     }
 }
 

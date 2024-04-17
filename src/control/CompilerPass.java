@@ -46,24 +46,24 @@ public class CompilerPass<FromType, ToType> {
     }
 
     public ToType apply() {
-        if (Control.verbose != Control.Verbose.SILENT) {
+        if (Control.verbose.order > Control.Verbose.SILENT.order) {
             printSpaces();
             indent();
             System.out.println(STR."\{this.passName} starting");
-            if (Control.verbose == Control.Verbose.DETAILED) {
+            if (Control.verbose.order >= Control.Verbose.DETAIL.order) {
                 this.startTime = System.nanoTime();
             }
         }
 
         ToType to = this.transformation.apply(this.from);
 
-        if (Control.verbose != Control.Verbose.SILENT) {
+        if (Control.verbose.order > Control.Verbose.SILENT.order) {
             unindent();
             printSpaces();
             System.out.print(STR."\{this.passName} finished");
-            if (Control.verbose == Control.Verbose.DETAILED) {
+            if (Control.verbose.order >= Control.Verbose.DETAIL.order) {
                 this.endTime = System.nanoTime();
-                System.out.print(STR.": @ \{(this.endTime - this.startTime) / 1000}ms");
+                System.out.print(STR.": @ \{(this.endTime - this.startTime) / 1000000.00}ms");
             }
             System.out.println();
         }

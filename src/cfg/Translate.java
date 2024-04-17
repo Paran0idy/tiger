@@ -219,7 +219,7 @@ public class Translate {
             ) -> {
                 // clear the caches:
                 Cfg.Function.T newFunc = new Cfg.Function.Singleton(transType(retType),
-                        STR."\{this.currentClassName}_\{id}",
+                        this.currentClassName + "_" + id,
                         transDecList(formals),
                         transDecList(locals),
                         new LinkedList<Cfg.Block.T>());
@@ -309,8 +309,8 @@ public class Translate {
     }
 
 
-    // given an abstract syntax tree "ast",
-    // lower it down to a corresponding control-flow graph.
+    // given an abstract syntax tree, lower it down
+    // to a corresponding control-flow graph.
     public Cfg.Program.T translate(Ast.Program.T ast) {
         // build the inheritance tree
         InheritTree.Node root = new InheritTree(ast).buildTree();
@@ -333,7 +333,7 @@ public class Translate {
                 new Ast.Exp.Num(0));
         this.functions.add(translateMethod(mainMethod));
 
-        return new Cfg.Program.Singleton(STR."\{mainCls.id()}_main",
+        return new Cfg.Program.Singleton(mainCls.id() + "_main",
                 this.vtables,
                 this.structs,
                 this.functions);

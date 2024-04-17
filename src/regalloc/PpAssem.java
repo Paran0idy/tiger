@@ -55,7 +55,7 @@ public class PpAssem {
         switch (dec) {
             case X64.Dec.Singleton(X64.Type.T type, String id) -> {
                 //Type.pp(type);
-                say(" " + id);
+                say(STR." \{id}");
             }
         }
     }

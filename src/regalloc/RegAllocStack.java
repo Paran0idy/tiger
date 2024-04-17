@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 // a register allocator to allocate each virtual register to a physical one,
 // using a stack-based approach.
-class RegAllocStack {
+public class RegAllocStack {
 
     // data structures to hold new instructions in a block
     TempMap tempMap;

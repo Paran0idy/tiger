@@ -1,5 +1,7 @@
 package parser;
 
+import ast.Ast;
+import control.Control;
 import lexer.Lexer;
 import lexer.Token;
 import util.Todo;
@@ -283,10 +285,14 @@ public class Parser {
         }
     }
 
-    public Object parse() {
+    public Ast.Program.T parse() {
         initParser();
         parseProgram();
         finalizeParser();
+        Ast.Program.T ast = null;
+        if (Control.Parser.dump) {
+            new ast.PrettyPrinter().ppProgram(ast);
+        }
         return null;
     }
 }

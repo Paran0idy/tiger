@@ -1,30 +1,51 @@
 package control;
 
+import ast.Ast;
+
 public class Control {
-    public static Object ConAst;
-    public static boolean debug = false;
 
     public enum Verbose {
-        SILENT, DETAILED,
+        SILENT(0),
+        PASS(1),
+        DETAIL(2);
+        final int order;
+
+        Verbose(int i) {
+            this.order = i;
+        }
     }
 
     public static Verbose verbose = Verbose.SILENT;
+
+    public static boolean debug = false;
+
+    // this is a special hack
+    public static Ast.Program.T bultinAst = null;
 
     // the lexer
     public static class Lexer {
         public static boolean dumpToken = false;
     }
 
-    // control-flow graph
-    public static class Cfg {
-        public static String dotOutputFormat;
+    // the parser
+    public static class Parser {
+        public static boolean dump = false;
     }
 
-    // codegen
+    // the type checker
+    public static class Type {
+        public static boolean dump = false;
+    }
+
+    // CFG
+    public static class Cfg {
+        public static String dotOutputFormat = "png";
+    }
+
+    // code generation
     public static class Codegen {
-        public static boolean embedComments = true;
-        public static boolean finalAssembly = true;
-        public static String assemFile = "a.s";
+        public static boolean embedComments = false;
+        public static String assemFile = null;
     }
 }
 
