@@ -49,7 +49,7 @@ public class Checker {
                 return Type.getInt();
             }
             case Exp.NewObject(String id) -> {
-                Type.getClassType(id);
+                return Type.getClassType(id);
             }
             case Exp.Num(int n) -> {
                 return Type.getInt();
@@ -77,9 +77,7 @@ public class Checker {
                         }
                         return Type.getBool();
                     }
-                    default -> {
-                        throw new Todo();
-                    }
+                    default -> throw new Todo();
                 }
             }
             case Exp.Id(String x, Type.T ty, boolean isField) -> {
@@ -89,11 +87,8 @@ public class Checker {
             case Exp.This() -> {
                 return Type.getClassType(this.currentClass);
             }
-            default -> {
-                throw new Todo();
-            }
+            default -> throw new Todo();
         }
-        throw new util.Error();
     }
 
     // statements
