@@ -1,4 +1,5 @@
 import ast.Ast;
+import cfg.Cfg;
 import checker.Checker;
 import control.CommandLine;
 import control.CompilerPass;
@@ -30,12 +31,18 @@ public class Tiger {
                                 Control.bultinAst),
                         fileName);
         Ast.Program.T ast = parserPass.apply();
-        
+
         CompilerPass<Ast.Program.T, Ast.Program.T> checkerPass =
                 new CompilerPass<>("type checking",
                         (f) -> new Checker().checkProgram(f),
                         ast);
         Ast.Program.T newAst = checkerPass.apply();
+
+        CompilerPass<Ast.Program.T, Cfg.Program.T> transPass =
+                new CompilerPass<>("translating to CFG",
+                        (f) -> new cfg.Translate().translate(f),
+                        newAst);
+        Cfg.Program.T cfg = transPass.apply();
 
 
     }

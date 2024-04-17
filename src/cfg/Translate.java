@@ -76,7 +76,7 @@ public class Translate {
 
     /////////////////////////////
     // translate an expression
-    public Cfg.Value.T transExp(Ast.Exp.T exp) throws Exception {
+    public Cfg.Value.T transExp(Ast.Exp.T exp) {
         switch (exp) {
             case Ast.Exp.Id(String id, Ast.Type.T type, boolean isField) -> {
                 // for now, this is a fake type
@@ -163,7 +163,7 @@ public class Translate {
     // translate a statement
     // this function does not return its result,
     // as the result has been saved into currentBlock
-    public void transStm(Ast.Stm.T stm) throws Exception {
+    public void transStm(Ast.Stm.T stm) {
         switch (stm) {
             case Ast.Stm.Assign(String id, Ast.Exp.T exp, Ast.Type.T type) -> {
                 Cfg.Value.T value = transExp(exp);
@@ -207,7 +207,7 @@ public class Translate {
         }
     }
 
-    public Cfg.Function.T translateMethod(Ast.Method.T method) throws Exception {
+    public Cfg.Function.T translateMethod(Ast.Method.T method) {
         switch (method) {
             case Ast.Method.Singleton(
                     Ast.Type.T retType,
@@ -257,7 +257,7 @@ public class Translate {
     // the prefixing algorithm
     public void prefixing(InheritTree.Node root,
                           Vector<Cfg.Dec.T> decs,
-                          Vector<Cfg.Vtable.Entry> functions) throws Exception {
+                          Vector<Cfg.Vtable.Entry> functions) {
         Ast.Class.T cls = root.theClass;
         this.currentClassName = Ast.Class.getName(cls);
 
@@ -311,7 +311,7 @@ public class Translate {
 
     // given an abstract syntax tree, lower it down
     // to a corresponding control-flow graph.
-    public Cfg.Program.T translate(Ast.Program.T ast) throws Exception {
+    public Cfg.Program.T translate(Ast.Program.T ast) {
         // build the inheritance tree
         InheritTree.Node root = new InheritTree(ast).buildTree();
 
