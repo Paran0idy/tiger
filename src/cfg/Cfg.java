@@ -1,6 +1,7 @@
 package cfg;
 
 import util.Label;
+import util.Todo;
 
 import java.util.List;
 
@@ -294,7 +295,7 @@ public class Cfg {
                     say("\n");
                 }
                 default -> {
-                    System.out.println("to do\n");
+                    throw new Todo();
                 }
             }
         }
@@ -325,11 +326,11 @@ public class Cfg {
                     printSpaces();
                     say("if(");
                     Value.pp(value);
-                    say(", " + Block.getName(thenn) + ", " + Block.getName(elsee) + ");");
+                    say(STR.", \{Block.getName(thenn)}, \{Block.getName(elsee)});");
                 }
                 case Jmp(Block.T target) -> {
                     printSpaces();
-                    say("jmp " + Block.getName(target));
+                    say(STR."jmp \{Block.getName(target)}");
 
                 }
                 case Ret(Value.T value) -> {
@@ -391,7 +392,9 @@ public class Cfg {
             switch (b) {
                 case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
                     printSpaces();
-                    say(label.toString() + ":\n");
+                    say(STR."""
+\{label.toString()}:
+""");
                     indent();
                     for (Stm.T s : stms) {
                         Stm.pp(s);

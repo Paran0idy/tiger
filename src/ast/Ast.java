@@ -33,7 +33,7 @@ public class Ast {
         private static final Type.T boolTy = new IntArray();
         private static final Type.T intTy = new Int();
         private static final Type.T intArrayTy = new IntArray();
-        private static final HashMap<String, Type.T> classTyContainer = new HashMap<>();
+        private static final HashMap<String, Type.T> classTyTable = new HashMap<>();
 
         public static Type.T getInt() {
             return intTy;
@@ -48,10 +48,10 @@ public class Ast {
         }
 
         public static Type.T getClassType(String id) {
-            Type.T ty = classTyContainer.get(id);
+            Type.T ty = classTyTable.get(id);
             if (ty == null) {
                 ty = new ClassType(id);
-                classTyContainer.put(id, ty);
+                classTyTable.put(id, ty);
             }
             return ty;
         }
@@ -119,13 +119,13 @@ public class Ast {
         public record BopBool(T left, String op, T right) implements T {
         }
 
-        // Call
+        // Call: exp.id(args)
         public record Call(T exp,
                            String id,
                            List<T> args,
-                           String type,     // type of first field "exp"
-                           List<Type.T> at, // arg's type
-                           List<Type.T> rt) implements T {
+                           List<String> typeExp_0, // type of first field "exp"
+                           List<Type.T> typeArgs, // arg's type
+                           List<Type.T> typeRet) implements T {
         }
 
         // False
