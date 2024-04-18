@@ -45,9 +45,8 @@ public class SamplePrograms {
             new Print(new Call(new NewObject(Id.newName("Fac")),
                     new AstId(Id.newName("ComputeFac")),
                     List.of(new Num(10)),
-                    null,
-                    null,
-                    null)));
+                    new Tuple1<>(),
+                    new Tuple1<>())));
 
     // // class "Fac"
     static ast.Ast.Class.T fac = new ast.Ast.Class.Singleton(
@@ -72,9 +71,8 @@ public class SamplePrograms {
                                                     List.of(new Bop(new ExpId(new AstId(Id.newName("num"))),
                                                             "-",
                                                             new Num(1))),
-                                                    null,
-                                                    null,
-                                                    null))))),
+                                                    new Tuple1<>(),
+                                                    new Tuple1<>()))))),
                     new ExpId(new AstId(Id.newName("num_aux"))))),
             new Tuple1<>());
 
@@ -105,9 +103,8 @@ public class SamplePrograms {
             new Print(new Call(new NewObject(Id.newName("Doit")),
                     new AstId(Id.newName("doit")),
                     List.of(new Num(100)),
-                    null,
-                    null,
-                    null)));
+                    new Tuple1<>(),
+                    new Tuple1<>())));
 
     // // class "Doit"
     static ast.Ast.Class.T doitSumRec = new ast.Ast.Class.Singleton(
@@ -133,9 +130,8 @@ public class SamplePrograms {
                                                     List.of(new Bop(new ExpId(new AstId(Id.newName("n"))),
                                                             "-",
                                                             new Num(1))),
-                                                    null,
-                                                    null,
-                                                    null))))),
+                                                    new Tuple1<>(),
+                                                    new Tuple1<>()))))),
                     new ExpId(new AstId(Id.newName("sum"))))),
             new Tuple1<>());
 

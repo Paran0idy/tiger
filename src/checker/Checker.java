@@ -8,6 +8,7 @@ import control.Control;
 import util.Id;
 import util.Pair;
 import util.Todo;
+import util.Tuple1;
 
 import java.util.List;
 import java.util.Objects;
@@ -66,17 +67,18 @@ public class Checker {
     private Type.T checkExp(Exp.T e) {
         switch (e) {
             case Exp.Call(
-                    Exp.T callee,
+                    Exp.T theObject,
                     AstId methodId,
                     List<Exp.T> args,
-                    Type.T calleeType,
-                    List<Type.T> argTypes,
-                    Type.T retType
+                    Tuple1<Id> calleeTy,
+                    Tuple1<Type.T> retTy
             ) -> {
-                var resultCallee = checkExp(callee);
+                var typeOfTheObject = checkExp(theObject);
                 Id calleeClassId = null;
-                if (Objects.requireNonNull(resultCallee) instanceof Type.ClassType(Id calleeClassId_)) {
+                if (Objects.requireNonNull(typeOfTheObject) instanceof Type.ClassType(Id calleeClassId_)) {
                     calleeClassId = calleeClassId_;
+                    // put the return type onto the AST
+                    calleeTy.setData(calleeClassId);
                 }
                 var resultMethodId = this.classTable.getMethod(calleeClassId, methodId.id);
                 if (resultMethodId == null) {
@@ -85,7 +87,10 @@ public class Checker {
                 var resultArgs = args.stream().map(this::checkExp).toList();
                 assert resultMethodId != null;
                 methodId.freshId = resultMethodId.second();
-                return resultMethodId.first().retType();
+                Ast.Type.T retType = resultMethodId.first().retType();
+                // put the return type onto the AST
+                retTy.setData(retType);
+                return retType;
             }
             case Exp.NewObject(Id classId) -> {
                 var classBinding = this.classTable.getClass_(classId);

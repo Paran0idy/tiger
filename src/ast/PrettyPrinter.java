@@ -3,6 +3,7 @@ package ast;
 import ast.Ast.*;
 import util.Id;
 import util.Todo;
+import util.Tuple1;
 
 import java.util.List;
 
@@ -56,9 +57,8 @@ public class PrettyPrinter {
                     Exp.T callee,
                     AstId methodId,
                     List<Exp.T> args,
-                    Type.T type,
-                    List<Type.T> argTypes,
-                    Type.T retType
+                    Tuple1<Id> theObjectType,
+                    Tuple1<Type.T> retType
             ) -> {
                 ppExp(callee);
                 say(STR.".");
