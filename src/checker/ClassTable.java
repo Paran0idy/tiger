@@ -36,6 +36,7 @@ public class ClassTable {
     public record Binding(
             // null for empty extends
             Id extends_,
+            Ast.Class.T self,
             // the field in a class: its type and fresh id
             java.util.HashMap<Id, Pair<Type.T, Id>> fields,
             // the method in a class: its type and fresh id
@@ -75,11 +76,12 @@ public class ClassTable {
     }
 
     // Duplication is not allowed
-    public void putClass(Id classId, Id extends_) {
+    public void putClass(Id classId, Id extends_, Ast.Class.T self) {
         if (this.classTable.get(classId) != null) {
             error(STR."duplicated class: \{classId}");
         }
         Binding classBinding = new Binding(extends_,
+                self,
                 new HashMap<>(),
                 new HashMap<>());
         this.classTable.put(classId, classBinding);

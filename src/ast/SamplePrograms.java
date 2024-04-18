@@ -6,6 +6,7 @@ import ast.Ast.Stm.Assign;
 import ast.Ast.Stm.If;
 import ast.Ast.Stm.Print;
 import util.Id;
+import util.Tuple1;
 
 import java.util.List;
 
@@ -50,7 +51,8 @@ public class SamplePrograms {
 
     // // class "Fac"
     static ast.Ast.Class.T fac = new ast.Ast.Class.Singleton(
-            Id.newName("Fac"), null,
+            Id.newName("Fac"),
+            null,
             List.of(), // arguments
             List.of(new Method.Singleton(
                     Type.getInt(),
@@ -73,7 +75,8 @@ public class SamplePrograms {
                                                     null,
                                                     null,
                                                     null))))),
-                    new ExpId(new AstId(Id.newName("num_aux"))))));
+                    new ExpId(new AstId(Id.newName("num_aux"))))),
+            new Tuple1<>());
 
     // program
     public static Program.T progFac = new Program.Singleton(factorial, List.of(fac));
@@ -133,7 +136,8 @@ public class SamplePrograms {
                                                     null,
                                                     null,
                                                     null))))),
-                    new ExpId(new AstId(Id.newName("sum"))))));
+                    new ExpId(new AstId(Id.newName("sum"))))),
+            new Tuple1<>());
 
     public static Program.T progSumRec = new Program.Singleton(sumRec, List.of(doitSumRec));
 
