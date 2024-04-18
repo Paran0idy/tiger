@@ -221,7 +221,7 @@ public class Translate {
                     List<Ast.Stm.T> stms,
                     Ast.Exp.T retExp
             ) -> {
-                this.currentThis = Id.newName("this").newSameOrigName();
+                this.currentThis = Id.newName("this");
                 // clear the caches:
                 Cfg.Function.T newFunc = new Cfg.Function.Singleton(transType(retType),
                         this.currentClassName,
