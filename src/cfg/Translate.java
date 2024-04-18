@@ -1,6 +1,7 @@
 package cfg;
 
 import ast.Ast;
+import util.Id;
 import util.Label;
 import util.Temp;
 import util.Todo;
@@ -30,7 +31,7 @@ public class Translate {
     // translate a type
     public Cfg.Type.T transType(Ast.Type.T ty) {
         switch (ty) {
-            case Ast.Type.ClassType(String id) -> {
+            case Ast.Type.ClassType(Id id) -> {
                 return new Cfg.Type.ClassType(id);
             }
             case Ast.Type.Boolean() -> {
@@ -47,8 +48,8 @@ public class Translate {
 
     public Cfg.Dec.T transDec(Ast.Dec.T dec) {
         switch (dec) {
-            case Ast.Dec.Singleton(Ast.Type.T type, String id) -> {
-                return new Cfg.Dec.Singleton(transType(type), id);
+            case Ast.Dec.Singleton(Ast.Type.T type, Ast.AstId aid) -> {
+                return new Cfg.Dec.Singleton(transType(type), aid.freshId);
             }
         }
     }
@@ -78,7 +79,7 @@ public class Translate {
     // translate an expression
     public Cfg.Value.T transExp(Ast.Exp.T exp) {
         switch (exp) {
-            case Ast.Exp.Id(String id, Ast.Type.T type, boolean isField) -> {
+            case Ast.Exp.ExpId(String id, Ast.Type.T type, boolean isField) -> {
                 // for now, this is a fake type
                 Cfg.Type.T newType = new Cfg.Type.Int();
                 return new Cfg.Value.Id(id, newType);
@@ -88,9 +89,9 @@ public class Translate {
             }
             case Ast.Exp.Call(
                     Ast.Exp.T exp1,
-                    String id,
+                    Ast.AstId methodId,
                     List<Ast.Exp.T> args,
-                    String calleeType,
+                    Ast.Type.T type,
                     List<Ast.Type.T> at,
                     List<Ast.Type.T> rt
             ) -> {

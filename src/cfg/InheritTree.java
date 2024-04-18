@@ -1,6 +1,7 @@
 package cfg;
 
 import ast.Ast;
+import util.Id;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class InheritTree {
     public Node buildTree() {
         // we first create a fake "Object" class
         // this is also the root node
-        Ast.Class.T objCls = new Ast.Class.Singleton("Object",
+        Ast.Class.T objCls = new Ast.Class.Singleton(Id.newName("Object"),
                 null, // null for non-existing "extends"
                 new LinkedList<>(),
                 new LinkedList<>());
@@ -68,7 +69,7 @@ public class InheritTree {
         // scan all class for the second time,
         // to add the parent-child
         for (Ast.Class.T c : classes) {
-            String parentClassName = ((Ast.Class.Singleton) c).extends_();
+            Id parentClassName = ((Ast.Class.Singleton) c).extends_();
             Node parentNode;
             // this is special, as its root is "Object"
             if (parentClassName == null) {

@@ -1,11 +1,13 @@
 package ast;
 
 import ast.Ast.*;
+import util.Id;
 import util.Todo;
 
 import java.util.List;
 
 public class PrettyPrinter {
+    public boolean afterTypeCheck = false;
     private int indentLevel = 4;
 
     public PrettyPrinter() {
@@ -35,27 +37,41 @@ public class PrettyPrinter {
     }
 
     // /////////////////////////////////////////////////////
+    // ast id
+    public void ppAstId(AstId aid) {
+        if (afterTypeCheck)
+            say(aid.freshId);
+        else
+            say(aid.id);
+    }
+
+    // /////////////////////////////////////////////////////
     // expressions
     public void ppExp(Exp.T e) {
         switch (e) {
+            case Exp.ExpId(AstId aid) -> {
+                ppAstId(aid);
+            }
             case Exp.Call(
                     Exp.T callee,
-                    String id,
+                    AstId methodId,
                     List<Exp.T> args,
-                    String ty,
+                    Type type,
                     List<Type.T> argTypes,
                     List<Type.T> retType
             ) -> {
                 ppExp(callee);
-                say(STR.".\{id}(");
+                say(STR.".");
+                ppAstId(methodId);
+                say("(");
                 for (Exp.T arg : args) {
                     ppExp(arg);
                     say(", ");
                 }
                 say(")");
             }
-            case Exp.NewObject(String id) -> {
-                say(STR."new \{id}()");
+            case Exp.NewObject(Id id) -> {
+                say(STR."new \{id.toString()}()");
             }
             case Exp.Num(int n) -> {
                 say(n);
@@ -64,9 +80,6 @@ public class PrettyPrinter {
                 ppExp(left);
                 say(STR." \{bop} ");
                 ppExp(right);
-            }
-            case Exp.Id(String x, Type.T ty, boolean isField) -> {
-                say(x);
             }
             case Exp.This() -> {
                 say("this");
@@ -102,15 +115,14 @@ public class PrettyPrinter {
                 ppExp(exp);
                 sayln(");");
             }
-            case Stm.Assign(String x, Exp.T exp, Type.T ty) -> {
+            case Stm.Assign(AstId aid, Exp.T exp) -> {
                 printSpaces();
-                say(STR."\{x} = ");
+                ppAstId(aid);
+                say(STR." = ");
                 ppExp(exp);
                 sayln(";");
             }
-            default -> {
-                throw new Todo();
-            }
+            default -> throw new Todo();
         }
     }
 
@@ -136,7 +148,7 @@ public class PrettyPrinter {
         Dec.Singleton d = (Dec.Singleton) dec;
         ppType(d.type());
         say(" ");
-        say(d.id());
+        ppAstId(d.aid());
     }
 
     // method
@@ -145,7 +157,9 @@ public class PrettyPrinter {
         printSpaces();
         this.say("public ");
         ppType(m.retType());
-        this.say(STR." \{m.id()}(");
+        this.say(" ");
+        ppAstId(m.methodId());
+        this.say(STR."(");
         for (Dec.T d : m.formals()) {
             ppDec(d);
             say(", ");
@@ -172,7 +186,7 @@ public class PrettyPrinter {
     // class
     public void ppOneClass(Ast.Class.T cls) {
         Ast.Class.Singleton c = (Ast.Class.Singleton) cls;
-        this.say(STR."class \{c.id()}");
+        this.say(STR."class \{c.classId()}");
         if (c.extends_() != null)
             this.say(STR." extends \{c.extends_()}");
         else
@@ -191,17 +205,18 @@ public class PrettyPrinter {
     // main class
     public void ppMainClass(MainClass.T m) {
         MainClass.Singleton mc = (MainClass.Singleton) m;
-        this.sayln(STR."class \{mc.id()}{");
+        this.sayln(STR."class \{mc.classId()}{");
+        this.say(STR."\tpublic static void main(String[] ");
+        ppAstId(mc.arg());
+        sayln("){");
         indent();
-        printSpaces();
-        this.sayln(STR."public static void main(String [] \{mc.arg()}){");
         indent();
         ppStm(mc.stm());
         unIndent();
-        printSpaces();
-        this.sayln("}");
         unIndent();
+        this.sayln("\t}");
         this.sayln("}");
+        return;
     }
 
     // program
