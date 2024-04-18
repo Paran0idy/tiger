@@ -1,6 +1,8 @@
 package cfg;
 
 import ast.Ast;
+import util.Id;
+import util.Tuple1;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -51,30 +53,35 @@ public class InheritTree {
     public Node buildTree() {
         // we first create a fake "Object" class
         // this is also the root node
-        Ast.Class.T objCls = new Ast.Class.Singleton("Object",
+        Ast.Class.T objCls = new Ast.Class.Singleton(Id.newName("Object"),
                 null, // null for non-existing "extends"
                 new LinkedList<>(),
-                new LinkedList<>());
+                new LinkedList<>(),
+                new Tuple1<>());
         Node n = new Node(objCls, new Vector<>());
         this.nodes.add(n);
         this.root = n;
 
         // round #1: scan all class
-        // to add all classes into the "nodes"
-        List<Ast.Class.T> classes = Ast.Program.getClasses(ast);
+        // to add all classes into the "nodes", excluding "Main" class
+        List<Ast.Class.T> classes = null;
+        if (ast instanceof Ast.Program.Singleton(Ast.MainClass.T mainClass, List<Ast.Class.T> classes1)) {
+            classes = classes1;
+        }
+        assert classes != null;
         for (Ast.Class.T cls : classes) {
             this.addClass(cls);
         }
         // scan all class for the second time,
-        // to add the parent-child
+        // to establish the parent-child relationship
         for (Ast.Class.T c : classes) {
-            String parentClassName = ((Ast.Class.Singleton) c).extends_();
+            Ast.Class.Singleton cls = (Ast.Class.Singleton) c;
             Node parentNode;
             // this is special, as its root is "Object"
-            if (parentClassName == null) {
+            if (cls.extends_() == null) {
                 parentNode = this.root;
             } else {
-                parentNode = searchClass(Ast.Program.searchClass(ast, parentClassName));
+                parentNode = searchClass(cls.parent().getData());
             }
             Node childNode = searchClass(c);
             // add the child into parent

@@ -1,5 +1,6 @@
 package codegen;
 
+import util.Id;
 import util.Label;
 
 import java.util.List;
@@ -109,24 +110,20 @@ public class X64 {
                 ClassType,
                 Int,
                 IntArray,
-                Ptr,
-                PtrCode {
+                CodePtr {
         }
 
         public record Int() implements T {
         }
 
-        public record ClassType(String id) implements T {
+        public record ClassType(Id id) implements T {
         }
 
         public record IntArray() implements T {
         }
 
-        public record Ptr() implements T {
-        }
-
         // a pointer to code
-        public record PtrCode() implements T {
+        public record CodePtr() implements T {
         }
 
         public static void pp(T ty) {
@@ -134,17 +131,14 @@ public class X64 {
                 case Int() -> {
                     say("int");
                 }
-                case ClassType(String id) -> {
-                    say(id);
+                case ClassType(Id id) -> {
+                    say(id.toString());
                 }
                 case IntArray() -> {
                     say("int[]");
                 }
-                case Ptr() -> {
-                    say("Ptr");
-                }
-                case PtrCode() -> {
-                    say("PtrCode");
+                case CodePtr() -> {
+                    say("CodePtr");
                 }
             }
         }
@@ -157,14 +151,14 @@ public class X64 {
         }
 
         public record Singleton(Type.T type,
-                                String id) implements T {
+                                Id id) implements T {
         }
 
         public static void pp(T dec) {
             switch (dec) {
-                case Singleton(Type.T type, String id) -> {
+                case Singleton(Type.T type, Id id) -> {
                     Type.pp(type);
-                    say(STR." \{id}");
+                    say(STR." \{id.toString()}");
                 }
             }
         }
@@ -177,14 +171,14 @@ public class X64 {
         public sealed interface T permits Singleton {
         }
 
-        public record Singleton(String name,
+        public record Singleton(Id name,
                                 List<String> funcs) implements T {
         }
 
         public static void pp(T vtable) {
             switch (vtable) {
                 case Singleton(
-                        String name,
+                        Id name,
                         List<String> funcs
                 ) -> {
                     printSpaces();
@@ -251,16 +245,15 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // a virtual register may be a pseudo- or physical one.
     public static class VirtualReg {
-        public sealed interface T permits
-                Id,
-                Reg {
+        public sealed interface T
+                permits Vid, Reg {
         }
 
         // variable
-        public record Id(String x, Type.T ty) implements T {
+        public record Vid(Id id, Type.T ty) implements T {
             @Override
             public String toString() {
-                return x;
+                return id.toString();
             }
         }
 
@@ -274,8 +267,8 @@ struct V_\{clsName} *vptr;
 
         public static void pp(T ty) {
             switch (ty) {
-                case Id(String x, _) -> {
-                    say(x);
+                case Vid(Id x, _) -> {
+                    say(x.toString());
                 }
                 case Reg(String x, Type.T type) -> {
                     say(x);
@@ -553,7 +546,8 @@ struct V_\{clsName} *vptr;
         }
 
         public record Singleton(Type.T retType,
-                                String id,
+                                Id classId,
+                                Id methodId,
                                 List<Dec.T> formals,
                                 List<Dec.T> locals,
                                 List<Block.T> blocks) implements T {
@@ -563,7 +557,8 @@ struct V_\{clsName} *vptr;
             switch (func) {
                 case Singleton(
                         Type.T retType,
-                        String id,
+                        Id classId,
+                        Id methodId,
                         List<Dec.T> formals,
                         List<Dec.T> locals,
                         List<Block.T> blocks
@@ -576,11 +571,12 @@ struct V_\{clsName} *vptr;
         public static void pp(T f) {
             switch (f) {
                 case Singleton(
-                        Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType, Id classId,
+                        Id methodId, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
                 ) -> {
                     printSpaces();
                     Type.pp(retType);
-                    say(STR." \{id}(");
+                    say(STR." \{classId}_\{methodId}(");
                     for (Dec.T dec : formals) {
                         Dec.pp(dec);
                         say(", ");
@@ -609,7 +605,8 @@ struct V_\{clsName} *vptr;
         public sealed interface T permits Singleton {
         }
 
-        public record Singleton(String entryFuncName, // name of the entry function
+        public record Singleton(Id entryClassName,
+                                Id entryFuncName, // name of the entry function
                                 List<Vtable.T> vtables,
                                 List<Struct.T> structs,
                                 List<Function.T> functions) implements T {
@@ -618,12 +615,13 @@ struct V_\{clsName} *vptr;
         public static void pp(T prog) {
             switch (prog) {
                 case Singleton(
-                        String entryFuncName, List<Vtable.T> vtables, List<Struct.T> structs, List<Function.T> functions
+                        Id entryClassName,
+                        Id entryFuncName, List<Vtable.T> vtables, List<Struct.T> structs, List<Function.T> functions
                 ) -> {
                     printSpaces();
                     sayln("// x64 assembly generated by the Tiger compiler.");
                     printSpaces();
-                    sayln(STR."// the entry function: \{entryFuncName}");
+                    sayln(STR."// the entry function: \{entryClassName}_\{entryFuncName.toString()}");
                     // vtables
                     for (X64.Vtable.T vtable : vtables) {
                         Vtable.pp(vtable);
