@@ -155,7 +155,7 @@ public class Ast {
         public record Call(T exp,
                            AstId methodId,
                            List<T> args,
-                           Type type,     // type of object "exp"
+                           Type.T type,     // type of object "exp"
                            List<Type.T> at, // arg's type
                            Type.T rt) implements T {
         }

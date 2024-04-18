@@ -56,7 +56,7 @@ public class PrettyPrinter {
                     Exp.T callee,
                     AstId methodId,
                     List<Exp.T> args,
-                    Type type,
+                    Type.T type,
                     List<Type.T> argTypes,
                     Type.T retType
             ) -> {
