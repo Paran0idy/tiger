@@ -14,11 +14,11 @@ import java.util.Objects;
 
 public class Checker {
     // symbol table for all classes
-    public ClassTable classTable;
+    private final ClassTable classTable;
     // symbol table for each method
-    public MethodTable methodTable;
+    private MethodTable methodTable;
     // the class name being checked
-    public Id currentClass;
+    private Id currentClass;
 
     public Checker() {
         this.classTable = new ClassTable();
@@ -40,7 +40,7 @@ public class Checker {
 
     // /////////////////////////////////////////////////////
     // ast-id
-    public Type.T checkAstId(AstId aid) {
+    private Type.T checkAstId(AstId aid) {
         boolean isClassField = false;
         // first search in current method table
         Pair<Ast.Type.T, Id> resultId = this.methodTable.get(aid.id);
@@ -63,7 +63,7 @@ public class Checker {
     // expressions
     // type check an expression will return its type, as well
     // as a new expression.
-    public Type.T checkExp(Exp.T e) {
+    private Type.T checkExp(Exp.T e) {
         switch (e) {
             case Exp.Call(
                     Exp.T callee,
@@ -128,7 +128,7 @@ public class Checker {
 
     // type check statements
     // produce new statement
-    public void checkStm(Stm.T s) {
+    private void checkStm(Stm.T s) {
         switch (s) {
             case Stm.If(Exp.T cond, Stm.T then_, Stm.T else_) -> {
                 var resultCond = checkExp(cond);
@@ -172,7 +172,7 @@ public class Checker {
     }
 
     // method
-    public void checkMethod(Method.T mtd) {
+    private void checkMethod(Method.T mtd) {
         Method.Singleton m = (Method.Singleton) mtd;
         // construct the method table
         this.methodTable = new MethodTable();
@@ -187,16 +187,21 @@ public class Checker {
     }
 
     // class
-    public void checkClass(Class.T c) {
+    private void checkClass(Class.T c) {
         Class.Singleton cls = (Class.Singleton) c;
         this.currentClass = cls.classId();
+        Id extends_ = cls.extends_();
+        if (extends_ != null) {
+            ClassTable.Binding binding = this.classTable.getClass_(extends_);
+            cls.parent().setData(binding.self());
+        }
         for (Method.T mtd : cls.methods()) {
             checkMethod(mtd);
         }
     }
 
     // main class
-    public void checkMainClass(MainClass.T c) {
+    private void checkMainClass(MainClass.T c) {
         MainClass.Singleton mainClass = (MainClass.Singleton) c;
         this.currentClass = mainClass.classId();
         // "main" method has an argument "arg" of type "String[]", but
@@ -211,14 +216,16 @@ public class Checker {
     // ////////////////////////////////////////////////////////
     // step 1: create class table for Main class
     private void buildMainClass(MainClass.T main) {
-        MainClass.Singleton mc = (MainClass.Singleton) main;
-        this.classTable.putClass(mc.classId(), null);
+        // we do not put Main class into the class table.
+        // so that no other class can inherit from it.
+        //MainClass.Singleton mc = (MainClass.Singleton) main;
+        //this.classTable.putClass(mc.classId(), null);
     }
 
     // create class table for each normal class
     private void buildClass(Class.T cls) {
         Class.Singleton c = (Class.Singleton) cls;
-        this.classTable.putClass(c.classId(), c.extends_());
+        this.classTable.putClass(c.classId(), c.extends_(), cls);
 
         // add all instance variables into the class table
         for (Dec.T dec : c.decs()) {
@@ -242,7 +249,7 @@ public class Checker {
 
 
     // to check a program
-    public Ast.Program.T checkProgram0(Program.T p) {
+    private void checkProgram0(Program.T p) {
         // "p" is singleton
         Program.Singleton prog = (Program.Singleton) p;
         // ////////////////////////////////////////////////
@@ -254,11 +261,6 @@ public class Checker {
             buildClass(c);
         }
 
-        // we can double-check that the class table is OK!
-        //        if (control.Control.ConAst.elabClassTable) {
-        //            this.classTable.dump();
-        //        }
-
         // ////////////////////////////////////////////////
         // step 2: elaborate each class in turn, under the class table
         // built above.
@@ -267,14 +269,12 @@ public class Checker {
             checkClass(c);
         }
 
-        return p;
     }
 
     public Ast.Program.T checkProgram(Program.T ast) {
         PrettyPrinter pp = new PrettyPrinter();
 
         if (Control.Type.dump) {
-            pp.afterTypeCheck = false;
             pp.ppProgram(ast);
         }
 

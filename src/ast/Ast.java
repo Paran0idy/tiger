@@ -2,6 +2,7 @@ package ast;
 
 import util.Id;
 import util.Todo;
+import util.Tuple1;
 
 import java.util.HashMap;
 import java.util.List;
@@ -255,9 +256,11 @@ public class Ast {
         }
 
         public record Singleton(Id classId,
-                                Id extends_, // null for non-existing "extends"
+                                Id extends_, // "null" for non-existing "extends"
                                 List<Dec.T> decs,
-                                List<ast.Ast.Method.T> methods) implements T {
+                                List<ast.Ast.Method.T> methods,
+                                // contain null element for non-existing parent
+                                Tuple1<Class.T> parent) implements T {
         }
     }
 
