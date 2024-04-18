@@ -262,6 +262,14 @@ public class Ast {
                                 // contain null element for non-existing parent
                                 Tuple1<Class.T> parent) implements T {
         }
+
+        public static Id getClassId(Class.T cls) {
+            switch (cls) {
+                case Singleton(Id classId, Id extends_, List<Dec.T> decs, List<Method.T> methods, Tuple1<T> parent) -> {
+                    return classId;
+                }
+            }
+        }
     }
 
     // main class

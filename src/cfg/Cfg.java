@@ -37,7 +37,7 @@ public class Cfg {
     //  type
     public static class Type {
         public sealed interface T
-                permits ClassType, Int, IntArray, Ptr {
+                permits ClassType, Int, IntArray, CodePtr {
         }
 
         public record Int() implements T {
@@ -49,7 +49,7 @@ public class Cfg {
         public record IntArray() implements T {
         }
 
-        public record Ptr() implements T {
+        public record CodePtr() implements T {
         }
 
         public static void pp(T ty) {
@@ -63,8 +63,8 @@ public class Cfg {
                 case IntArray() -> {
                     say("int[]");
                 }
-                case Ptr() -> {
-                    say("Ptr");
+                case CodePtr() -> {
+                    say("CodePtr");
                 }
             }
         }
@@ -157,23 +157,29 @@ struct V_\{name} {
             switch (s) {
                 case Singleton(Id clsName, List<Cfg.Dec.T> fields) -> {
                     printSpaces();
-                    say(StringTemplate.STR."""
+                    say(STR."""
 struct S_\{clsName.toString()} {
 """);
                     indent();
                     // the first field is special
                     printSpaces();
-                    say("struct V_" + clsName + " *vptr;\n");
+                    say(STR."""
+struct V_\{clsName} *vptr;
+""");
                     for (Cfg.Dec.T dec : fields) {
                         printSpaces();
                         Dec.pp(dec);
                     }
                     unIndent();
                     printSpaces();
-                    say("} S_" + clsName + "_ = {\n");
+                    say(STR."""
+} S_\{clsName}_ = {
+""");
                     indent();
                     printSpaces();
-                    say(".vptr = " + "&V_" + clsName + "_;\n");
+                    say(STR."""
+.vptr = &V_\{clsName}_;
+""");
                     unIndent();
                     printSpaces();
                     say("};\n\n");
@@ -186,7 +192,7 @@ struct S_\{clsName.toString()} {
     // values
     public static class Value {
         public sealed interface T
-                permits Int, Id {
+                permits Int, Vid {
         }
 
         // integer constant
@@ -194,7 +200,7 @@ struct S_\{clsName.toString()} {
         }
 
         // variable
-        public record Id(Id x, Type.T ty) implements T {
+        public record Vid(Id x, Type.T ty) implements T {
         }
 
         public static void pp(T ty) {
@@ -202,7 +208,7 @@ struct S_\{clsName.toString()} {
                 case Int(int n) -> {
                     say(Integer.toString(n));
                 }
-                case Id(Id x, _) -> {
+                case Vid(Id x, _) -> {
                     say(x.toString());
                 }
             }
@@ -226,10 +232,10 @@ struct S_\{clsName.toString()} {
         }
 
         // assign
-        public record AssignCall(Id id, String func, List<Value.T> args, Type.T retType) implements T {
+        public record AssignCall(Id id, Id func, List<Value.T> args, Type.T retType) implements T {
         }
 
-        public record AssignNew(Id id, String cls) implements T {
+        public record AssignNew(Id id, Id cls) implements T {
         }
 
 
@@ -250,7 +256,7 @@ struct S_\{clsName.toString()} {
             switch (t) {
                 case Assign(Id id, Value.T right, Type.T type) -> {
                     printSpaces();
-                    say(id + " = ");
+                    say(STR."\{id} = ");
                     Value.pp(right);
                     say(";  @ty:");
                     Type.pp(type);
@@ -258,17 +264,17 @@ struct S_\{clsName.toString()} {
                 }
                 case AssignBop(Id id, Value.T left, String op, Value.T right, Type.T type) -> {
                     printSpaces();
-                    say(id + " = ");
+                    say(STR."\{id} = ");
                     Value.pp(left);
-                    say(" " + op + " ");
+                    say(STR." \{op} ");
                     Value.pp(right);
                     say(";  @ty:");
                     Type.pp(type);
                     sayln("");
                 }
-                case AssignCall(Id id, String func, List<Value.T> args, Type.T retType) -> {
+                case AssignCall(Id id, Id func, List<Value.T> args, Type.T retType) -> {
                     printSpaces();
-                    say(id + " = " + func + "(");
+                    say(STR."\{id} = \{func}(");
                     for (Value.T arg : args) {
                         Value.pp(arg);
                         say(", ");
@@ -277,9 +283,11 @@ struct S_\{clsName.toString()} {
                     Type.pp(retType);
                     sayln("");
                 }
-                case AssignNew(Id id, String cls) -> {
+                case AssignNew(Id id, Id classId) -> {
                     printSpaces();
-                    say(id + " = new " + cls + "();\n");
+                    say(STR."""
+\{id} = new \{classId}();
+""");
                 }
                 case Print(Value.T value) -> {
                     printSpaces();
@@ -289,9 +297,9 @@ struct S_\{clsName.toString()} {
                 }
                 case GetMethod(Id id, Value.T value, Type.T cls, Id methodName) -> {
                     printSpaces();
-                    say(id + " = getMethod(");
+                    say(STR."\{id} = getMethod(");
                     Value.pp(value);
-                    say(", \"" + methodName + "\");  @ty:");
+                    say(STR.", \"\{methodName}\");  @ty:");
                     Type.pp(cls);
                     say("\n");
                 }
@@ -329,11 +337,11 @@ struct S_\{clsName.toString()} {
                     printSpaces();
                     say("if(");
                     Value.pp(value);
-                    say(", " + Block.getName(thenn) + ", " + Block.getName(elsee) + ");");
+                    say(STR.", \{Block.getName(thenn)}, \{Block.getName(elsee)});");
                 }
                 case Jmp(Block.T target) -> {
                     printSpaces();
-                    say("jmp " + Block.getName(target));
+                    say(STR."jmp \{Block.getName(target)}");
 
                 }
                 case Ret(Value.T value) -> {
@@ -391,7 +399,7 @@ struct S_\{clsName.toString()} {
                         List<Transfer.T> transfer
                 ) -> {
                     printSpaces();
-                    say(StringTemplate.STR."""
+                    say(STR."""
 \{label.toString()}:
 """);
                     indent();
@@ -413,6 +421,7 @@ struct S_\{clsName.toString()} {
         }
 
         public record Singleton(Type.T retType,
+                                Id classId,
                                 Id functionId,
                                 List<Dec.T> formals,
                                 List<Dec.T> locals,
@@ -423,7 +432,8 @@ struct S_\{clsName.toString()} {
             switch (func) {
                 case Singleton(
                         Type.T retType,
-                        Id id,
+                        Id classId,
+                        Id functionId,
                         List<Dec.T> formals,
                         List<Dec.T> locals,
                         List<Block.T> blocks
@@ -436,7 +446,9 @@ struct S_\{clsName.toString()} {
         public static void addFirstFormal(T func, Dec.T formal) {
             switch (func) {
                 case Singleton(
-                        Type.T retType, Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType,
+                        Id clsId,
+                        Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
                 ) -> {
                     formals.addFirst(formal);
                 }
@@ -446,7 +458,9 @@ struct S_\{clsName.toString()} {
         public static void addDecs(T func, List<Dec.T> decs) {
             switch (func) {
                 case Singleton(
-                        Type.T retType, Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType,
+                        Id classId,
+                        Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
                 ) -> {
                     locals.addAll(decs);
                 }
@@ -456,11 +470,13 @@ struct S_\{clsName.toString()} {
         public static void pp(T f) {
             switch (f) {
                 case Singleton(
-                        Type.T retType, Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        Type.T retType,
+                        Id clsId,
+                        Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
                 ) -> {
                     printSpaces();
                     Type.pp(retType);
-                    say(StringTemplate.STR." \{id}(");
+                    say(STR." \{id}(");
                     for (Dec.T dec : formals) {
                         Dec.pp(dec);
                         say(", ");
