@@ -470,6 +470,7 @@ public class Munch {
                     ) -> {
                         transfer.add(new X64.Transfer.Jmp(blocks.getFirst()));
                         blocks.addFirst(newEntryBlock);
+                        this.currentInstrs = instrs;
                         // to move arguments:
                         int index = 0;
                         for (X64.Dec.T formal : formals) {
