@@ -65,7 +65,7 @@ public class Id {
         return this.counter == ((Id) o).counter;
     }
 
-    private boolean debug = true;
+    private boolean debug = false;
 
     @Override
     public String toString() {

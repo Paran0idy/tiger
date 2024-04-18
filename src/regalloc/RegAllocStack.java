@@ -2,6 +2,7 @@ package regalloc;
 
 import cfg.Cfg;
 import codegen.X64;
+import control.Control;
 import util.Id;
 import util.Label;
 import util.Pair;
@@ -361,7 +362,7 @@ public class RegAllocStack {
         }
     }
 
-    public X64.Program.T allocProgram(X64.Program.T x64) {
+    private X64.Program.T allocProgram0(X64.Program.T x64) {
         switch (x64) {
             case X64.Program.Singleton(
                     Id entryClassName,
@@ -379,4 +380,16 @@ public class RegAllocStack {
             }
         }
     }
+
+    public X64.Program.T allocProgram(X64.Program.T x64) {
+        X64.Program.T newX64 = allocProgram0(x64);
+        if (Control.X64.dump) {
+            X64.Program.pp(newX64);
+        }
+        if (Control.X64.assemFile != null) {
+            new PpAssem().ppProgram(newX64);
+        }
+        return newX64;
+    }
+
 }

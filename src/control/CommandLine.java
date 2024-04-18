@@ -67,6 +67,13 @@ public class CommandLine {
                             usage();
                             System.exit(1);
                         }),
+                new Arg("S",
+                        "<file>",
+                        "generate assembly file",
+                        Kind.String,
+                        (Object x) -> {
+                            Control.X64.assemFile = (String) x;
+                        }),
                 new Arg("verbose",
                         "{0|1|2}",
                         "how verbose to be",
