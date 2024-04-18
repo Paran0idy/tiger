@@ -45,7 +45,7 @@ public class CommandLine {
                             }
                         }),
                 new Arg("dump",
-                        "{ast|token|type}",
+                        "{ast|token|type|cfg|x64}",
                         "dump intermediate results",
                         Kind.String,
                         (Object x) -> {
@@ -53,6 +53,8 @@ public class CommandLine {
                                 case "ast" -> Control.Parser.dump = true;
                                 case "token" -> Control.Lexer.dumpToken = true;
                                 case "type" -> Control.Type.dump = true;
+                                case "cfg" -> Control.Cfg.dump = true;
+                                case "x64" -> Control.X64.dump = true;
                                 default -> error(STR."unknown argument: \{x}");
                             }
                         }),

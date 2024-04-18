@@ -50,8 +50,7 @@ public class Tiger {
                         (f) -> new codegen.Munch().munchProgram(f),
                         cfg);
         X64.Program.T x64 = codeGenPass.apply();
-
-
+        
     }
 }
 
