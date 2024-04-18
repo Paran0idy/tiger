@@ -69,7 +69,7 @@ public class Checker {
                     Exp.T callee,
                     AstId methodId,
                     List<Exp.T> args,
-                    Type calleeType,
+                    Type.T calleeType,
                     List<Type.T> argTypes,
                     List<Type.T> retType
             ) -> {
