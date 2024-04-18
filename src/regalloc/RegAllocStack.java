@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 // a register allocator to allocate each virtual register to a physical one,
 // using a stack-based approach.
 public class RegAllocStack {
-
     // data structures to hold new instructions in a block
     TempMap tempMap;
     List<X64.Instr.T> newInstrs;
@@ -30,111 +29,6 @@ public class RegAllocStack {
 
         public static void reset() {
             counter = 0;
-        }
-    }
-
-
-    public X64.Type.T munchType(Cfg.Type.T type) {
-        switch (type) {
-            case Cfg.Type.ClassType(Id id) -> {
-                return new X64.Type.ClassType(id);
-            }
-            case Cfg.Type.Int() -> {
-                return new X64.Type.Int();
-            }
-            case Cfg.Type.IntArray() -> {
-                return new X64.Type.IntArray();
-            }
-            case Cfg.Type.CodePtr() -> {
-                return new X64.Type.CodePtr();
-            }
-        }
-    }
-
-    public X64.Dec.T munchDec(Cfg.Dec.T dec) {
-        switch (dec) {
-            case Cfg.Dec.Singleton(Cfg.Type.T type, Id id) -> {
-                return new X64.Dec.Singleton(munchType(type), id);
-            }
-        }
-    }
-
-    // generate a move instruction
-    public void genMove(Id dest,
-                        Cfg.Value.T value,
-                        X64.Type.T targetType, // type of the "dest"
-                        List<X64.Instr.T> instrs) {
-        switch (value) {
-            case Cfg.Value.Int(int n) -> {
-                List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
-                X64.Instr.T instr = new X64.Instr.MoveConst(
-                        (uarg, darg) ->
-                                STR."movq\t$\{n}, %\{darg.getFirst()}",
-                        new LinkedList<>(),
-                        defs);
-                instrs.add(instr);
-            }
-            case Cfg.Value.Vid(Id y, Cfg.Type.T ty) -> {
-                List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Vid(y, munchType(ty)));
-                List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
-                X64.Instr.T instr = new X64.Instr.MoveConst(
-                        (uarg, darg) ->
-                                STR."movq\t%\{uarg.getFirst()}, %\{darg.getFirst()}",
-                        uses,
-                        defs);
-                instrs.add(instr);
-            }
-        }
-    }
-
-    // generate a move instruction
-    public void genMoveAddr(Id dest, Id label, List<X64.Instr.T> instrs) {
-        List<X64.VirtualReg.T> uses = List.of();
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.CodePtr()));
-        X64.Instr.T instr = new X64.Instr.MoveConst(
-                (uarg, darg) ->
-                        STR."leaq\t$\{label}, %\{darg.getFirst()}",
-                uses,
-                defs);
-        instrs.add(instr);
-    }
-
-    // generate a move instruction
-    public void genMoveFromReg(Id dest,
-                               String physicalReg,
-                               X64.Type.T srcType,
-                               List<X64.Instr.T> instrs) {
-        List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Reg(physicalReg, srcType));
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, srcType));
-        X64.Instr.T instr = new X64.Instr.Move(
-                (uarg, darg) ->
-                        STR."movq\t%\{uarg.getFirst()}, %\{darg.getFirst()}",
-                uses,
-                defs);
-        instrs.add(instr);
-    }
-
-    public void genMoveToReg(String physicalReg, Cfg.Value.T value, List<X64.Instr.T> instrs) {
-        switch (value) {
-            case Cfg.Value.Int(int n) -> {
-                List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Reg(physicalReg, new X64.Type.Int()));
-                X64.Instr.T instr = new X64.Instr.MoveConst(
-                        (uarg, darg) ->
-                                STR."movq\t$\{n}, %\{darg.getFirst()}",
-                        new LinkedList<>(),
-                        defs);
-                instrs.add(instr);
-            }
-            case Cfg.Value.Vid(Id y, Cfg.Type.T ty) -> {
-                List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Vid(y, new X64.Type.Int()));
-                List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Reg(physicalReg, new X64.Type.Int()));
-                X64.Instr.T instr = new X64.Instr.MoveConst(
-                        (uarg, darg) ->
-                                STR."movq\t%\{uarg.getFirst()}, %\{darg.getFirst()}",
-                        uses,
-                        defs);
-                instrs.add(instr);
-            }
         }
     }
 
@@ -161,80 +55,6 @@ public class RegAllocStack {
                 uses,
                 defs);
         this.newInstrs.add(instr);
-    }
-
-    // generate a binary instruction
-    public void genBop(Id dest,
-                       Cfg.Value.T value,
-                       String bop,
-                       // whether the value will be assigned to "dest"
-                       boolean assigned,
-                       List<X64.Instr.T> instrs) {
-        List<X64.VirtualReg.T> uses, defs;
-        if (assigned)
-            defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
-        else
-            defs = List.of();
-
-        switch (value) {
-            case Cfg.Value.Int(int n) -> {
-                uses = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
-                X64.Instr.T instr = new X64.Instr.Bop(
-                        (uarg, darg) ->
-                                STR."\{bop}\t$\{n}, %\{uarg.getFirst()}",
-                        uses,
-                        defs);
-                instrs.add(instr);
-            }
-            case Cfg.Value.Vid(Id y, Cfg.Type.T ty) -> {
-                uses = List.of(new X64.VirtualReg.Vid(dest, munchType(ty)),
-                        new X64.VirtualReg.Vid(y, new X64.Type.Int()));
-                X64.Instr.T instr = new X64.Instr.Bop(
-                        (uarg, darg) ->
-                                STR."\{bop}\t%\{uarg.get(1)}, %\{uarg.get(0)}",
-                        uses,
-                        defs);
-                instrs.add(instr);
-            }
-        }
-    }
-
-    // generate an indirect call
-    public void genCallIndirect(String fname, List<X64.Instr.T> instrs) {
-        // this should be fixed...
-        List<X64.VirtualReg.T> uses = List.of();
-        List<X64.VirtualReg.T> defs = List.of();
-        X64.Instr.T instr = new X64.Instr.CallDirect(
-                (uarg, darg) ->
-                        STR."call\t*\{fname}",
-                uses,
-                defs);
-        instrs.add(instr);
-    }
-
-    // generate a direct call
-    public void genCallDirect(String fname, List<X64.Instr.T> instrs) {
-        // this should be fixed...
-        List<X64.VirtualReg.T> uses = List.of();
-        List<X64.VirtualReg.T> defs = List.of();
-        X64.Instr.T instr = new X64.Instr.CallDirect(
-                (uarg, darg) ->
-                        STR."call\t\{fname}",
-                uses,
-                defs);
-        instrs.add(instr);
-    }
-
-    // generate a comment
-    public void genComment(String comment, List<X64.Instr.T> instrs) {
-        List<X64.VirtualReg.T> uses = List.of();
-        List<X64.VirtualReg.T> defs = List.of();
-        X64.Instr.T instr = new X64.Instr.Comment(
-                (uarg, darg) ->
-                        STR."//\{comment}",
-                uses,
-                defs);
-        instrs.add(instr);
     }
 
     // return the new regs, along with v
