@@ -1,6 +1,7 @@
 package codegen;
 
 import cfg.Cfg;
+import util.Id;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +12,7 @@ public class Layout {
         // the size of a class, in bytes
         int numBytes;
         // the offsets of all methods in the given class
-        HashMap<String, Integer> methodOffsets;
+        HashMap<Id, Integer> methodOffsets;
 
         ClassLayoutBinding(int numBytes) {
             this.numBytes = numBytes;
@@ -19,20 +20,21 @@ public class Layout {
         }
     }
 
-    //
-    HashMap<String, ClassLayoutBinding> map;
+    // map each class name to its layout
+    HashMap<Id, ClassLayoutBinding> map;
+    // where to put the "vptr" in an object
     public int vtablePtrOffsetInObject;
 
-    public Layout() {
-        this.map = new HashMap<String, ClassLayoutBinding>();
+    Layout() {
+        this.map = new HashMap<Id, ClassLayoutBinding>();
         this.vtablePtrOffsetInObject = 0;
     }
 
-    public int classSize(String clazz) {
+    public int classSize(Id clazz) {
         return this.map.get(clazz).numBytes;
     }
 
-    public int methodOffset(String clazz, String method) {
+    public int methodOffset(Id clazz, Id method) {
         ClassLayoutBinding binding = this.map.get(clazz);
         return binding.methodOffsets.get(method);
     }
@@ -46,7 +48,7 @@ public class Layout {
     public void layoutVtable(Cfg.Vtable.T vtable) {
         switch (vtable) {
             case Cfg.Vtable.Singleton(
-                    String name,
+                    Id name,
                     List<Cfg.Vtable.Entry> funcTypes
             ) -> {
                 int i = 0;
@@ -60,7 +62,7 @@ public class Layout {
     public void layoutStruct(Cfg.Struct.T struct) {
         switch (struct) {
             case Cfg.Struct.Singleton(
-                    String clsName,
+                    Id clsName,
                     List<Cfg.Dec.T> fields
             ) -> {
                 int bytes = fields.size();
@@ -74,7 +76,8 @@ public class Layout {
     public void layoutProgram(Cfg.Program.T cfg) {
         switch (cfg) {
             case Cfg.Program.Singleton(
-                    String entryFuncName,
+                    Id entryClassName,
+                    Id entryFuncName,
                     List<Cfg.Vtable.T> vtables,
                     List<Cfg.Struct.T> structs,
                     List<Cfg.Function.T> functions

@@ -3,6 +3,7 @@ package regalloc;
 import codegen.X64;
 import codegen.X64.*;
 import control.Control;
+import util.Id;
 import util.Label;
 
 import java.io.BufferedWriter;
@@ -53,7 +54,7 @@ public class PpAssem {
 
     public void ppDec(X64.Dec.T dec) {
         switch (dec) {
-            case X64.Dec.Singleton(X64.Type.T type, String id) -> {
+            case X64.Dec.Singleton(X64.Type.T type, Id id) -> {
                 //Type.pp(type);
                 say(STR." \{id}");
             }
@@ -65,7 +66,7 @@ public class PpAssem {
     public static void ppVtable(X64.Vtable.T vtable) {
         switch (vtable) {
             case X64.Vtable.Singleton(
-                    String name,
+                    Id name,
                     List<String> funcs
             ) -> {
                 printSpaces();
@@ -90,7 +91,7 @@ public class PpAssem {
     // virtual regs
     public void ppVirtualReg(X64.VirtualReg.T vt) {
         switch (vt) {
-            case X64.VirtualReg.Id(String x, _) -> {
+            case X64.VirtualReg.Vid(Id x, _) -> {
                 throw new AssertionError(x);
             }
             case X64.VirtualReg.Reg(String x, X64.Type.T type) -> {
@@ -133,7 +134,7 @@ public class PpAssem {
                     List<VirtualReg.T> uses,
                     List<VirtualReg.T> defs
             ) -> {
-                if (Control.Codegen.embedComments)
+                if (Control.X64.embedComments)
                     printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
             }
             case Instr.Load(
@@ -243,14 +244,15 @@ public class PpAssem {
     public void ppFunction(X64.Function.T f) {
         switch (f) {
             case X64.Function.Singleton(
-                    Type.T retType, String id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                    Type.T retType, Id classId, Id methodId, List<Dec.T> formals, List<Dec.T> locals,
+                    List<Block.T> blocks
             ) -> {
                 printSpaces();
 //                Type.pp(retType);
-                sayln(STR."\t.globl \{id}");
+                sayln(STR."\t.globl \{classId}_\{methodId}");
                 printSpaces();
 //                Type.pp(retType);
-                sayln(STR."\{id}:");
+                sayln(STR."\{classId}_\{methodId}:");
 //                for (Dec.T dec : formals) {
 //                    Dec.pp(dec);
 //                    say(", ");
@@ -276,14 +278,15 @@ public class PpAssem {
     public void ppProgram(X64.Program.T prog) {
         switch (prog) {
             case X64.Program.Singleton(
-                    String entryFuncName,
+                    Id classId,
+                    Id entryFuncName,
                     List<X64.Vtable.T> vtables,
                     List<X64.Struct.T> structs,
                     List<X64.Function.T> functions
             ) -> {
                 // set up the output stream
                 try {
-                    writer = new BufferedWriter(new FileWriter(Control.Codegen.assemFile));
+                    writer = new BufferedWriter(new FileWriter(Control.X64.assemFile));
                 } catch (Exception _) {
                     throw new AssertionError();
                 }

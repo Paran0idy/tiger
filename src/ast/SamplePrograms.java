@@ -5,8 +5,9 @@ import ast.Ast.Exp.*;
 import ast.Ast.Stm.Assign;
 import ast.Ast.Stm.If;
 import ast.Ast.Stm.Print;
+import util.Id;
+import util.Tuple1;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class SamplePrograms {
@@ -39,30 +40,41 @@ public class SamplePrograms {
 
     // // main class: "Factorial"
     static MainClass.T factorial = new MainClass.Singleton(
-            "Factorial", "a",
-            new Print(new Call(new NewObject("Fac"), "ComputeFac",
-                    List.of(new Num(10)), null, null, null)));
+            Id.newName("Factorial"),
+            new AstId(Id.newName("a")),
+            new Print(new Call(new NewObject(Id.newName("Fac")),
+                    new AstId(Id.newName("ComputeFac")),
+                    List.of(new Num(10)),
+                    new Tuple1<>(),
+                    new Tuple1<>())));
 
     // // class "Fac"
     static ast.Ast.Class.T fac = new ast.Ast.Class.Singleton(
-            "Fac", null,
+            Id.newName("Fac"),
+            null,
             List.of(), // arguments
             List.of(new Method.Singleton(
-                    Type.getInt(), "ComputeFac",
-                    List.of(new Dec.Singleton(Type.getInt(), "num")),
-                    List.of(new Dec.Singleton(Type.getInt(), "num_aux")),
+                    Type.getInt(),
+                    new AstId(Id.newName("ComputeFac")),
+                    List.of(new Dec.Singleton(Type.getInt(), new AstId(Id.newName("num")))),
+                    List.of(new Dec.Singleton(Type.getInt(), new AstId(Id.newName("num_aux")))),
                     List.of(new If(
-                            new Bop(new Id("num", null, false), "<", new Num(1)),
-                            new Assign("num_aux", new Num(1), null),
+                            new Bop(new ExpId(new AstId(Id.newName("num"))),
+                                    "<",
+                                    new Num(1)),
+                            new Assign(new AstId(Id.newName("num_aux")), new Num(1)),
                             new Assign(
-                                    "num_aux",
-                                    new Bop(new Id("num", null, false), "*",
-                                            new Call(new This(), "ComputeFac",
-                                                    List.of(new Bop(new Id("num", null, false),
-                                                            "-", new Num(1))),
-                                                    null, null, null)),
-                                    null))),
-                    new Id("num_aux", null, false))));
+                                    new AstId(Id.newName("num_aux")),
+                                    new Bop(new ExpId(new AstId(Id.newName("num"))),
+                                            "*",
+                                            new Call(new This(), new AstId(Id.newName("ComputeFac")),
+                                                    List.of(new Bop(new ExpId(new AstId(Id.newName("num"))),
+                                                            "-",
+                                                            new Num(1))),
+                                                    new Tuple1<>(),
+                                                    new Tuple1<>()))))),
+                    new ExpId(new AstId(Id.newName("num_aux"))))),
+            new Tuple1<>());
 
     // program
     public static Program.T progFac = new Program.Singleton(factorial, List.of(fac));
@@ -86,38 +98,42 @@ public class SamplePrograms {
 //        }
 //    }
     static MainClass.T sumRec = new MainClass.Singleton(
-            "SumRec", "a",
-            new Print(new Call(new NewObject("Doit"),
-                    "doit",
+            Id.newName("SumRec"),
+            new AstId(Id.newName("n")),
+            new Print(new Call(new NewObject(Id.newName("Doit")),
+                    new AstId(Id.newName("doit")),
                     List.of(new Num(100)),
-                    new LinkedList<>(),
-                    new LinkedList<>(),
-                    new LinkedList<>())));
+                    new Tuple1<>(),
+                    new Tuple1<>())));
 
-    // // class "Fac"
+    // // class "Doit"
     static ast.Ast.Class.T doitSumRec = new ast.Ast.Class.Singleton(
-            "Doit",
+            Id.newName("Doit"),
             null,
             List.of(),
             List.of(new Method.Singleton(
                     Type.getInt(),
-                    "doit",
-                    List.of(new Dec.Singleton(Type.getInt(), "n")),
-                    List.of(new Dec.Singleton(Type.getInt(), "sum")),
+                    new AstId(Id.newName("doit")),
+                    List.of(new Dec.Singleton(Type.getInt(), new AstId(Id.newName("n")))),
+                    List.of(new Dec.Singleton(Type.getInt(), new AstId(Id.newName("sum")))),
                     List.of(new If(
-                            new Bop(new Id("n", null, false), "<", new Num(1)),
-                            new Assign("sum", new Num(0), null),
+                            new Bop(new ExpId(new AstId(Id.newName("n"))),
+                                    "<",
+                                    new Num(1)),
+                            new Assign(new AstId(Id.newName("sum")), new Num(0)),
                             new Assign(
-                                    "sum",
-                                    new Bop(new Id("n", null, false), "+",
-                                            new Call(new This(), "doit",
-                                                    List.of(new Bop(new Id("n", null, false),
-                                                            "-", new Num(1))),
-                                                    new LinkedList<>(),
-                                                    new LinkedList<>(),
-                                                    new LinkedList<>())),
-                                    null))),
-                    new Id("sum", null, false))));
+                                    new AstId(Id.newName("sum")),
+                                    new Bop(new ExpId(new AstId(Id.newName("n"))),
+                                            "+",
+                                            new Call(new This(),
+                                                    new AstId(Id.newName("doit")),
+                                                    List.of(new Bop(new ExpId(new AstId(Id.newName("n"))),
+                                                            "-",
+                                                            new Num(1))),
+                                                    new Tuple1<>(),
+                                                    new Tuple1<>()))))),
+                    new ExpId(new AstId(Id.newName("sum"))))),
+            new Tuple1<>());
 
     public static Program.T progSumRec = new Program.Singleton(sumRec, List.of(doitSumRec));
 

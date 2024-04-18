@@ -40,12 +40,15 @@ public class Control {
     // CFG
     public static class Cfg {
         public static String dotOutputFormat = "png";
+        public static boolean dump = false;
+
     }
 
-    // code generation
-    public static class Codegen {
+    // the x64
+    public static class X64 {
         public static boolean embedComments = false;
         public static String assemFile = null;
+        public static boolean dump = false;
     }
 }
 
