@@ -504,7 +504,8 @@ struct V_\{clsName} *vptr;
         public sealed interface T permits Singleton {
         }
 
-        public record Singleton(Id entryFuncName, // name of the entry function
+        public record Singleton(Id mainClassName,
+                                Id mainFuncName, // name of the entry function
                                 List<Vtable.T> vtables,
                                 List<Struct.T> structs,
                                 List<Function.T> functions) implements T {
@@ -513,13 +514,14 @@ struct V_\{clsName} *vptr;
         public static void pp(T prog) {
             switch (prog) {
                 case Singleton(
-                        Id entryFuncName,
+                        Id mainClassName,
+                        Id mainFuncName,
                         List<Vtable.T> vtables,
                         List<Struct.T> structs,
                         List<Function.T> functions
                 ) -> {
                     printSpaces();
-                    sayln(StringTemplate.STR."// the entry function name: \{entryFuncName}");
+                    sayln(StringTemplate.STR."// the entry function name: \{mainClassName}_\{mainFuncName}");
                     // vtables
                     for (Vtable.T vtable : vtables) {
                         Vtable.pp(vtable);

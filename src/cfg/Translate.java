@@ -343,7 +343,7 @@ public class Translate {
         assert mainCls != null;
         this.currentClassName = mainCls.classId();
         this.shouldCloseMethod = false;
-        AstId mainMethodId = new Ast.AstId(Id.newName("Tiger_main"));
+        AstId mainMethodId = new Ast.AstId(Id.newName("main"));
         Id freshMainMethodId = mainMethodId.genFreshId();
         Ast.Method.T mainMethod = new Ast.Method.Singleton(new Ast.Type.Int(),
                 mainMethodId,
@@ -353,7 +353,8 @@ public class Translate {
                 new Ast.Exp.Num(0));
         this.functions.add(translateMethod(mainMethod));
 
-        return new Cfg.Program.Singleton(freshMainMethodId,
+        return new Cfg.Program.Singleton(mainCls.classId(),
+                freshMainMethodId,
                 this.vtables,
                 this.structs,
                 this.functions);
