@@ -2,10 +2,8 @@ package cfg;
 
 import ast.Ast;
 import ast.Ast.AstId;
-import util.Id;
-import util.Label;
-import util.Temp;
-import util.Todo;
+import control.Control;
+import util.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -93,9 +91,8 @@ public class Translate {
                     Ast.Exp.T theObject,
                     Ast.AstId methodId,
                     List<Ast.Exp.T> args,
-                    Ast.Type.T calleeType,
-                    List<Ast.Type.T> at,
-                    List<Ast.Type.T> rt
+                    Tuple1<Id> theObjectType,
+                    Tuple1<Ast.Type.T> retType
             ) -> {
                 // the object
                 Cfg.Value.T theObjectValue = transExp(theObject);
@@ -104,7 +101,7 @@ public class Translate {
                 Cfg.Type.T newType = new Cfg.Type.CodePtr();
                 emitDec(new Cfg.Dec.Singleton(newType, funcCodeId));
                 emit(new Cfg.Stm.GetMethod(funcCodeId, theObjectValue,
-                        transType(calleeType), methodId.freshId));
+                        theObjectType.getData(), methodId.freshId));
 
                 // function arguments
                 LinkedList<Cfg.Value.T> newArgs = new LinkedList<>();
@@ -327,7 +324,7 @@ public class Translate {
 
     // given an abstract syntax tree, lower it down
     // to a corresponding control-flow graph.
-    public Cfg.Program.T translate(Ast.Program.T ast) {
+    private Cfg.Program.T translate0(Ast.Program.T ast) {
         // build the inheritance tree
         InheritTree.Node root = new InheritTree(ast).buildTree();
 
@@ -346,18 +343,27 @@ public class Translate {
         assert mainCls != null;
         this.currentClassName = mainCls.classId();
         this.shouldCloseMethod = false;
+        AstId mainMethodId = new Ast.AstId(Id.newName("Tiger_main"));
+        Id freshMainMethodId = mainMethodId.genFreshId();
         Ast.Method.T mainMethod = new Ast.Method.Singleton(new Ast.Type.Int(),
-                new Ast.AstId(Id.newName("Tiger_main")),
+                mainMethodId,
                 new LinkedList<>(),
                 new LinkedList<>(),
                 List.of(mainCls.stm()),
                 new Ast.Exp.Num(0));
         this.functions.add(translateMethod(mainMethod));
 
-        return new Cfg.Program.Singleton(Id.newName("Tiger_main"),
+        return new Cfg.Program.Singleton(freshMainMethodId,
                 this.vtables,
                 this.structs,
                 this.functions);
     }
 
+    public Cfg.Program.T translate(Ast.Program.T ast) {
+        Cfg.Program.T cfg = translate0(ast);
+        if (Control.Cfg.dump) {
+            Cfg.Program.pp(cfg);
+        }
+        return cfg;
+    }
 }

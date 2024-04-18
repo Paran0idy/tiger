@@ -156,9 +156,10 @@ public class Ast {
         public record Call(T exp,
                            AstId methodId,
                            List<T> args,
-                           Type.T type,     // type of object "exp"
-                           List<Type.T> at, // arg's type
-                           List<Type.T> rt) implements T {
+                           // type of object "exp"
+                           // we use "Id" instead of "Type", as it must be class
+                           Tuple1<Id> theObjectType,
+                           Tuple1<Type.T> retType) implements T {
         }
 
         // ExpId

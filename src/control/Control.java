@@ -34,5 +34,10 @@ public class Control {
     public static class Type {
         public static boolean dump = false;
     }
+
+    // the CFG
+    public static class Cfg {
+        public static boolean dump = false;
+    }
 }
 

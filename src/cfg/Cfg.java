@@ -249,7 +249,7 @@ struct V_\{clsName} *vptr;
 
         // get virtual method:
         // leftId = getmethod(value, cls, method)
-        public record GetMethod(Id leftId, Value.T value, Type.T cls, Id methodName) implements T {
+        public record GetMethod(Id leftId, Value.T value, Id classId, Id methodId) implements T {
         }
 
         public static void pp(T t) {
@@ -295,12 +295,11 @@ struct V_\{clsName} *vptr;
                     Value.pp(value);
                     say(");\n");
                 }
-                case GetMethod(Id id, Value.T value, Type.T cls, Id methodName) -> {
+                case GetMethod(Id id, Value.T value, Id cls, Id methodName) -> {
                     printSpaces();
                     say(STR."\{id} = getMethod(");
                     Value.pp(value);
-                    say(STR.", \"\{methodName}\");  @ty:");
-                    Type.pp(cls);
+                    say(STR.", \"\{cls.toString()}\", \"\{methodName}\");");
                     say("\n");
                 }
                 default -> {
