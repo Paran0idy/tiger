@@ -353,7 +353,8 @@ public class Translate {
                 new Ast.Exp.Num(0));
         this.functions.add(translateMethod(mainMethod));
 
-        return new Cfg.Program.Singleton(freshMainMethodId,
+        return new Cfg.Program.Singleton(mainCls.classId(),
+                freshMainMethodId,
                 this.vtables,
                 this.structs,
                 this.functions);

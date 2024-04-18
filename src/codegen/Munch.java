@@ -569,12 +569,14 @@ public class Munch {
 
         switch (cfg) {
             case Cfg.Program.Singleton(
+                    Id entryClassName,
                     Id entryFuncName,
                     List<Cfg.Vtable.T> vtables,
                     List<Cfg.Struct.T> _,
                     List<Cfg.Function.T> functions
             ) -> {
                 return new X64.Program.Singleton(
+                        entryClassName,
                         entryFuncName,
                         vtables.stream().map(this::munchVtable).collect(Collectors.toList()),
                         new LinkedList<>(),
