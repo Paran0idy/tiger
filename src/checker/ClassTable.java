@@ -2,25 +2,30 @@ package checker;
 
 import ast.Ast;
 import ast.Ast.Type;
+import util.Id;
+import util.Pair;
 import util.Todo;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
 public class ClassTable {
 
+    private static void error(String msg) {
+        System.out.println(msg);
+        System.exit(1);
+    }
+
     // a special type for method: argument and return types
     public record MethodType(Type.T retType,
-                             List<Ast.Dec.T> argsType) {
+                             List<Ast.Type.T> argsType) {
         @Override
         public String toString() {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("(");
-            for (Ast.Dec.T dec : this.argsType) {
-                switch (dec) {
-                    case Ast.Dec.Singleton(Type.T type, String id) ->
-                            stringBuilder.append(STR."\{type.toString()} \{id}, ");
-                }
+            for (Type.T type : this.argsType) {
+                stringBuilder.append(STR."\{type.toString()}, ");
             }
             stringBuilder.append(STR.") -> \{this.retType.toString()}");
             return stringBuilder.toString();
@@ -30,26 +35,24 @@ public class ClassTable {
     // the binding for a class
     public record Binding(
             // null for empty extends
-            String extends_,
-            // the fields in a class
-            java.util.HashMap<String, Type.T> fields,
-            // the methods in a class
-            java.util.HashMap<String, MethodType> methods) {
+            Id extends_,
+            // the field in a class: its type and fresh id
+            java.util.HashMap<Id, Pair<Type.T, Id>> fields,
+            // the method in a class: its type and fresh id
+            java.util.HashMap<Id, Pair<MethodType, Id>> methods) {
 
-        public void put(String xid, Type.T type) {
-            if (this.fields.get(xid) != null) {
-                System.out.println(STR."duplicated class field: \{xid}");
-                System.exit(1);
+        public void putField(Id fieldId, Type.T type, Id freshId) {
+            if (this.fields.get(fieldId) != null) {
+                error(STR."duplicated class field: \{fieldId}");
             }
-            this.fields.put(xid, type);
+            this.fields.put(fieldId, new Pair<>(type, freshId));
         }
 
-        public void put(String mid, MethodType mt) {
+        public void putMethod(Id mid, MethodType methodType, Id freshId) {
             if (this.methods.get(mid) != null) {
-                System.out.println(STR."duplicated class method: \{mid}");
-                System.exit(1);
+                error(STR."duplicated class method: \{mid}");
             }
-            this.methods.put(mid, mt);
+            this.methods.put(mid, new Pair<>(methodType, freshId));
         }
 
         @Override
@@ -64,71 +67,73 @@ public class ClassTable {
         }
     }
 
-    // map a class name (a string), to its corresponding class binding.
-    private final java.util.HashMap<String, Binding> table;
+    // map each class, to its corresponding class binding.
+    private final java.util.HashMap<Id, Binding> classTable;
 
     public ClassTable() {
-        this.table = new java.util.HashMap<>();
+        this.classTable = new java.util.HashMap<>();
     }
 
     // Duplication is not allowed
-    public void put(String c, Binding cb) {
-        if (this.table.get(c) != null) {
-            System.out.println(STR."duplicated class: \{c}");
-            System.exit(1);
+    public void putClass(Id classId, Id extends_) {
+        if (this.classTable.get(classId) != null) {
+            error(STR."duplicated class: \{classId}");
         }
-        this.table.put(c, cb);
+        Binding classBinding = new Binding(extends_,
+                new HashMap<>(),
+                new HashMap<>());
+        this.classTable.put(classId, classBinding);
     }
 
-    // put a field into this table
+    // put a field into class table
     // Duplication is not allowed
-    public void put(String c, String id, Type.T type) {
-        Binding cb = this.table.get(c);
-        cb.put(id, type);
-        return;
+    public void putField(Id classId, Ast.AstId fieldId, Type.T type) {
+        Binding classBinding = this.classTable.get(classId);
+        Id freshId = fieldId.genFreshId();
+        classBinding.putField(fieldId.id, type, freshId);
     }
 
-    // put a method into this table
+    // put a method into class table
     // Duplication is not allowed.
     // Also note that MiniJava does NOT allow overloading.
-    public void put(String c, String id, MethodType type) {
-        Binding cb = this.table.get(c);
-        cb.put(id, type);
-        return;
+    public void putMethod(Id classId, Ast.AstId methodId, MethodType type) {
+        Binding classBinding = this.classTable.get(classId);
+        Id freshId = methodId.genFreshId();
+        classBinding.putMethod(methodId.id, type, freshId);
     }
 
     // return null for non-existing class
-    public Binding get(String className) {
-        return this.table.get(className);
+    // "getClass" is a library API, so we use "getClass_"
+    public Binding getClass_(Id classId) {
+        return this.classTable.get(classId);
     }
 
     // get type of some field
     // return null for non-existing field.
-    public Type.T get(String className, String fieldId) {
-        Binding cb = this.table.get(className);
-        Type.T type = cb.fields.get(fieldId);
-        while (type == null) { // search all parent classes until found or fail
-            if (cb.extends_ == null)
-                return type;
-            cb = this.table.get(cb.extends_);
-            type = cb.fields.get(fieldId);
+    public Pair<Type.T, Id> getField(Id classId, Id fieldId) {
+        Binding classBinding = this.classTable.get(classId);
+        var result = classBinding.fields.get(fieldId);
+        while (result == null) { // search all parent classes until found or fail
+            if (classBinding.extends_ == null)
+                return null;
+            classBinding = this.classTable.get(classBinding.extends_);
+            result = classBinding.fields.get(fieldId);
         }
-        return type;
+        return result;
     }
 
-    // get type of some method
+    // get type of given method
     // return null for non-existing method
-    public MethodType getm(String className, String mid) {
-        Binding cb = this.table.get(className);
-        MethodType type = cb.methods.get(mid);
-        while (type == null) { // search all parent classes until found or fail
-            if (cb.extends_ == null)
-                return type;
-
-            cb = this.table.get(cb.extends_);
-            type = cb.methods.get(mid);
+    public Pair<MethodType, Id> getMethod(Id classId, Id methodId) {
+        Binding classBinding = this.classTable.get(classId);
+        var result = classBinding.methods.get(methodId);
+        while (result == null) { // search all parent classes until found or fail
+            if (classBinding.extends_ == null)
+                return null;
+            classBinding = this.classTable.get(classBinding.extends_);
+            result = classBinding.methods.get(methodId);
         }
-        return type;
+        return result;
     }
 
     // lab 2, exercise 7:
@@ -138,6 +143,14 @@ public class ClassTable {
 
     @Override
     public String toString() {
-        return this.table.toString();
+        return this.classTable.toString();
     }
 }
+
+
+
+
+
+
+
+
