@@ -318,7 +318,7 @@ public class PpAssem {
                 sayln(STR."Tiger_main:");
                 indent();
                 printSpaces();
-                sayln(STR."call\t\{entryFuncName}");
+                sayln(STR."call\t\{classId}_\{entryFuncName}");
                 printSpaces();
                 sayln(STR."ret");
                 unIndent();
