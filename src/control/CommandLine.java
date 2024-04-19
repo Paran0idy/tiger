@@ -3,6 +3,7 @@ package control;
 import ast.SamplePrograms;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class CommandLine {
@@ -38,10 +39,11 @@ public class CommandLine {
                         "use the builtin AST, instead of parsing",
                         Kind.String,
                         (Object x) -> {
-                            switch ((String) x) {
-                                case "SumRec.java" -> Control.bultinAst =
+                            if (((String) x).equals("SumRec.java")) {
+                                Control.bultinAst =
                                         SamplePrograms.progSumRec;
-                                default -> error(STR."unknown argument: \{x}");
+                            } else {
+                                error(STR."unknown argument: \{x}");
                             }
                         }),
                 new Arg("dump",
@@ -108,15 +110,14 @@ public class CommandLine {
 
                 foundArg = true;
                 String param = "";
-                switch (arg.kind) {
-                    case Kind.Empty -> arg.action.accept(null);
-                    default -> {
-                        i++;
-                        if (i >= cmdLineArgs.length)
-                            error("wants more arguments");
-                        else {
-                            param = cmdLineArgs[i];
-                        }
+                if (Objects.requireNonNull(arg.kind) == Kind.Empty) {
+                    arg.action.accept(null);
+                } else {
+                    i++;
+                    if (i >= cmdLineArgs.length)
+                        error("wants more arguments");
+                    else {
+                        param = cmdLineArgs[i];
                     }
                 }
                 switch (arg.kind) {
