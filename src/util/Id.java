@@ -4,28 +4,29 @@ import java.util.HashMap;
 
 public class Id {
     private static int gCounter = 0;
-    private int counter;
+    // this uniquely identifies an Id
+    private final int counter;
     // null, if no source names
     private String origName;
     private static final String prefix = "%x_";
-    // all ids have been created
+    // map original names to its Id
     private static final HashMap<String, Id> allIds = new HashMap<>();
     // a per-id map storing attributes of an id
     // this implements the famous "plist", see:
     // https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node108.html
-    private final Plist<String, Object> plist;
+    private final Plist plist;
 
     // the singleton design pattern
     private Id() {
         this.counter = gCounter++;
         this.origName = null;
-        this.plist = new Plist<>();
+        this.plist = new Plist();
     }
 
     private Id(String srcName) {
         this.counter = gCounter++;
         this.origName = srcName;
-        this.plist = new Plist<>();
+        this.plist = new Plist();
         allIds.put(this.origName, this);
     }
 
@@ -56,6 +57,10 @@ public class Id {
         return fresh;
     }
 
+    public Plist getPlist() {
+        return this.plist;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null)
@@ -65,14 +70,19 @@ public class Id {
         return this.counter == ((Id) o).counter;
     }
 
-    private boolean debug = false;
+    @Override
+    public int hashCode() {
+        return this.counter;
+    }
+
+    private boolean dumpId = false;
 
     @Override
     public String toString() {
         if (this.origName == null)
             return STR."\{prefix}\{this.counter}";
-        if (debug) {
-            return STR."\{this.origName}(%x_\{this.counter})";
+        if (dumpId) {
+            return STR."\{this.origName}(\{prefix}\{this.counter})";
         }
         return STR."\{this.origName}";
     }

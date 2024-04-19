@@ -128,11 +128,13 @@ struct V_\{name} {
                     }
                     unIndent();
                     printSpaces();
-                    say("} V_" + name + "_ = {\n");
+                    say(StringTemplate.STR."""
+} V_\{name}_ = {
+""");
                     indent();
                     for (Entry e : funcTypes) {
                         printSpaces();
-                        say("." + e.funcName + " = " + e.clsName + "_" + e.funcName);
+                        say(StringTemplate.STR.".\{e.funcName} = \{e.clsName}_\{e.funcName}");
                         say(",\n");
                     }
                     unIndent();
@@ -368,15 +370,21 @@ struct V_\{clsName} *vptr;
 
         public static void add(T b, Stm.T s) {
             switch (b) {
-                case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
-                    stms.add(s);
-                }
+                case Singleton(
+                        _,
+                        List<Stm.T> stms,
+                        _
+                ) -> stms.add(s);
             }
         }
 
         public static void addTransfer(T b, Transfer.T s) {
             switch (b) {
-                case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
+                case Singleton(
+                        Label _,
+                        List<Stm.T> _,
+                        List<Transfer.T> transfer
+                ) -> {
                     transfer.add(s);
                 }
             }
@@ -384,7 +392,11 @@ struct V_\{clsName} *vptr;
 
         public static Label getLabel(Block.T t) {
             switch (t) {
-                case Singleton(Label label, List<Stm.T> stms, List<Transfer.T> transfer) -> {
+                case Singleton(
+                        Label label,
+                        List<Stm.T> _,
+                        List<Transfer.T> _
+                ) -> {
                     return label;
                 }
             }
@@ -405,7 +417,7 @@ struct V_\{clsName} *vptr;
                     for (Stm.T s : stms) {
                         Stm.pp(s);
                     }
-                    Transfer.pp(transfer.get(0));
+                    Transfer.pp(transfer.getFirst());
                     unIndent();
                     sayln("");
                 }
@@ -430,39 +442,39 @@ struct V_\{clsName} *vptr;
         public static void addBlock(T func, Block.T block) {
             switch (func) {
                 case Singleton(
-                        Type.T retType,
-                        Id classId,
-                        Id functionId,
-                        List<Dec.T> formals,
-                        List<Dec.T> locals,
+                        Type.T _,
+                        Id _,
+                        Id _,
+                        List<Dec.T> _,
+                        List<Dec.T> _,
                         List<Block.T> blocks
-                ) -> {
-                    blocks.add(block);
-                }
+                ) -> blocks.add(block);
             }
         }
 
         public static void addFirstFormal(T func, Dec.T formal) {
             switch (func) {
                 case Singleton(
-                        Type.T retType,
-                        Id clsId,
-                        Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
-                ) -> {
-                    formals.addFirst(formal);
-                }
+                        _,
+                        _,
+                        _,
+                        List<Dec.T> formals,
+                        _,
+                        _
+                ) -> formals.addFirst(formal);
             }
         }
 
         public static void addDecs(T func, List<Dec.T> decs) {
             switch (func) {
                 case Singleton(
-                        Type.T retType,
-                        Id classId,
-                        Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
-                ) -> {
-                    locals.addAll(decs);
-                }
+                        _,
+                        _,
+                        _,
+                        _,
+                        List<Dec.T> locals,
+                        _
+                ) -> locals.addAll(decs);
             }
         }
 
@@ -470,8 +482,11 @@ struct V_\{clsName} *vptr;
             switch (f) {
                 case Singleton(
                         Type.T retType,
-                        Id clsId,
-                        Id id, List<Dec.T> formals, List<Dec.T> locals, List<Block.T> blocks
+                        _,
+                        Id id,
+                        List<Dec.T> formals,
+                        List<Dec.T> locals,
+                        List<Block.T> blocks
                 ) -> {
                     printSpaces();
                     Type.pp(retType);
@@ -504,8 +519,8 @@ struct V_\{clsName} *vptr;
         public sealed interface T permits Singleton {
         }
 
-        public record Singleton(Id entryClassName,
-                                Id entryFuncName, // name of the entry function
+        public record Singleton(Id mainClassName,
+                                Id mainFuncName, // name of the entry function
                                 List<Vtable.T> vtables,
                                 List<Struct.T> structs,
                                 List<Function.T> functions) implements T {
@@ -514,14 +529,14 @@ struct V_\{clsName} *vptr;
         public static void pp(T prog) {
             switch (prog) {
                 case Singleton(
-                        Id entryClassName,
-                        Id entryFuncName,
+                        Id mainClassName,
+                        Id mainFuncName,
                         List<Vtable.T> vtables,
                         List<Struct.T> structs,
                         List<Function.T> functions
                 ) -> {
                     printSpaces();
-                    sayln(STR."// the entry function name: \{entryFuncName}");
+                    sayln(STR."// the entry function name: \{mainClassName}_\{mainFuncName}");
                     // vtables
                     for (Vtable.T vtable : vtables) {
                         Vtable.pp(vtable);

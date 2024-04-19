@@ -3,11 +3,15 @@ package cfg;
 import ast.Ast;
 import ast.Ast.AstId;
 import control.Control;
-import util.*;
+import util.Id;
+import util.Label;
+import util.Todo;
+import util.Tuple1;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 public class Translate {
     private final Vector<Cfg.Vtable.T> vtables;
@@ -29,7 +33,7 @@ public class Translate {
 
     /////////////////////////////
     // translate a type
-    public Cfg.Type.T transType(Ast.Type.T ty) {
+    private Cfg.Type.T transType(Ast.Type.T ty) {
         switch (ty) {
             case Ast.Type.ClassType(Id id) -> {
                 return new Cfg.Type.ClassType(id);
@@ -46,7 +50,7 @@ public class Translate {
         }
     }
 
-    public Cfg.Dec.T transDec(Ast.Dec.T dec) {
+    private Cfg.Dec.T transDec(Ast.Dec.T dec) {
         switch (dec) {
             case Ast.Dec.Singleton(Ast.Type.T type, Ast.AstId aid) -> {
                 return new Cfg.Dec.Singleton(transType(type), aid.freshId);
@@ -54,14 +58,9 @@ public class Translate {
         }
     }
 
-    public List<Cfg.Dec.T> transDecList(List<Ast.Dec.T> decs) {
-        LinkedList<Cfg.Dec.T> newDecs = new LinkedList<>();
-        for (Ast.Dec.T dec : decs) {
-            newDecs.add(transDec(dec));
-        }
-        return newDecs;
+    private List<Cfg.Dec.T> transDecList(List<Ast.Dec.T> decs) {
+        return decs.stream().map(this::transDec).collect(Collectors.toList());
     }
-
 
     private void emit(Cfg.Stm.T s) {
         Cfg.Block.add(this.currentBlock, s);
@@ -77,7 +76,7 @@ public class Translate {
 
     /////////////////////////////
     // translate an expression
-    public Cfg.Value.T transExp(Ast.Exp.T exp) {
+    private Cfg.Value.T transExp(Ast.Exp.T exp) {
         switch (exp) {
             case Ast.Exp.ExpId(AstId aid) -> {
                 // for now, this is a fake type
@@ -92,7 +91,7 @@ public class Translate {
                     Ast.AstId methodId,
                     List<Ast.Exp.T> args,
                     Tuple1<Id> theObjectType,
-                    Tuple1<Ast.Type.T> retType
+                    Tuple1<Ast.Type.T> _
             ) -> {
                 // the object
                 Cfg.Value.T theObjectValue = transExp(theObject);
@@ -167,7 +166,7 @@ public class Translate {
     // translate a statement
     // this function does not return its result,
     // as the result has been saved into currentBlock
-    public void transStm(Ast.Stm.T stm) {
+    private void transStm(Ast.Stm.T stm) {
         switch (stm) {
             case Ast.Stm.Assign(AstId aid, Ast.Exp.T exp) -> {
                 Cfg.Value.T value = transExp(exp);
@@ -205,13 +204,11 @@ public class Translate {
                 Cfg.Value.T value = transExp(exp);
                 emit(new Cfg.Stm.Print(value));
             }
-            default -> {
-                throw new Todo();
-            }
+            default -> throw new Todo();
         }
     }
 
-    public Cfg.Function.T translateMethod(Ast.Method.T method) {
+    private Cfg.Function.T translateMethod(Ast.Method.T method) {
         switch (method) {
             case Ast.Method.Singleton(
                     Ast.Type.T retType,
@@ -249,27 +246,30 @@ public class Translate {
 
                 // close the method, if it is non-static:
                 if (this.shouldCloseMethod) {
-                    Cfg.Dec.T newFormal = new Cfg.Dec.Singleton(new Cfg.Type.ClassType(this.currentClassName), Id.newName("this"));
+                    Cfg.Dec.T newFormal = new Cfg.Dec.Singleton(new Cfg.Type.ClassType(this.currentClassName),
+                            this.currentThis);
                     Cfg.Function.addFirstFormal(newFunc, newFormal);
                 }
                 // add newly generated locals
                 Cfg.Function.addDecs(newFunc, this.newDecs);
-
                 return newFunc;
             }
         }
     }
 
     // the prefixing algorithm
-    public void prefixing(InheritTree.Node root,
-                          Vector<Cfg.Dec.T> decs,
-                          Vector<Cfg.Vtable.Entry> functions) {
+    private void prefixing(InheritTree.Node root,
+                           Vector<Cfg.Dec.T> decs,
+                           Vector<Cfg.Vtable.Entry> functions) {
         Ast.Class.T cls = root.theClass;
         this.currentClassName = null;
         List<Ast.Dec.T> localDecs = List.of();
         if (cls instanceof Ast.Class.Singleton(
-                Id classId, Id extends_, List<Ast.Dec.T> decs1, List<Ast.Method.T> methods,
-                util.Tuple1<Ast.Class.T> parent
+                Id classId,
+                Id _,
+                List<Ast.Dec.T> decs1,
+                List<Ast.Method.T> _,
+                util.Tuple1<Ast.Class.T> _
         )) {
             this.currentClassName = classId;
             localDecs = decs1;
@@ -290,6 +290,7 @@ public class Translate {
         this.structs.add(struct);
 
         // methods
+        assert cls instanceof Ast.Class.Singleton;
         List<Ast.Method.T> localMethods = ((Ast.Class.Singleton) cls).methods();
         Vector<Cfg.Vtable.Entry> newEntries = (Vector<Cfg.Vtable.Entry>) functions.clone();
         for (Ast.Method.T localMethod : localMethods) {
@@ -335,9 +336,8 @@ public class Translate {
 
         // "Main" class is special, it has neither vtable nor struct.
         // hence we create a temporary method, and translate it.
-
         Ast.MainClass.Singleton mainCls = null;
-        if (ast instanceof Ast.Program.Singleton(Ast.MainClass.T mainClass, List<Ast.Class.T> classes)) {
+        if (ast instanceof Ast.Program.Singleton(Ast.MainClass.T mainClass, List<Ast.Class.T> _)) {
             mainCls = (Ast.MainClass.Singleton) mainClass;
         }
         assert mainCls != null;
