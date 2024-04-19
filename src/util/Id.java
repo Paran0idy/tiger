@@ -60,7 +60,12 @@ public class Id {
         return this.counter == ((Id) o).counter;
     }
 
-    private boolean dumpId = true;
+    @Override
+    public int hashCode() {
+        return this.counter;
+    }
+
+    private boolean dumpId = false;
 
     @Override
     public String toString() {
