@@ -65,7 +65,7 @@ public class InheritTree {
         // round #1: scan all class
         // to add all classes into the "nodes", excluding "Main" class
         List<Ast.Class.T> classes = null;
-        if (ast instanceof Ast.Program.Singleton(Ast.MainClass.T mainClass, List<Ast.Class.T> classes1)) {
+        if (ast instanceof Ast.Program.Singleton(Ast.MainClass.T _, List<Ast.Class.T> classes1)) {
             classes = classes1;
         }
         assert classes != null;

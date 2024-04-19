@@ -2,19 +2,22 @@ package util;
 
 import java.util.HashMap;
 
-public class Plist<X, Y> {
-    private final HashMap<X, Y> map;
+public class Plist {
+    private final HashMap<Object, Object> map;
 
     public Plist() {
         this.map = new HashMap<>();
     }
 
-    public void put(X x, Y y) {
-        this.map.put(x, y);
+    public void put(Object key, Object value) {
+        this.map.put(key, value);
     }
 
-    public Y get(X x) {
-        return this.map.get(x);
+    public Object get(Object key) {
+        return this.map.get(key);
     }
 
+    public void clear(Object key) {
+        this.map.remove(key);
+    }
 }
