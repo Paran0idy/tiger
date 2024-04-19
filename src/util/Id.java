@@ -11,16 +11,22 @@ public class Id {
     private static final String prefix = "%x_";
     // map original names to its Id
     private static final HashMap<String, Id> allIds = new HashMap<>();
+    // a per-id map storing attributes of an id
+    // this implements the famous "plist", see:
+    // https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node108.html
+    private final Plist plist;
 
     // the singleton design pattern
     private Id() {
         this.counter = gCounter++;
         this.origName = null;
+        this.plist = new Plist();
     }
 
     private Id(String srcName) {
         this.counter = gCounter++;
         this.origName = srcName;
+        this.plist = new Plist();
         allIds.put(this.origName, this);
     }
 
@@ -49,6 +55,10 @@ public class Id {
         Id fresh = newNoname();
         fresh.origName = this.origName;
         return fresh;
+    }
+
+    public Plist getPlist() {
+        return this.plist;
     }
 
     @Override
