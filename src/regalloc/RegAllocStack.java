@@ -5,7 +5,7 @@ import codegen.X64;
 import control.Control;
 import util.Id;
 import util.Label;
-import util.Pair;
+import util.Tuple.Two;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -59,7 +59,7 @@ public class RegAllocStack {
     }
 
     // return the new regs, along with v
-    public Pair<List<X64.VirtualReg.T>, HashMap<String, TempMap.Position.T>> mapVirtualRegs
+    public Two<List<X64.VirtualReg.T>, HashMap<String, TempMap.Position.T>> mapVirtualRegs
     (List<X64.VirtualReg.T> virtualRegs) {
         TempRegs.reset();
         List<X64.VirtualReg.T> newRegs = new LinkedList<>();
@@ -87,7 +87,7 @@ public class RegAllocStack {
                 }
             }
         }
-        return new Pair<>(newRegs, map);
+        return new Two<>(newRegs, map);
     }
 
     public void allocInstr(X64.Instr.T s) {

@@ -2,6 +2,9 @@ package control;
 
 import ast.Ast;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Control {
 
     public enum Verbose {
@@ -17,9 +20,15 @@ public class Control {
 
     public static Verbose verbose = Verbose.SILENT;
 
-    public static boolean debug = false;
+    static List<String> tracedMethods = new LinkedList<>();
 
-    // this is a special hack
+    public static boolean beingTraced(String method) {
+        return tracedMethods.contains(method);
+    }
+
+
+    // this is a special hack to test the compiler
+    // without hacking the lexer and parser.
     public static Ast.Program.T bultinAst = null;
 
     // the lexer
@@ -37,7 +46,7 @@ public class Control {
         public static boolean dump = false;
     }
 
-    // CFG
+    // the CFG
     public static class Cfg {
         public static String dotOutputFormat = "png";
         public static boolean dump = false;

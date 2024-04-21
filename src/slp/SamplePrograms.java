@@ -9,7 +9,6 @@ import slp.Slp.Stm.Assign;
 import slp.Slp.Stm.Compound;
 import slp.Slp.Stm.Print;
 
-import java.util.Arrays;
 import java.util.List;
 
 // two sample programs.
@@ -17,7 +16,7 @@ public class SamplePrograms {
     public static Stm.T sample1 = new Compound(
             new Assign("a", new Op(new Num(5), "+", new Num(3))),
             new Compound(
-                    new Assign("b", new Eseq(new Print(Arrays.asList(
+                    new Assign("b", new Eseq(new Print(List.of(
                             new Id("a"),
                             new Op(new Id("a"), "-", new Num(1)))),
                             new Op(new Num(10), "*", new Id("a")))),

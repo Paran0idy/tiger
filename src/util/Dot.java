@@ -14,7 +14,7 @@ public class Dot {
             String s = "";
             if (z != null)
                 s = z.toString();
-            
+
             return (STR."""
 "\{x.toString()}"->"\{y.toString()}"\{s};
 """);
@@ -100,7 +100,7 @@ digraph g{
             new Thread(new StreamDrainer(process.getErrorStream())).start();
             process.getOutputStream().close();
             int exitValue = process.waitFor();
-            if (!Control.debug) {
+            if (false) {
                 if (!new File(STR."\{name}.dot").delete())
                     throw new util.Error("Can't delete dot");
             }
