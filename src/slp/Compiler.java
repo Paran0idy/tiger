@@ -16,7 +16,7 @@ import java.util.List;
 public class Compiler {
     // ////////////////////////////////////////
     // whether to keep the generated assembly file.
-    boolean keepAsm = true;
+    boolean keepAsm = false;
     HashSet<String> ids;
     StringBuffer buf;
 
@@ -26,34 +26,21 @@ public class Compiler {
 
     private void compileExp(Exp.T exp) {
         switch (exp) {
-            case Id(String x) -> {
-                emit(STR."""
+            case Id(String x) -> emit(STR."""
 \tmovq\t\{x}, %rax
 """);
-            }
-            case Num(int n) -> {
-                emit(STR."""
+            case Num(int n) -> emit(STR."""
 \tmovq\t$\{n}, %rax
 """);
-            }
             case Op(Exp.T left, String op, Exp.T right) -> {
                 compileExp(left);
                 emit("\tpushq\t%rax\n");
                 compileExp(right);
                 emit("\tpopq\t%rdx\n");
                 switch (op) {
-                    case "+" -> {
-                        emit("\taddq\t%rdx, %rax\n");
-                    }
-                    case "-" -> {
-                        throw new Todo("-");
-                    }
-                    case "*" -> {
-                        emit("\timulq\t%rdx\n");
-                    }
-                    case "/" -> {
-                        throw new Todo("/");
-                    }
+                    case "+" -> emit("\taddq\t%rdx, %rax\n");
+                    case "*" -> emit("\timulq\t%rdx\n");
+                    default -> throw new Todo(op);
                 }
             }
             case Eseq(Stm.T s, Exp.T e) -> {
