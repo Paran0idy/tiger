@@ -4,8 +4,8 @@ import ast.Ast;
 import ast.Ast.Dec;
 import ast.Ast.Type;
 import util.Id;
-import util.Pair;
 import util.Todo;
+import util.Tuple;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
 // the method table is constructed for each method.
 public class MethodTable {
     // map a variable, to its corresponding type and a fresh name.
-    private final java.util.HashMap<Id, Pair<Type.T, Id>> table;
+    private final java.util.HashMap<Id, Tuple.Two<Type.T, Id>> table;
 
     public MethodTable() {
         this.table = new java.util.HashMap<>();
@@ -29,7 +29,7 @@ public class MethodTable {
                 System.out.println(STR."duplicated parameter: \{aid.id}");
                 System.exit(1);
             }
-            this.table.put(aid.id, new Pair<>(decc.type(), freshId));
+            this.table.put(aid.id, new Tuple.Two<>(decc.type(), freshId));
         }
 
         for (Dec.T dec : locals) {
@@ -40,12 +40,12 @@ public class MethodTable {
                 System.out.println(STR."duplicated variable: \{aid.id}");
                 System.exit(1);
             }
-            this.table.put(aid.id, new Pair<>(decc.type(), freshId));
+            this.table.put(aid.id, new Tuple.Two<>(decc.type(), freshId));
         }
     }
 
     // return null for non-existing keys
-    public Pair<Type.T, Id> get(Id id) {
+    public Tuple.Two<Type.T, Id> get(Id id) {
         return this.table.get(id);
     }
 

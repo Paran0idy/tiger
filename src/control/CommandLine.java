@@ -60,8 +60,7 @@ public class CommandLine {
                                 default -> error(STR."unknown argument: \{x}");
                             }
                         }),
-                new Arg(
-                        "help",
+                new Arg("help",
                         null,
                         "show this help information",
                         Kind.Empty,
@@ -75,6 +74,14 @@ public class CommandLine {
                         Kind.String,
                         (Object x) -> {
                             Control.X64.assemFile = (String) x;
+                        }),
+                new Arg("trace",
+                        "<method>",
+                        "which method to trace",
+                        Kind.String,
+                        (Object x) -> {
+                            String name = (String) x;
+                            Control.tracedMethods.add(name);
                         }),
                 new Arg("verbose",
                         "{0|1|2}",
