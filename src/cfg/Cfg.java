@@ -2,6 +2,7 @@ package cfg;
 
 import util.Id;
 import util.Label;
+import util.Todo;
 
 import java.util.List;
 
@@ -54,18 +55,10 @@ public class Cfg {
 
         public static void pp(T ty) {
             switch (ty) {
-                case Int() -> {
-                    say("int");
-                }
-                case ClassType(Id id) -> {
-                    say(id.toString());
-                }
-                case IntArray() -> {
-                    say("int[]");
-                }
-                case CodePtr() -> {
-                    say("CodePtr");
-                }
+                case Int() -> say("int");
+                case ClassType(Id id) -> say(id.toString());
+                case IntArray() -> say("int[]");
+                case CodePtr() -> say("CodePtr");
             }
         }
     }
@@ -84,7 +77,7 @@ public class Cfg {
             switch (dec) {
                 case Singleton(Type.T type, Id id) -> {
                     Type.pp(type);
-                    say(StringTemplate.STR." \{id}");
+                    say(STR." \{id}");
                 }
             }
         }
@@ -111,7 +104,7 @@ public class Cfg {
             switch (vtable) {
                 case Singleton(Id name, List<Entry> funcTypes) -> {
                     printSpaces();
-                    say(StringTemplate.STR."""
+                    say(STR."""
 struct V_\{name} {
 """);
                     // all entries
@@ -119,7 +112,7 @@ struct V_\{name} {
                     for (Entry e : funcTypes) {
                         printSpaces();
                         Type.pp(e.retType);
-                        say(StringTemplate.STR." \{e.funcName}(");
+                        say(STR." \{e.funcName}(");
                         for (Dec.T dec : e.argTypes) {
                             Dec.pp(dec);
                             say(", ");
@@ -128,13 +121,13 @@ struct V_\{name} {
                     }
                     unIndent();
                     printSpaces();
-                    say(StringTemplate.STR."""
+                    say(STR."""
 } V_\{name}_ = {
 """);
                     indent();
                     for (Entry e : funcTypes) {
                         printSpaces();
-                        say(StringTemplate.STR.".\{e.funcName} = \{e.clsName}_\{e.funcName}");
+                        say(STR.".\{e.funcName} = \{e.clsName}_\{e.funcName}");
                         say(",\n");
                     }
                     unIndent();
@@ -207,12 +200,8 @@ struct V_\{clsName} *vptr;
 
         public static void pp(T ty) {
             switch (ty) {
-                case Int(int n) -> {
-                    say(Integer.toString(n));
-                }
-                case Vid(Id x, _) -> {
-                    say(x.toString());
-                }
+                case Int(int n) -> say(Integer.toString(n));
+                case Vid(Id x, _) -> say(x.toString());
             }
         }
     }
@@ -239,7 +228,6 @@ struct V_\{clsName} *vptr;
 
         public record AssignNew(Id id, Id cls) implements T {
         }
-
 
         // assign-array
         public record AssignArray(Id arrayId, Value.T index, Value.T right) implements T {
@@ -304,25 +292,22 @@ struct V_\{clsName} *vptr;
                     say(STR.", \"\{cls.toString()}\", \"\{methodName}\");");
                     say("\n");
                 }
-                default -> {
-                    System.out.println("to do\n");
-                }
+                default -> throw new Todo(t);
             }
         }
     }
     // end of statement
 
-
     // /////////////////////////////////////////////////////////
     // transfer
     public static class Transfer {
-        public sealed interface T permits If, Jmp, Ret {
+        public sealed interface T
+                permits If, Jmp, Ret {
         }
 
         public record If(Value.T value,
                          Block.T trueBlock,
-                         Block.T falseBlock)
-                implements T {
+                         Block.T falseBlock) implements T {
         }
 
         public record Jmp(Block.T target) implements T {
@@ -384,9 +369,7 @@ struct V_\{clsName} *vptr;
                         Label _,
                         List<Stm.T> _,
                         List<Transfer.T> transfer
-                ) -> {
-                    transfer.add(s);
-                }
+                ) -> transfer.add(s);
             }
         }
 
@@ -414,9 +397,7 @@ struct V_\{clsName} *vptr;
 \{label.toString()}:
 """);
                     indent();
-                    for (Stm.T s : stms) {
-                        Stm.pp(s);
-                    }
+                    stms.forEach(Stm::pp);
                     Transfer.pp(transfer.getFirst());
                     unIndent();
                     sayln("");
@@ -491,20 +472,18 @@ struct V_\{clsName} *vptr;
                     printSpaces();
                     Type.pp(retType);
                     say(STR." \{id}(");
-                    for (Dec.T dec : formals) {
-                        Dec.pp(dec);
+                    formals.forEach(x -> {
+                        Dec.pp(x);
                         say(", ");
-                    }
+                    });
                     say("){\n");
                     indent();
-                    for (Dec.T dec : locals) {
+                    locals.forEach(x -> {
                         printSpaces();
-                        Dec.pp(dec);
+                        Dec.pp(x);
                         sayln(";");
-                    }
-                    for (Block.T block : blocks) {
-                        Block.pp(block);
-                    }
+                    });
+                    blocks.forEach(Block::pp);
                     unIndent();
                     printSpaces();
                     say("}\n\n");
@@ -538,17 +517,11 @@ struct V_\{clsName} *vptr;
                     printSpaces();
                     sayln(STR."// the entry function name: \{mainClassName}_\{mainFuncName}");
                     // vtables
-                    for (Vtable.T vtable : vtables) {
-                        Vtable.pp(vtable);
-                    }
+                    vtables.forEach(Vtable::pp);
                     // structs
-                    for (Struct.T struct : structs) {
-                        Struct.pp(struct);
-                    }
+                    structs.forEach(Struct::pp);
                     // functions:
-                    for (Function.T func : functions) {
-                        Function.pp(func);
-                    }
+                    functions.forEach(Function::pp);
                 }
             }
         }
