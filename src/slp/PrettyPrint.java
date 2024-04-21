@@ -47,10 +47,11 @@ public class PrettyPrint {
             }
             case Stm.Print(List<Exp.T> exps) -> {
                 System.out.print("print(");
-                for (Exp.T exp : exps) {
-                    ppExp(exp);
-                    System.out.print(", ");
-                }
+                exps.forEach(x -> {
+                            ppExp(x);
+                            System.out.print(", ");
+                        }
+                );
                 System.out.print(")");
             }
         }
