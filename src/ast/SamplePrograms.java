@@ -6,7 +6,7 @@ import ast.Ast.Stm.Assign;
 import ast.Ast.Stm.If;
 import ast.Ast.Stm.Print;
 import util.Id;
-import util.Tuple1;
+import util.Tuple;
 
 import java.util.List;
 
@@ -45,8 +45,8 @@ public class SamplePrograms {
             new Print(new Call(new NewObject(Id.newName("Fac")),
                     new AstId(Id.newName("ComputeFac")),
                     List.of(new Num(10)),
-                    new Tuple1<>(),
-                    new Tuple1<>())));
+                    new Tuple.One<>(),
+                    new Tuple.One<>())));
 
     // // class "Fac"
     static ast.Ast.Class.T fac = new ast.Ast.Class.Singleton(
@@ -71,10 +71,10 @@ public class SamplePrograms {
                                                     List.of(new Bop(new ExpId(new AstId(Id.newName("num"))),
                                                             "-",
                                                             new Num(1))),
-                                                    new Tuple1<>(),
-                                                    new Tuple1<>()))))),
+                                                    new Tuple.One<>(),
+                                                    new Tuple.One<>()))))),
                     new ExpId(new AstId(Id.newName("num_aux"))))),
-            new Tuple1<>());
+            new Tuple.One<>());
 
     // program
     public static Program.T progFac = new Program.Singleton(factorial, List.of(fac));
@@ -103,8 +103,8 @@ public class SamplePrograms {
             new Print(new Call(new NewObject(Id.newName("Doit")),
                     new AstId(Id.newName("doit")),
                     List.of(new Num(100)),
-                    new Tuple1<>(),
-                    new Tuple1<>())));
+                    new Tuple.One<>(),
+                    new Tuple.One<>())));
 
     // // class "Doit"
     static ast.Ast.Class.T doitSumRec = new ast.Ast.Class.Singleton(
@@ -130,10 +130,10 @@ public class SamplePrograms {
                                                     List.of(new Bop(new ExpId(new AstId(Id.newName("n"))),
                                                             "-",
                                                             new Num(1))),
-                                                    new Tuple1<>(),
-                                                    new Tuple1<>()))))),
+                                                    new Tuple.One<>(),
+                                                    new Tuple.One<>()))))),
                     new ExpId(new AstId(Id.newName("sum"))))),
-            new Tuple1<>());
+            new Tuple.One<>());
 
     public static Program.T progSumRec = new Program.Singleton(sumRec, List.of(doitSumRec));
 

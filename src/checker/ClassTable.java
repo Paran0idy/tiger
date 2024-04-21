@@ -3,8 +3,8 @@ package checker;
 import ast.Ast;
 import ast.Ast.Type;
 import util.Id;
-import util.Pair;
 import util.Todo;
+import util.Tuple;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,22 +38,22 @@ public class ClassTable {
             Id extends_,
             Ast.Class.T self,
             // the field in a class: its type and fresh id
-            java.util.HashMap<Id, Pair<Type.T, Id>> fields,
+            java.util.HashMap<Id, Tuple.Two<Type.T, Id>> fields,
             // the method in a class: its type and fresh id
-            java.util.HashMap<Id, Pair<MethodType, Id>> methods) {
+            java.util.HashMap<Id, Tuple.Two<MethodType, Id>> methods) {
 
         public void putField(Id fieldId, Type.T type, Id freshId) {
             if (this.fields.get(fieldId) != null) {
                 error(STR."duplicated class field: \{fieldId}");
             }
-            this.fields.put(fieldId, new Pair<>(type, freshId));
+            this.fields.put(fieldId, new Tuple.Two<>(type, freshId));
         }
 
         public void putMethod(Id mid, MethodType methodType, Id freshId) {
             if (this.methods.get(mid) != null) {
                 error(STR."duplicated class method: \{mid}");
             }
-            this.methods.put(mid, new Pair<>(methodType, freshId));
+            this.methods.put(mid, new Tuple.Two<>(methodType, freshId));
         }
 
         @Override
@@ -112,7 +112,7 @@ public class ClassTable {
 
     // get type of some field
     // return null for non-existing field.
-    public Pair<Type.T, Id> getField(Id classId, Id fieldId) {
+    public Tuple.Two<Type.T, Id> getField(Id classId, Id fieldId) {
         Binding classBinding = this.classTable.get(classId);
         var result = classBinding.fields.get(fieldId);
         while (result == null) { // search all parent classes until found or fail
@@ -126,7 +126,7 @@ public class ClassTable {
 
     // get type of given method
     // return null for non-existing method
-    public Pair<MethodType, Id> getMethod(Id classId, Id methodId) {
+    public Tuple.Two<MethodType, Id> getMethod(Id classId, Id methodId) {
         Binding classBinding = this.classTable.get(classId);
         var result = classBinding.methods.get(methodId);
         while (result == null) { // search all parent classes until found or fail
