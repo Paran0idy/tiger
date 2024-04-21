@@ -6,12 +6,14 @@ import ast.Ast.*;
 import ast.PrettyPrinter;
 import control.Control;
 import util.Id;
-import util.Pair;
 import util.Todo;
-import util.Tuple1;
+import util.Trace;
+import util.Tuple;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Checker {
     // symbol table for all classes
@@ -44,7 +46,7 @@ public class Checker {
     private Type.T checkAstId(AstId aid) {
         boolean isClassField = false;
         // first search in current method table
-        Pair<Ast.Type.T, Id> resultId = this.methodTable.get(aid.id);
+        Tuple.Two<Ast.Type.T, Id> resultId = this.methodTable.get(aid.id);
         // not a local or formal
         if (resultId == null) {
             isClassField = true;
@@ -62,23 +64,22 @@ public class Checker {
 
     // /////////////////////////////////////////////////////
     // expressions
-    // type check an expression will return its type, as well
-    // as a new expression.
+    // type check an expression will return its type.
     private Type.T checkExp(Exp.T e) {
         switch (e) {
             case Exp.Call(
                     Exp.T theObject,
                     AstId methodId,
                     List<Exp.T> args,
-                    Tuple1<Id> calleeTy,
-                    Tuple1<Type.T> retTy
+                    Tuple.One<Id> calleeTy,
+                    Tuple.One<Type.T> retTy
             ) -> {
                 var typeOfTheObject = checkExp(theObject);
                 Id calleeClassId = null;
                 if (Objects.requireNonNull(typeOfTheObject) instanceof Type.ClassType(Id calleeClassId_)) {
                     calleeClassId = calleeClassId_;
                     // put the return type onto the AST
-                    calleeTy.setData(calleeClassId);
+                    calleeTy.set(calleeClassId);
                 }
                 var resultMethodId = this.classTable.getMethod(calleeClassId, methodId.id);
                 if (resultMethodId == null) {
@@ -89,7 +90,7 @@ public class Checker {
                 methodId.freshId = resultMethodId.second();
                 Ast.Type.T retType = resultMethodId.first().retType();
                 // put the return type onto the AST
-                retTy.setData(retType);
+                retTy.set(retType);
                 return retType;
             }
             case Exp.NewObject(Id classId) -> {
@@ -182,9 +183,7 @@ public class Checker {
         // construct the method table
         this.methodTable = new MethodTable();
         this.methodTable.putFormalLocal(m.formals(), m.locals());
-        for (Stm.T stm : m.stms()) {
-            checkStm(stm);
-        }
+        m.stms().forEach(this::checkStm);
         var resultExp = checkExp(m.retExp());
         if (Type.nonEquals(resultExp, m.retType())) {
             error("ret type mismatch", m.retType(), resultExp);
@@ -198,11 +197,9 @@ public class Checker {
         Id extends_ = cls.extends_();
         if (extends_ != null) {
             ClassTable.Binding binding = this.classTable.getClass_(extends_);
-            cls.parent().setData(binding.self());
+            cls.parent().set(binding.self());
         }
-        for (Method.T mtd : cls.methods()) {
-            checkMethod(mtd);
-        }
+        cls.methods().forEach(this::checkMethod);
     }
 
     // main class
@@ -223,7 +220,7 @@ public class Checker {
     private void buildMainClass(MainClass.T main) {
         // we do not put Main class into the class table.
         // so that no other class can inherit from it.
-        //MainClass.Singleton mc = (MainClass.Singleton) main;
+        // MainClass.Singleton mc = (MainClass.Singleton) main;
         //this.classTable.putClass(mc.classId(), null);
     }
 
@@ -254,7 +251,7 @@ public class Checker {
 
 
     // to check a program
-    private void checkProgram0(Program.T p) {
+    private Program.T checkProgram(Program.T p) {
         // "p" is singleton
         Program.Singleton prog = (Program.Singleton) p;
         // ////////////////////////////////////////////////
@@ -262,34 +259,26 @@ public class Checker {
         // a class table maps a class name to a class binding:
         // classTable: className -> ClassBinding{extends_, fields, methods}
         buildMainClass(prog.mainClass());
-        for (Class.T c : prog.classes()) {
-            buildClass(c);
-        }
+        prog.classes().forEach(this::buildClass);
 
         // ////////////////////////////////////////////////
         // step 2: elaborate each class in turn, under the class table
         // built above.
         checkMainClass(prog.mainClass());
-        for (Class.T c : prog.classes()) {
-            checkClass(c);
-        }
-
+        prog.classes().forEach(this::checkClass);
+        return p;
     }
 
-    public Ast.Program.T checkProgram(Program.T ast) {
+    public Ast.Program.T check(Program.T ast) {
         PrettyPrinter pp = new PrettyPrinter();
 
-        if (Control.Type.dump) {
-            pp.ppProgram(ast);
-        }
-
-        checkProgram0(ast);
-
-        if (Control.Type.dump) {
-            pp.afterTypeCheck = true;
-            pp.ppProgram(ast);
-        }
-        return ast;
+        var traceCheckProgram = new Trace<>(
+                "checker.Checker.check",
+                this::checkProgram,
+                ast,
+                pp::ppProgram,
+                pp::ppProgram);
+        return traceCheckProgram.doit();
     }
 }
 

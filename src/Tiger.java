@@ -34,7 +34,7 @@ public class Tiger {
 
         CompilerPass<Ast.Program.T, Ast.Program.T> checkerPass =
                 new CompilerPass<>("type checking",
-                        (f) -> new Checker().checkProgram(f),
+                        (f) -> new Checker().check(f),
                         ast);
         Ast.Program.T newAst = checkerPass.apply();
 

@@ -3,12 +3,11 @@ package ast;
 import ast.Ast.*;
 import util.Id;
 import util.Todo;
-import util.Tuple1;
+import util.Tuple;
 
 import java.util.List;
 
 public class PrettyPrinter {
-    public boolean afterTypeCheck = false;
     private int indentLevel = 4;
 
     public PrettyPrinter() {
@@ -25,68 +24,64 @@ public class PrettyPrinter {
 
     private void printSpaces() {
         int i = this.indentLevel;
-        while (i-- != 0)
-            this.say(" ");
-    }
-
-    private <T> void sayln(T s) {
-        System.out.println(s);
+        while (i-- > 0)
+            System.out.print(" ");
     }
 
     private <T> void say(T s) {
+        printSpaces();
         System.out.print(s);
     }
+
+    private <T> void sayln(T s) {
+        printSpaces();
+        System.out.println(s);
+    }
+
+    private <T> void sayLocal(T s) {
+        System.out.print(s);
+    }
+
 
     // /////////////////////////////////////////////////////
     // ast id
     public void ppAstId(AstId aid) {
-        if (afterTypeCheck)
-            say(aid.freshId);
-        else
-            say(aid.id);
+        sayLocal(aid.id);
     }
 
     // /////////////////////////////////////////////////////
     // expressions
     public void ppExp(Exp.T e) {
         switch (e) {
-            case Exp.ExpId(AstId aid) -> {
-                ppAstId(aid);
-            }
+            case Exp.ExpId(AstId aid) -> ppAstId(aid);
             case Exp.Call(
                     Exp.T callee,
                     AstId methodId,
                     List<Exp.T> args,
-                    Tuple1<Id> theObjectType,
-                    Tuple1<Type.T> retType
+                    Tuple.One<Id> theObjectType,
+                    Tuple.One<Type.T> retType
             ) -> {
                 ppExp(callee);
-                say(STR.".");
+                sayLocal(STR.".");
                 ppAstId(methodId);
-                say("(");
+                sayLocal("(");
                 for (Exp.T arg : args) {
                     ppExp(arg);
-                    say(", ");
+                    sayLocal(", ");
                 }
-                say(")");
+                sayLocal(")");
             }
             case Exp.NewObject(Id id) -> {
-                say(STR."new \{id.toString()}()");
+                sayLocal(STR."new \{id.toString()}()");
             }
-            case Exp.Num(int n) -> {
-                say(n);
-            }
+            case Exp.Num(int n) -> sayLocal(n);
             case Exp.Bop(Exp.T left, String bop, Exp.T right) -> {
                 ppExp(left);
-                say(STR." \{bop} ");
+                sayLocal(STR." \{bop} ");
                 ppExp(right);
             }
-            case Exp.This() -> {
-                say("this");
-            }
-            default -> {
-                throw new Todo();
-            }
+            case Exp.This() -> sayLocal("this");
+            default -> throw new Todo();
         }
     }
 
@@ -94,33 +89,29 @@ public class PrettyPrinter {
     public void ppStm(Stm.T s) {
         switch (s) {
             case Stm.If(Exp.T cond, Stm.T then_, Stm.T else_) -> {
-                printSpaces();
                 say("if(");
                 ppExp(cond);
-                sayln("){");
+                sayLocal("){\n");
                 indent();
                 ppStm(then_);
                 unIndent();
-                printSpaces();
                 sayln("}else{");
                 indent();
                 ppStm(else_);
                 unIndent();
-                printSpaces();
                 sayln("}");
             }
             case Stm.Print(Exp.T exp) -> {
-                printSpaces();
                 say("System.out.println(");
                 ppExp(exp);
-                sayln(");");
+                sayLocal(");\n");
             }
             case Stm.Assign(AstId aid, Exp.T exp) -> {
-                printSpaces();
+                say("");
                 ppAstId(aid);
-                say(STR." = ");
+                sayLocal(STR." = ");
                 ppExp(exp);
-                sayln(";");
+                sayLocal(";\n");
             }
             default -> throw new Todo();
         }
@@ -128,58 +119,45 @@ public class PrettyPrinter {
 
     // type
     public void ppType(Type.T t) {
-        // we have made the constructors for type private,
-        // hence, we cannot pattern matching it.
-//        switch (t) {
-//            case Type.Int() -> {
-//                say("int");
-//            }
-//            default -> {
-//                throw new Todo();
-//            }
-//        }
-        // instead, we convert it explicitly.
-        String s = Type.convertString(t);
-        say(s);
+        switch (t) {
+            case Type.Int() -> sayLocal("int");
+            default -> throw new Todo();
+        }
     }
 
     // dec
     public void ppDec(Dec.T dec) {
         Dec.Singleton d = (Dec.Singleton) dec;
         ppType(d.type());
-        say(" ");
+        sayLocal(" ");
         ppAstId(d.aid());
     }
 
     // method
     public void ppMethod(Method.T mtd) {
         Method.Singleton m = (Method.Singleton) mtd;
-        printSpaces();
         this.say("public ");
         ppType(m.retType());
-        this.say(" ");
+        this.sayLocal(" ");
         ppAstId(m.methodId());
-        this.say(STR."(");
-        for (Dec.T d : m.formals()) {
-            ppDec(d);
-            say(", ");
-        }
-        this.sayln("){");
+        this.sayLocal(STR."(");
+        m.formals().forEach(x -> {
+            ppDec(x);
+            sayLocal(", ");
+        });
+        this.sayLocal("){\n");
         indent();
-        for (Dec.T d : m.locals()) {
-            printSpaces();
-            ppDec(d);
-            this.sayln(";");
-        }
+        m.locals().forEach(x -> {
+            this.say("");
+            ppDec(x);
+            this.sayLocal(";\n");
+        });
         this.sayln("");
-        for (Stm.T s : m.stms())
-            ppStm(s);
-        printSpaces();
+        m.stms().forEach(this::ppStm);
         this.say("return ");
         ppExp(m.retExp());
-        this.sayln(";");
+        this.sayLocal(";\n");
         unIndent();
-        printSpaces();
         this.sayln("}");
     }
 
@@ -187,36 +165,33 @@ public class PrettyPrinter {
     public void ppOneClass(Ast.Class.T cls) {
         Ast.Class.Singleton c = (Ast.Class.Singleton) cls;
         this.say(STR."class \{c.classId()}");
-        if (c.extends_() != null)
-            this.say(STR." extends \{c.extends_()}");
-        else
-            this.say("");
-        this.sayln("{");
-        indent();
-        for (Dec.T d : c.decs()) {
-            ppDec(d);
+        if (c.extends_() != null) {
+            this.sayLocal(STR." extends \{c.extends_()}");
+        } else {
+            this.sayLocal("");
         }
-        for (Method.T mthd : c.methods())
-            ppMethod(mthd);
-        this.sayln("}");
+        this.sayLocal("{\n");
+        indent();
+        c.decs().forEach(this::ppDec);
+        c.methods().forEach(this::ppMethod);
         unIndent();
+        this.sayln("}");
     }
 
     // main class
     public void ppMainClass(MainClass.T m) {
         MainClass.Singleton mc = (MainClass.Singleton) m;
         this.sayln(STR."class \{mc.classId()}{");
-        this.say(STR."\tpublic static void main(String[] ");
-        ppAstId(mc.arg());
-        sayln("){");
         indent();
+        this.say(STR."public static void main(String[] ");
+        ppAstId(mc.arg());
+        sayLocal("){\n");
         indent();
         ppStm(mc.stm());
         unIndent();
-        unIndent();
-        this.sayln("\t}");
         this.sayln("}");
-        return;
+        unIndent();
+        this.sayln("}");
     }
 
     // program
@@ -224,10 +199,8 @@ public class PrettyPrinter {
         Program.Singleton p = (Program.Singleton) prog;
         ppMainClass(p.mainClass());
         this.sayln("");
-        for (Ast.Class.T cls : p.classes()) {
-            ppOneClass(cls);
-        }
-        System.out.println("\n\n");
+        p.classes().forEach(this::ppOneClass);
+        this.sayln("\n");
     }
 }
 
