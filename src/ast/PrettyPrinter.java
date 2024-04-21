@@ -8,7 +8,6 @@ import util.Tuple1;
 import java.util.List;
 
 public class PrettyPrinter {
-    public boolean afterTypeCheck = false;
     private int indentLevel = 4;
 
     public PrettyPrinter() {
@@ -40,10 +39,7 @@ public class PrettyPrinter {
     // /////////////////////////////////////////////////////
     // ast id
     public void ppAstId(AstId aid) {
-        if (afterTypeCheck)
-            say(aid.freshId);
-        else
-            say(aid.id);
+        say(aid.id);
     }
 
     // /////////////////////////////////////////////////////
@@ -128,19 +124,14 @@ public class PrettyPrinter {
 
     // type
     public void ppType(Type.T t) {
-        // we have made the constructors for type private,
-        // hence, we cannot pattern matching it.
-//        switch (t) {
-//            case Type.Int() -> {
-//                say("int");
-//            }
-//            default -> {
-//                throw new Todo();
-//            }
-//        }
-        // instead, we convert it explicitly.
-        String s = Type.convertString(t);
-        say(s);
+        switch (t) {
+            case Type.Int() -> {
+                say("int");
+            }
+            default -> {
+                throw new Todo();
+            }
+        }
     }
 
     // dec
@@ -160,20 +151,19 @@ public class PrettyPrinter {
         this.say(" ");
         ppAstId(m.methodId());
         this.say(STR."(");
-        for (Dec.T d : m.formals()) {
-            ppDec(d);
+        m.formals().forEach(x -> {
+            ppDec(x);
             say(", ");
-        }
+        });
         this.sayln("){");
         indent();
-        for (Dec.T d : m.locals()) {
+        m.locals().forEach(x -> {
             printSpaces();
-            ppDec(d);
+            ppDec(x);
             this.sayln(";");
-        }
+        });
         this.sayln("");
-        for (Stm.T s : m.stms())
-            ppStm(s);
+        m.stms().forEach(this::ppStm);
         printSpaces();
         this.say("return ");
         ppExp(m.retExp());
@@ -186,35 +176,38 @@ public class PrettyPrinter {
     // class
     public void ppOneClass(Ast.Class.T cls) {
         Ast.Class.Singleton c = (Ast.Class.Singleton) cls;
+        printSpaces();
         this.say(STR."class \{c.classId()}");
-        if (c.extends_() != null)
+        if (c.extends_() != null) {
             this.say(STR." extends \{c.extends_()}");
-        else
+        } else {
             this.say("");
+        }
         this.sayln("{");
         indent();
-        for (Dec.T d : c.decs()) {
-            ppDec(d);
-        }
-        for (Method.T mthd : c.methods())
-            ppMethod(mthd);
-        this.sayln("}");
+        c.decs().forEach(this::ppDec);
+        c.methods().forEach(this::ppMethod);
         unIndent();
+        printSpaces();
+        this.sayln("}");
     }
 
     // main class
     public void ppMainClass(MainClass.T m) {
         MainClass.Singleton mc = (MainClass.Singleton) m;
         this.sayln(STR."class \{mc.classId()}{");
-        this.say(STR."\tpublic static void main(String[] ");
+        indent();
+        printSpaces();
+        this.say(STR."public static void main(String[] ");
         ppAstId(mc.arg());
         sayln("){");
         indent();
-        indent();
         ppStm(mc.stm());
         unIndent();
+        printSpaces();
+        this.sayln("}");
         unIndent();
-        this.sayln("\t}");
+        printSpaces();
         this.sayln("}");
         return;
     }
@@ -224,9 +217,7 @@ public class PrettyPrinter {
         Program.Singleton p = (Program.Singleton) prog;
         ppMainClass(p.mainClass());
         this.sayln("");
-        for (Ast.Class.T cls : p.classes()) {
-            ppOneClass(cls);
-        }
+        p.classes().forEach(this::ppOneClass);
         System.out.println("\n\n");
     }
 }

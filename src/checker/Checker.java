@@ -286,7 +286,6 @@ public class Checker {
         checkProgram0(ast);
 
         if (Control.Type.dump) {
-            pp.afterTypeCheck = true;
             pp.ppProgram(ast);
         }
         return ast;

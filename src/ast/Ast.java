@@ -21,8 +21,8 @@ public class Ast {
 
         public AstId(Id id) {
             this.id = id;
-            // following fields have default values
-            this.freshId = null;
+            // set the initial value to "id"
+            this.freshId = id;
             this.type = null;
             this.isClassField = false;
         }
@@ -205,15 +205,19 @@ public class Ast {
     public static class Stm {
         // alphabetically-ordered
         public sealed interface T
-                permits Assign, AssignArray, Block, If, Print, While {
+                permits Assign, AssignArray, Block, If,
+                Print, While {
         }
 
         // assign: id = exp;
-        public record Assign(AstId aid, Exp.T exp) implements T {
+        public record Assign(AstId aid,
+                             Exp.T exp) implements T {
         }
 
         // assign-array: id[exp] = exp
-        public record AssignArray(AstId id, Exp.T index, Exp.T exp) implements T {
+        public record AssignArray(AstId id,
+                                  Exp.T index,
+                                  Exp.T exp) implements T {
         }
 
         // block
@@ -221,7 +225,9 @@ public class Ast {
         }
 
         // if
-        public record If(Exp.T cond, T thenn, T elsee) implements T {
+        public record If(Exp.T cond,
+                         T thenn,
+                         T elsee) implements T {
         }
 
         // System.out.println
@@ -229,7 +235,8 @@ public class Ast {
         }
 
         // while
-        public record While(Exp.T cond, T body) implements T {
+        public record While(Exp.T cond,
+                            T body) implements T {
         }
     }
     // end of statement
