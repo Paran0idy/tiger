@@ -5,29 +5,41 @@ import slp.Slp.Stm;
 
 import java.util.List;
 
+import static java.lang.System.out;
+
 // this defines a pretty printer for the SLP language.
 public class PrettyPrint {
+    // a few print functions for convenience.
+    private static void print(String s) {
+        out.print(s);
+    }
+
+    private static void println(String s) {
+        out.println(s);
+    }
+
+
     // ///////////////////////////////////////////
     // print expression
     private void ppExp(Exp.T exp) {
         switch (exp) {
             case Exp.Num(int n) -> {
-                System.out.print(n);
+                print(Integer.valueOf(n).toString());
             }
             case Exp.Id(String x) -> {
-                System.out.print(x);
+                print(x);
             }
             case Exp.Op(Exp.T left, String bop, Exp.T right) -> {
                 ppExp(left);
-                System.out.print(bop);
+                print(bop);
                 ppExp(right);
             }
             case Exp.Eseq(Stm.T stm, Exp.T e) -> {
-                System.out.print("(");
+                print("(");
                 ppStm(stm);
-                System.out.print(", ");
+                print(", ");
                 ppExp(e);
-                System.out.print(")");
+                print(")");
             }
         }
     }
@@ -38,18 +50,18 @@ public class PrettyPrint {
         switch (stm) {
             case Stm.Compound(Stm.T s1, Stm.T s2) -> {
                 ppStm(s1);
-                System.out.println(";");
+                println(";");
                 ppStm(s2);
             }
             case Stm.Assign(String x, Exp.T e) -> {
-                System.out.print(STR."\{x} = ");
+                print(STR."\{x} = ");
                 ppExp(e);
             }
             case Stm.Print(List<Exp.T> exps) -> {
                 System.out.print("print(");
                 exps.forEach(x -> {
                             ppExp(x);
-                            System.out.print(", ");
+                            print(", ");
                         }
                 );
                 System.out.print(")");
