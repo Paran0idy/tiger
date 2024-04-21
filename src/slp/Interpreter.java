@@ -6,9 +6,9 @@ import util.Todo;
 
 import java.util.HashMap;
 
-// this defines an interpreter for the SLP language.
+// an interpreter for the SLP language.
 public class Interpreter {
-    // an abstract memory to hold the values
+    // an abstract memory mapping each variable to its value
     HashMap<String, Integer> memory = new HashMap<>();
 
     // ///////////////////////////////////////////

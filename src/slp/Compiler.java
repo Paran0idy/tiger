@@ -78,14 +78,14 @@ public class Compiler {
 """);
             }
             case Stm.Print(List<Exp.T> exps) -> {
-                for (Exp.T e : exps) {
+                exps.forEach(e -> {
                     compileExp(e);
                     emit("""
                                 movq\t%rax, %rsi
                                 movq\t$slp_format, %rdi
                                 callq\tprintf
                             """);
-                }
+                });
                 emit("""
                             movq\t$new_line, %rdi
                             callq\tprintf
