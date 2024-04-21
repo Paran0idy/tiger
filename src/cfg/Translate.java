@@ -6,7 +6,7 @@ import control.Control;
 import util.Id;
 import util.Label;
 import util.Todo;
-import util.Tuple1;
+import util.Tuple;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -90,8 +90,8 @@ public class Translate {
                     Ast.Exp.T theObject,
                     Ast.AstId methodId,
                     List<Ast.Exp.T> args,
-                    Tuple1<Id> theObjectType,
-                    Tuple1<Ast.Type.T> _
+                    Tuple.One<Id> theObjectType,
+                    Tuple.One<Ast.Type.T> _
             ) -> {
                 // the object
                 Cfg.Value.T theObjectValue = transExp(theObject);
@@ -100,7 +100,7 @@ public class Translate {
                 Cfg.Type.T newType = new Cfg.Type.CodePtr();
                 emitDec(new Cfg.Dec.Singleton(newType, funcCodeId));
                 emit(new Cfg.Stm.GetMethod(funcCodeId, theObjectValue,
-                        theObjectType.getData(), methodId.freshId));
+                        theObjectType.get(), methodId.freshId));
 
                 // function arguments
                 LinkedList<Cfg.Value.T> newArgs = new LinkedList<>();
@@ -269,7 +269,7 @@ public class Translate {
                 Id _,
                 List<Ast.Dec.T> decs1,
                 List<Ast.Method.T> _,
-                util.Tuple1<Ast.Class.T> _
+                util.Tuple.One<Ast.Class.T> _
         )) {
             this.currentClassName = classId;
             localDecs = decs1;
