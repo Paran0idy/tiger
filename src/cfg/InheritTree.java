@@ -2,7 +2,7 @@ package cfg;
 
 import ast.Ast;
 import util.Id;
-import util.Tuple1;
+import util.Tuple;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -57,7 +57,7 @@ public class InheritTree {
                 null, // null for non-existing "extends"
                 new LinkedList<>(),
                 new LinkedList<>(),
-                new Tuple1<>());
+                new Tuple.One<>());
         Node n = new Node(objCls, new Vector<>());
         this.nodes.add(n);
         this.root = n;
@@ -81,7 +81,7 @@ public class InheritTree {
             if (cls.extends_() == null) {
                 parentNode = this.root;
             } else {
-                parentNode = searchClass(cls.parent().getData());
+                parentNode = searchClass(cls.parent().get());
             }
             Node childNode = searchClass(c);
             // add the child into parent
