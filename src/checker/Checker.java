@@ -277,7 +277,7 @@ public class Checker {
 
     private Program.T checkIt(Program.T p) {
         Trace<Program.T, Program.T> trace =
-                new Trace<>("checker.Checker.check",
+                new Trace<>("checker.Checker.checkClass",
                         this::checkIt0,
                         p,
                         (_) -> {
