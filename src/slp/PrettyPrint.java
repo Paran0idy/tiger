@@ -23,12 +23,8 @@ public class PrettyPrint {
     // print expression
     private void ppExp(Exp.T exp) {
         switch (exp) {
-            case Exp.Num(int n) -> {
-                print(Integer.valueOf(n).toString());
-            }
-            case Exp.Id(String x) -> {
-                print(x);
-            }
+            case Exp.Num(int n) -> print(Integer.valueOf(n).toString());
+            case Exp.Id(String x) -> print(x);
             case Exp.Op(Exp.T left, String bop, Exp.T right) -> {
                 ppExp(left);
                 print(bop);
