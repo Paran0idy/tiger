@@ -40,10 +40,11 @@ public class Tiger {
                         Control.Verbose.L0);
         Ast.Program.T newAst = checkerPass.apply();
 
-        CompilerPass<Ast.Program.T, Cfg.Program.T> transPass =
-                new CompilerPass<>("translating to CFG",
+        Pass<Ast.Program.T, Cfg.Program.T> transPass =
+                new Pass<>("translating to CFG",
                         (f) -> new cfg.Translate().translate(f),
-                        newAst);
+                        newAst,
+                        Control.Verbose.L0);
         Cfg.Program.T cfg = transPass.apply();
 
 

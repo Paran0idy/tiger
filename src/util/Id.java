@@ -75,7 +75,7 @@ public class Id {
         return this.counter;
     }
 
-    private boolean dumpId = true;
+    private boolean dumpId = false;
 
     @Override
     public String toString() {
