@@ -2,7 +2,6 @@ package cfg;
 
 import ast.Ast;
 import ast.Ast.AstId;
-import control.Control;
 import util.*;
 
 import java.util.LinkedList;
@@ -253,10 +252,10 @@ public class Translate {
     }
 
     // the prefixing algorithm
-    private void prefixing(InheritTree.Node root,
+    private void prefixing(Tree<Ast.Class.T>.Node currentRoot,
                            Vector<Cfg.Dec.T> decs,
                            Vector<Cfg.Vtable.Entry> functions) {
-        Ast.Class.T cls = root.theClass;
+        Ast.Class.T cls = currentRoot.data;
         this.currentClassName = null;
         List<Ast.Dec.T> localDecs = List.of();
         if (cls instanceof Ast.Class.Singleton(
@@ -280,7 +279,7 @@ public class Translate {
                 newDecs.set(index, newLocalDec);
             }
         }
-        Cfg.Struct.T struct = new Cfg.Struct.Singleton(Ast.Class.getClassId(root.theClass),
+        Cfg.Struct.T struct = new Cfg.Struct.Singleton(Ast.Class.getClassId(currentRoot.data),
                 newDecs);
         this.structs.add(struct);
 
@@ -307,12 +306,12 @@ public class Translate {
             this.functions.add(newFunc);
         }
         Cfg.Vtable.T vtable = new Cfg.Vtable.Singleton(
-                Ast.Class.getClassId(root.theClass),
+                Ast.Class.getClassId(currentRoot.data),
                 newEntries);
         this.vtables.add(vtable);
 
         // process childrens, recursively
-        for (InheritTree.Node child : root.children) {
+        for (var child : currentRoot.children) {
             prefixing(child, newDecs, newEntries);
         }
     }
@@ -322,10 +321,10 @@ public class Translate {
     // to a corresponding control-flow graph.
     private Cfg.Program.T translate0(Ast.Program.T ast) {
         // build the inheritance tree
-        InheritTree.Node root = new InheritTree(ast).buildTree();
+        Tree<Ast.Class.T> tree = new InheritTree().buildTree(ast);
 
         // start from the tree root, perform prefixing
-        prefixing(root,
+        prefixing(tree.root,
                 new Vector<>(),
                 new Vector<>());
 
