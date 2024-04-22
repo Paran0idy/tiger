@@ -78,9 +78,9 @@ public class CommandLine {
                         Kind.Int,
                         (Object x) -> {
                             switch ((Integer) x) {
-                                case 0 -> Control.verbose = Control.Verbose.SILENT;
-                                case 1 -> Control.verbose = Control.Verbose.PASS;
-                                case 2 -> Control.verbose = Control.Verbose.DETAIL;
+                                case 0 -> Control.verbose = Control.Verbose.L0;
+                                case 1 -> Control.verbose = Control.Verbose.L1;
+                                case 2 -> Control.verbose = Control.Verbose.L2;
                                 default -> error(STR."bad argument: \{x}");
                             }
                         })

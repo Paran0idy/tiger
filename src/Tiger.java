@@ -1,9 +1,9 @@
 import ast.Ast;
 import checker.Checker;
 import control.CommandLine;
-import control.CompilerPass;
 import control.Control;
 import parser.Parser;
+import util.Pass;
 
 // the Tiger compiler main class.
 public class Tiger {
@@ -21,20 +21,22 @@ public class Tiger {
 
         // /////////////////////////////////////////////////////////
         // otherwise, we continue the normal compilation pipeline.
-        CompilerPass<String, Ast.Program.T> parserPass =
-                new CompilerPass<>("parsing",
+        Pass<String, Ast.Program.T> parserPass =
+                new Pass<>("parsing",
                         // a special hack to allow us to use the builtin ast,
                         // in case that your parser does not work properly.
                         (f) -> ((Control.bultinAst == null) ?
                                 new Parser(f).parse() :
                                 Control.bultinAst),
-                        fileName);
+                        fileName,
+                        Control.Verbose.L0);
         Ast.Program.T ast = parserPass.apply();
 
-        CompilerPass<Ast.Program.T, Ast.Program.T> checkerPass =
-                new CompilerPass<>("type checking",
+        Pass<Ast.Program.T, Ast.Program.T> checkerPass =
+                new Pass<>("type checking",
                         (f) -> new Checker().check(f),
-                        ast);
+                        ast,
+                        Control.Verbose.L0);
         Ast.Program.T newAst = checkerPass.apply();
 
 
