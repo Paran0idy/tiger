@@ -3,10 +3,7 @@ package cfg;
 import ast.Ast;
 import ast.Ast.AstId;
 import control.Control;
-import util.Id;
-import util.Label;
-import util.Todo;
-import util.Tuple;
+import util.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -236,9 +233,7 @@ public class Translate {
                 this.currentFunction = newFunc;
                 this.currentBlock = newBlock;
                 this.newDecs = new LinkedList<>();
-                for (Ast.Stm.T stmt : stms) {
-                    transStm(stmt);
-                }
+                stms.forEach(this::transStm);
 
                 // translate the "retExp"
                 Cfg.Value.T retValue = transExp(retExp);
@@ -361,10 +356,12 @@ public class Translate {
     }
 
     public Cfg.Program.T translate(Ast.Program.T ast) {
-        Cfg.Program.T cfg = translate0(ast);
-        if (Control.Cfg.dump) {
-            Cfg.Program.pp(cfg);
-        }
-        return cfg;
+        Trace<Ast.Program.T, Cfg.Program.T> trace =
+                new Trace<>("cfg.Translate.translate",
+                        this::translate0,
+                        ast,
+                        new ast.PrettyPrinter()::ppProgram,
+                        Cfg.Program::pp);
+        return trace.doit();
     }
 }
