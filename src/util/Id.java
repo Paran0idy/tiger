@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 public class Id {
     private static int gCounter = 0;
-    // this uniquely identifies an Id
+    // used to print out a fancy name like: %n
     private final int counter;
     // null, if no source names
     private String origName;
@@ -61,19 +61,19 @@ public class Id {
         return this.plist;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null)
-            return false;
-        if (!(o instanceof Id))
-            return false;
-        return this.counter == ((Id) o).counter;
-    }
-
-    @Override
-    public int hashCode() {
-        return this.counter;
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (o == null)
+//            return false;
+//        if (!(o instanceof Id))
+//            return false;
+//        return this.counter == ((Id) o).counter;
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return this.counter;
+//    }
 
     private boolean dumpId = true;
 
