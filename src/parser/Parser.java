@@ -1,10 +1,11 @@
 package parser;
 
 import ast.Ast;
-import control.Control;
+import ast.PrettyPrinter;
 import lexer.Lexer;
 import lexer.Token;
 import util.Todo;
+import util.Trace;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -259,11 +260,11 @@ public class Parser {
     }
 
     // Program -> MainClass ClassDecl*
-    private void parseProgram() {
+    private Ast.Program.T parseProgram(Object obj) {
         parseMainClass();
         parseClassDecls();
         eatToken(Token.Kind.EOF);
-        return;
+        return null;
     }
 
     private void initParser() {
@@ -287,12 +288,14 @@ public class Parser {
 
     public Ast.Program.T parse() {
         initParser();
-        parseProgram();
+        Trace<Object, Ast.Program.T> trace =
+                new Trace<>("parser.Parser.parse",
+                        this::parseProgram,
+                        this.inputFileName,
+                        (s) -> System.out.println(STR."parsing: \{s}"),
+                        new PrettyPrinter()::ppProgram);
+        Ast.Program.T ast = trace.doit();
         finalizeParser();
-        Ast.Program.T ast = null;
-        if (Control.Parser.dump) {
-            new ast.PrettyPrinter().ppProgram(ast);
-        }
-        return null;
+        return ast;
     }
 }

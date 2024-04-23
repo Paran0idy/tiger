@@ -274,7 +274,11 @@ public class Ast {
         public static Id getClassId(Class.T cls) {
             switch (cls) {
                 case Singleton(
-                        Id classId, Id extends_, List<Dec.T> decs, List<Method.T> methods, Tuple.One<T> parent
+                        Id classId,
+                        Id extends_,
+                        List<Dec.T> decs,
+                        List<Method.T> methods,
+                        Tuple.One<T> parent
                 ) -> {
                     return classId;
                 }

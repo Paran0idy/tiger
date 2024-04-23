@@ -46,7 +46,7 @@ public class PrettyPrinter {
     // /////////////////////////////////////////////////////
     // ast id
     public void ppAstId(AstId aid) {
-        sayLocal(aid.id);
+        sayLocal(aid.freshId);
     }
 
     // /////////////////////////////////////////////////////
@@ -202,5 +202,6 @@ public class PrettyPrinter {
         p.classes().forEach(this::ppOneClass);
         this.sayln("\n");
     }
+
 }
 

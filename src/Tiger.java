@@ -3,9 +3,9 @@ import cfg.Cfg;
 import checker.Checker;
 import codegen.X64;
 import control.CommandLine;
-import control.CompilerPass;
 import control.Control;
 import parser.Parser;
+import util.Pass;
 
 // the Tiger compiler main class.
 public class Tiger {
@@ -23,38 +23,43 @@ public class Tiger {
 
         // /////////////////////////////////////////////////////////
         // otherwise, we continue the normal compilation pipeline.
-        CompilerPass<String, Ast.Program.T> parserPass =
-                new CompilerPass<>("parsing",
+        Pass<String, Ast.Program.T> parserPass =
+                new Pass<>("parsing",
                         // a special hack to allow us to use the builtin ast,
                         // in case that your parser does not work properly.
                         (f) -> ((Control.bultinAst == null) ?
                                 new Parser(f).parse() :
                                 Control.bultinAst),
-                        fileName);
+                        fileName,
+                        Control.Verbose.L0);
         Ast.Program.T ast = parserPass.apply();
 
-        CompilerPass<Ast.Program.T, Ast.Program.T> checkerPass =
-                new CompilerPass<>("type checking",
+        Pass<Ast.Program.T, Ast.Program.T> checkerPass =
+                new Pass<>("type checking",
                         (f) -> new Checker().check(f),
-                        ast);
+                        ast,
+                        Control.Verbose.L0);
         Ast.Program.T newAst = checkerPass.apply();
 
-        CompilerPass<Ast.Program.T, Cfg.Program.T> transPass =
-                new CompilerPass<>("translating to CFG",
+        Pass<Ast.Program.T, Cfg.Program.T> transPass =
+                new Pass<>("translating to CFG",
                         (f) -> new cfg.Translate().translate(f),
-                        newAst);
+                        newAst,
+                        Control.Verbose.L0);
         Cfg.Program.T cfg = transPass.apply();
 
-        CompilerPass<Cfg.Program.T, X64.Program.T> codeGenPass =
-                new CompilerPass<>("code generation",
+        Pass<Cfg.Program.T, X64.Program.T> codeGenPass =
+                new Pass<>("code generation",
                         (f) -> new codegen.Munch().munchProgram(f),
-                        cfg);
+                        cfg,
+                        Control.Verbose.L0);
         X64.Program.T x64 = codeGenPass.apply();
 
-        CompilerPass<X64.Program.T, X64.Program.T> regAllocPass =
-                new CompilerPass<>("register allocation",
+        Pass<X64.Program.T, X64.Program.T> regAllocPass =
+                new Pass<>("register allocation",
                         (f) -> new regalloc.RegAllocStack().allocProgram(f),
-                        x64);
+                        x64,
+                        Control.Verbose.L0);
         X64.Program.T newX64 = regAllocPass.apply();
 
 

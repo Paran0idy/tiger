@@ -8,17 +8,18 @@ import java.util.List;
 public class Control {
 
     public enum Verbose {
-        SILENT(0),
-        PASS(1),
-        DETAIL(2);
-        final int order;
+        LM1(-1),
+        L0(0), // top level
+        L1(1),
+        L2(2);
+        public final int order;
 
         Verbose(int i) {
             this.order = i;
         }
     }
 
-    public static Verbose verbose = Verbose.SILENT;
+    public static Verbose verbose = Verbose.LM1;
 
     static List<String> tracedMethods = new LinkedList<>();
 
