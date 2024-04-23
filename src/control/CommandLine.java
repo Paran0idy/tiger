@@ -46,17 +46,18 @@ public class CommandLine {
                                 error(STR."unknown argument: \{x}");
                             }
                         }),
+                new Arg("dot",
+                        "<format>",
+                        "set the figure format",
+                        Kind.String,
+                        (Object x) -> Control.Dot.format = (String) x),
                 new Arg("dump",
-                        "{ast|token|type|cfg|x64}",
+                        "{token}",
                         "dump intermediate results",
                         Kind.String,
                         (Object x) -> {
                             switch ((String) x) {
-                                case "ast" -> Control.Parser.dump = true;
                                 case "token" -> Control.Lexer.dumpToken = true;
-                                case "type" -> Control.Type.dump = true;
-                                case "cfg" -> Control.Cfg.dump = true;
-                                case "x64" -> Control.X64.dump = true;
                                 default -> error(STR."unknown argument: \{x}");
                             }
                         }),
@@ -67,6 +68,16 @@ public class CommandLine {
                         (_) -> {
                             usage();
                             System.exit(1);
+                        }),
+                new Arg("keep",
+                        "<ir>",
+                        "keep the given ir",
+                        Kind.String,
+                        (Object x) -> {
+                            switch ((String) x) {
+                                case "dot" -> Control.Dot.keep = true;
+                                default -> error(STR."bad argument: \{x}");
+                            }
                         }),
                 new Arg("trace",
                         "<method>",
