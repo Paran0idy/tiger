@@ -2,6 +2,7 @@ package util;
 
 import java.util.List;
 import java.util.Vector;
+import java.util.function.BiFunction;
 
 
 // a tree is parameterized by its containing data "X"
@@ -27,7 +28,7 @@ public class Tree<X> {
     // the tree name, for debugging
     public final String name;
     public Node root;
-    private Vector<Node> allNodes;
+    private final Vector<Node> allNodes;
 
     public Tree(String name) {
         this.name = name;
@@ -67,6 +68,23 @@ public class Tree<X> {
             throw new Error();
 
         this.addEdge(f, t);
+    }
+
+    // perform a level-order traversal of the tree.
+    public <Y> void levelOrder(Node node,
+                               BiFunction<X, Y, Y> doit,
+                               Y value) {
+        Y result = doit.apply(node.data, value);
+        for (Node child : node.children) {
+            levelOrder(child, doit, result);
+        }
+    }
+
+    public void output(Node n) {
+        for (Node child : n.children)
+            System.out.println(STR."\{n} -> \{child}");
+        for (Node child : n.children)
+            output(child);
     }
 
 //    public void visualize() {

@@ -98,7 +98,7 @@ public class SamplePrograms {
 //        }
 //    }
     static MainClass.T sumRec = new MainClass.Singleton(
-            Id.newName("Factorial"),
+            Id.newName("SumRec"),
             new AstId(Id.newName("n")),
             new Print(new Call(new NewObject(Id.newName("Doit")),
                     new AstId(Id.newName("doit")),

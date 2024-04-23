@@ -71,6 +71,20 @@ public class Cfg {
 
         public record Singleton(Type.T type,
                                 Id id) implements T {
+            // only compare "id"
+            @Override
+            public boolean equals(Object o) {
+                if (o == null)
+                    return false;
+                if (!(o instanceof Singleton))
+                    return false;
+                return this.id().equals(((Dec.Singleton) o).id());
+            }
+
+            @Override
+            public int hashCode() {
+                return this.id().hashCode();
+            }
         }
 
         public static void pp(T dec) {
@@ -82,6 +96,7 @@ public class Cfg {
             }
         }
 
+
     }
 
     // /////////////////////////////////////////////////////////
@@ -91,8 +106,8 @@ public class Cfg {
         }
 
         public record Entry(Type.T retType,
-                            Id clsName,
-                            Id funcName,
+                            Id classId,
+                            Id functionId,
                             List<Dec.T> argTypes) {
         }
 
@@ -112,7 +127,7 @@ struct V_\{name} {
                     for (Entry e : funcTypes) {
                         printSpaces();
                         Type.pp(e.retType);
-                        say(STR." \{e.funcName}(");
+                        say(STR." \{e.functionId}(");
                         for (Dec.T dec : e.argTypes) {
                             Dec.pp(dec);
                             say(", ");
@@ -127,7 +142,7 @@ struct V_\{name} {
                     indent();
                     for (Entry e : funcTypes) {
                         printSpaces();
-                        say(STR.".\{e.funcName} = \{e.clsName}_\{e.funcName}");
+                        say(STR.".\{e.functionId} = \{e.classId}_\{e.functionId}");
                         say(",\n");
                     }
                     unIndent();
@@ -141,7 +156,8 @@ struct V_\{name} {
     // /////////////////////////////////////////////////////////
     // structures
     public static class Struct {
-        public sealed interface T permits Singleton {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(Id className,
@@ -150,7 +166,10 @@ struct V_\{name} {
 
         public static void pp(T s) {
             switch (s) {
-                case Singleton(Id clsName, List<Cfg.Dec.T> fields) -> {
+                case Singleton(
+                        Id clsName,
+                        List<Cfg.Dec.T> fields
+                ) -> {
                     printSpaces();
                     say(STR."""
 struct S_\{clsName.toString()} {
@@ -409,7 +428,8 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // function
     public static class Function {
-        public sealed interface T permits Singleton {
+        public sealed interface T
+                permits Singleton {
         }
 
         public record Singleton(Type.T retType,
@@ -463,7 +483,7 @@ struct V_\{clsName} *vptr;
             switch (f) {
                 case Singleton(
                         Type.T retType,
-                        _,
+                        Id classId,
                         Id id,
                         List<Dec.T> formals,
                         List<Dec.T> locals,
@@ -476,7 +496,7 @@ struct V_\{clsName} *vptr;
                         Dec.pp(x);
                         say(", ");
                     });
-                    say("){\n");
+                    say(STR."){ @classId: \{classId.toString()}\n");
                     indent();
                     locals.forEach(x -> {
                         printSpaces();
@@ -498,8 +518,8 @@ struct V_\{clsName} *vptr;
         public sealed interface T permits Singleton {
         }
 
-        public record Singleton(Id mainClassName,
-                                Id mainFuncName, // name of the entry function
+        public record Singleton(Id mainClassId,
+                                Id mainFuncId, // name of the entry function
                                 List<Vtable.T> vtables,
                                 List<Struct.T> structs,
                                 List<Function.T> functions) implements T {
@@ -508,14 +528,14 @@ struct V_\{clsName} *vptr;
         public static void pp(T prog) {
             switch (prog) {
                 case Singleton(
-                        Id mainClassName,
-                        Id mainFuncName,
+                        Id mainClassId,
+                        Id mainFuncId,
                         List<Vtable.T> vtables,
                         List<Struct.T> structs,
                         List<Function.T> functions
                 ) -> {
                     printSpaces();
-                    sayln(STR."// the entry function name: \{mainClassName}_\{mainFuncName}");
+                    sayln(STR."// the entry function name: \{mainClassId}: \{mainFuncId}");
                     // vtables
                     vtables.forEach(Vtable::pp);
                     // structs

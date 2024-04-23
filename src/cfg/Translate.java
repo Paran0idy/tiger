@@ -10,16 +10,19 @@ import java.util.Vector;
 import java.util.stream.Collectors;
 
 public class Translate {
+    // the generated results:
     private final Vector<Cfg.Vtable.T> vtables;
     private final Vector<Cfg.Struct.T> structs;
     private final Vector<Cfg.Function.T> functions;
-    // for code generation purpose
-    private Id currentClassName = null;
+    // for bookkeeping purpose:
+    private Id currentClassId = null;
     private Id currentThis = null;
     private Cfg.Function.T currentFunction = null;
     private Cfg.Block.T currentBlock = null;
     private LinkedList<Cfg.Dec.T> newDecs = new LinkedList<>();
-    private boolean shouldCloseMethod = true;
+    // for main function
+    private Id mainClassId = null;
+    private Id mainFunctionId = null;
 
     public Translate() {
         this.vtables = new Vector<>();
@@ -143,7 +146,7 @@ public class Translate {
             }
             case Ast.Exp.This() -> {
                 return new Cfg.Value.Vid(this.currentThis,
-                        new Cfg.Type.ClassType(this.currentClassName));
+                        new Cfg.Type.ClassType(this.currentClassId));
             }
             case Ast.Exp.NewObject(Id id) -> {
                 Id newVar = Id.newNoname();
@@ -152,16 +155,14 @@ public class Translate {
                 emit(new Cfg.Stm.AssignNew(newVar, id));
                 return new Cfg.Value.Vid(newVar, newType);
             }
-            default -> {
-                throw new Todo();
-            }
+            default -> throw new Todo();
         }
     }
 
     /////////////////////////////
     // translate a statement
     // this function does not return its result,
-    // as the result has been saved into currentBlock
+    // but saved the result into "currentBlock"
     private void transStm(Ast.Stm.T stm) {
         switch (stm) {
             case Ast.Stm.Assign(AstId aid, Ast.Exp.T exp) -> {
@@ -217,7 +218,7 @@ public class Translate {
                 this.currentThis = Id.newName("this").newSameOrigName();
                 // clear the caches:
                 Cfg.Function.T newFunc = new Cfg.Function.Singleton(transType(retType),
-                        this.currentClassName,
+                        this.currentClassId,
                         methodId.freshId,
                         transDecList(formals),
                         transDecList(locals),
@@ -239,8 +240,8 @@ public class Translate {
                 emitTransfer(new Cfg.Transfer.Ret(retValue));
 
                 // close the method, if it is non-static:
-                if (this.shouldCloseMethod) {
-                    Cfg.Dec.T newFormal = new Cfg.Dec.Singleton(new Cfg.Type.ClassType(this.currentClassName),
+                if (!methodId.freshId.equals(this.mainFunctionId)) {
+                    Cfg.Dec.T newFormal = new Cfg.Dec.Singleton(new Cfg.Type.ClassType(this.currentClassId),
                             this.currentThis);
                     Cfg.Function.addFirstFormal(newFunc, newFormal);
                 }
@@ -252,108 +253,180 @@ public class Translate {
     }
 
     // the prefixing algorithm
-    private void prefixing(Tree<Ast.Class.T>.Node currentRoot,
-                           Vector<Cfg.Dec.T> decs,
-                           Vector<Cfg.Vtable.Entry> functions) {
-        Ast.Class.T cls = currentRoot.data;
-        this.currentClassName = null;
-        List<Ast.Dec.T> localDecs = List.of();
-        if (cls instanceof Ast.Class.Singleton(
-                Id classId,
-                Id _,
-                List<Ast.Dec.T> decs1,
-                List<Ast.Method.T> _,
-                util.Tuple.One<Ast.Class.T> _
-        )) {
-            this.currentClassName = classId;
-            localDecs = decs1;
+    @SuppressWarnings("unchecked")
+    private Tuple.Two<Vector<Cfg.Dec.T>,
+            Vector<Cfg.Vtable.Entry>> prefixOneNode(Ast.Class.T cls,
+                                                    Tuple.Two<Vector<Cfg.Dec.T>,
+                                                            Vector<Cfg.Vtable.Entry>> decsAndFunctions) {
+        var decs = decsAndFunctions.first();
+        var functions = decsAndFunctions.second();
+        this.currentClassId = null;
+        List<Ast.Dec.T> localDecs;
+        List<Ast.Method.T> localMethods;
+
+        switch (cls) {
+            case Ast.Class.Singleton(
+                    Id classId,
+                    Id _,
+                    List<Ast.Dec.T> decs1,
+                    List<Ast.Method.T> lms,
+                    util.Tuple.One<Ast.Class.T> _
+            ) -> {
+                this.currentClassId = classId;
+                localDecs = decs1;
+                localMethods = lms;
+            }
         }
         // instance variables
         Vector<Cfg.Dec.T> newDecs = (Vector<Cfg.Dec.T>) decs.clone();
+        assert localDecs != null;
         for (Ast.Dec.T localDec : localDecs) {
-            Cfg.Dec.T newLocalDec = transDec(localDec);
+            Cfg.Dec.Singleton newLocalDec = (Cfg.Dec.Singleton) transDec(localDec);
             int index = decs.indexOf(newLocalDec);
-            if (index == -1) {
-                newDecs.add(newLocalDec);
-            } else {
-                newDecs.set(index, newLocalDec);
-            }
+            var _ = -1 == index ?
+                    newDecs.add(newLocalDec) :
+                    newDecs.set(index, newLocalDec);
         }
-        Cfg.Struct.T struct = new Cfg.Struct.Singleton(Ast.Class.getClassId(currentRoot.data),
+        Cfg.Struct.T struct = new Cfg.Struct.Singleton(this.currentClassId,
                 newDecs);
         this.structs.add(struct);
 
         // methods
-        assert cls instanceof Ast.Class.Singleton;
-        List<Ast.Method.T> localMethods = ((Ast.Class.Singleton) cls).methods();
-        Vector<Cfg.Vtable.Entry> newEntries = (Vector<Cfg.Vtable.Entry>) functions.clone();
+        Vector<Cfg.Vtable.Entry> newFunctions = (Vector<Cfg.Vtable.Entry>) functions.clone();
         for (Ast.Method.T localMethod : localMethods) {
             Ast.Method.Singleton lm = (Ast.Method.Singleton) localMethod;
-            Cfg.Vtable.Entry newEntry = new Cfg.Vtable.Entry(transType(lm.retType()),
-                    this.currentClassName,
-                    lm.methodId().freshId,
-                    transDecList(lm.formals()));
-            for (int i = 0; i < functions.size(); i++) {
-                Cfg.Vtable.Entry ve = functions.get(i);
-                // method overriding
-                if (lm.methodId().freshId.equals(ve.funcName())) {
-                    newEntries.set(i, newEntry);
-                }
-            }
-            newEntries.add(newEntry);
-            // translate the method
+            // translate each method
             Cfg.Function.T newFunc = translateMethod(localMethod);
             this.functions.add(newFunc);
+            // generate the "vtable", but do not process the special "main" method:
+            if (lm.methodId().freshId.equals(this.mainFunctionId))
+                continue;
+            Cfg.Vtable.Entry newEntry = new Cfg.Vtable.Entry(transType(lm.retType()),
+                    this.currentClassId,
+                    lm.methodId().freshId,
+                    transDecList(lm.formals()));
+            int i = 0;
+            for (; i < functions.size(); i++) {
+                Cfg.Vtable.Entry current = functions.get(i);
+                // method overriding
+                if (lm.methodId().freshId.equals(current.functionId())) {
+                    newFunctions.set(i, newEntry);
+                    break;
+                }
+            }
+            if (i >= functions.size())
+                newFunctions.add(newEntry);
+
         }
         Cfg.Vtable.T vtable = new Cfg.Vtable.Singleton(
-                Ast.Class.getClassId(currentRoot.data),
-                newEntries);
+                this.currentClassId,
+                newFunctions);
         this.vtables.add(vtable);
 
-        // process childrens, recursively
-        for (var child : currentRoot.children) {
-            prefixing(child, newDecs, newEntries);
-        }
+        return new Tuple.Two<>(newDecs, newFunctions);
     }
 
+    // build an inherit tree
+    private Tree<Ast.Class.T> buildInheritTree0(Ast.Program.T ast) {
+        // we create an empty "Object" class with no methods.
+        // This class servers as the root node in the inheritance tree.
+        // But real "Object" class in Java contains 11 methods, see:
+        //   https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/lang/Object.html
+        Ast.Class.T objCls = new Ast.Class.Singleton(Id.newName("Object"),
+                null, // null for non-existing "extends"
+                new LinkedList<>(),
+                new LinkedList<>(),
+                new Tuple.One<>());// parent
 
-    // given an abstract syntax tree, lower it down
-    // to a corresponding control-flow graph.
-    private Cfg.Program.T translate0(Ast.Program.T ast) {
-        // build the inheritance tree
-        Tree<Ast.Class.T> tree = new InheritTree().buildTree(ast);
+        Tree<Ast.Class.T> tree = new Tree<>("inheritTree");
+        // make "Object" the root
+        tree.addRoot(objCls);
 
-        // start from the tree root, perform prefixing
-        prefixing(tree.root,
-                new Vector<>(),
-                new Vector<>());
+        switch (ast) {
+            case Ast.Program.Singleton(
+                    Ast.MainClass.T mainClass,
+                    List<Ast.Class.T> allClasses
+            ) -> {
+                // step #1: create a new class for the "Main" class:
+                // allClasses is unmodifiable in the test cases, so we make it modifiable
+                LinkedList<Ast.Class.T> newAllClasses = new LinkedList<>(allClasses);
+                switch (mainClass) {
+                    case Ast.MainClass.Singleton(
+                            Id classId,
+                            AstId arg,
+                            Ast.Stm.T stm
+                    ) -> {
+                        AstId newMainMethodId = new AstId(Id.newName("main"));
+                        LinkedList<Ast.Stm.T> stms = new LinkedList<>();
+                        stms.add(stm);
+                        Ast.Class.Singleton newMainClass = new Ast.Class.Singleton(
+                                classId,
+                                null,
+                                new LinkedList<>(),
+                                List.of(new Ast.Method.Singleton(Ast.Type.getInt(),
+                                        newMainMethodId,
+                                        new LinkedList<>(),
+                                        new LinkedList<>(),
+                                        stms,
+                                        new Ast.Exp.Num(0))),
+                                new Tuple.One<>());
+                        this.mainClassId = classId;
+                        this.mainFunctionId = newMainMethodId.genFreshId();
+                        newAllClasses.add(newMainClass);
+                    }
+                }
 
-        // "Main" class is special, it has neither vtable nor struct.
-        // hence we create a temporary method, and translate it.
-        Ast.MainClass.Singleton mainCls = null;
-        if (ast instanceof Ast.Program.Singleton(Ast.MainClass.T mainClass, List<Ast.Class.T> _)) {
-            mainCls = (Ast.MainClass.Singleton) mainClass;
+                // step #2: add all classes (including "Main" class
+                // we have just create) into the tree,
+                newAllClasses.forEach(tree::addNode);
+                // to establish the parent-child relationship
+                newAllClasses.forEach((c) -> {
+                    Ast.Class.Singleton cls = (Ast.Class.Singleton) c;
+                    var parentNode = (cls.extends_() == null) ?
+                            tree.root :
+                            tree.lookupNode(cls.parent().get());
+                    var childNode = tree.lookupNode(c);
+                    // add the child into parent
+                    tree.addEdge(parentNode, childNode);
+                });
+            }
         }
-        assert mainCls != null;
-        this.currentClassName = mainCls.classId();
-        this.shouldCloseMethod = false;
-        AstId mainMethodId = new Ast.AstId(Id.newName("main"));
-        Id freshMainMethodId = mainMethodId.genFreshId();
-        Ast.Method.T mainMethod = new Ast.Method.Singleton(new Ast.Type.Int(),
-                mainMethodId,
-                new LinkedList<>(),
-                new LinkedList<>(),
-                List.of(mainCls.stm()),
-                new Ast.Exp.Num(0));
-        this.functions.add(translateMethod(mainMethod));
+        return tree;
+    }
 
-        return new Cfg.Program.Singleton(mainCls.classId(),
-                freshMainMethodId,
+    private Tree<Ast.Class.T> buildInheritTree(Ast.Program.T ast) {
+        Trace<Ast.Program.T, Tree<Ast.Class.T>> trace =
+                new Trace<>("cfg.Translate.buildInheritTree",
+                        this::buildInheritTree0,
+                        ast,
+                        (a) -> {
+                            new ast.PrettyPrinter().ppProgram(ast);
+                        },
+                        (tree) -> {
+                            throw new Todo();
+                        });
+        return trace.doit();
+    }
+
+    private Cfg.Program.T translate0(Ast.Program.T ast) {
+        // Step #1: build the inheritance tree
+        Tree<Ast.Class.T> tree = buildInheritTree(ast);
+        // Step #2: perform prefixing via a level-order traversal
+        // we also translate each method during this traversal.
+        tree.levelOrder(tree.root,
+                this::prefixOneNode,
+                new Tuple.Two<>(new Vector<>(),
+                        new Vector<>()));
+
+        return new Cfg.Program.Singleton(this.mainClassId,
+                this.mainFunctionId,
                 this.vtables,
                 this.structs,
                 this.functions);
     }
 
+    // given an abstract syntax tree, lower it down
+    // to a corresponding control-flow graph.
     public Cfg.Program.T translate(Ast.Program.T ast) {
         Trace<Ast.Program.T, Cfg.Program.T> trace =
                 new Trace<>("cfg.Translate.translate",
