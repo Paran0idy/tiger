@@ -5,15 +5,10 @@ import ast.Ast.Class;
 import ast.Ast.*;
 import ast.PrettyPrinter;
 import control.Control;
-import util.Id;
-import util.Todo;
-import util.Trace;
-import util.Tuple;
+import util.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class Checker {
     // symbol table for all classes
@@ -249,23 +244,71 @@ public class Checker {
         }
     }
 
+    private Program.T buildTable0(Program.T p) {
+        Program.Singleton prog = (Program.Singleton) p;
+        // ////////////////////////////////////////////////
+        // a class table maps a class name to its class binding:
+        // classTable: className -> Binding{extends_, fields, methods}
+        buildMainClass(prog.mainClass());
+        prog.classes().forEach(this::buildClass);
+        return p;
+    }
+
+    private Program.T buildTable(Program.T p) {
+        Trace<Program.T, Program.T> trace =
+                new Trace<>("checker.Checker.buildTable",
+                        this::buildTable0,
+                        p,
+                        (_) -> {
+                            System.out.println("build class table:");
+                        },
+                        (_) -> {
+                            this.classTable.dump();
+                        });
+        return trace.doit();
+    }
+
+    private Program.T checkIt0(Program.T p) {
+        Program.Singleton prog = (Program.Singleton) p;
+        checkMainClass(prog.mainClass());
+        prog.classes().forEach(this::checkClass);
+        return p;
+    }
+
+    private Program.T checkIt(Program.T p) {
+        Trace<Program.T, Program.T> trace =
+                new Trace<>("checker.Checker.checkClass",
+                        this::checkIt0,
+                        p,
+                        (_) -> {
+                            System.out.println("check class:");
+                        },
+                        (_) -> {
+                            this.classTable.dump();
+                        });
+        return trace.doit();
+    }
 
     // to check a program
     private Program.T checkProgram(Program.T p) {
-        // "p" is singleton
-        Program.Singleton prog = (Program.Singleton) p;
-        // ////////////////////////////////////////////////
-        // step 1: build the class table
-        // a class table maps a class name to a class binding:
-        // classTable: className -> ClassBinding{extends_, fields, methods}
-        buildMainClass(prog.mainClass());
-        prog.classes().forEach(this::buildClass);
+        // pass 1: build the class table
+        Pass<Program.T, Program.T> buildTablePass =
+                new Pass<>("build class table",
+                        this::buildTable,
+                        p,
+                        Control.Verbose.L1);
+        p = buildTablePass.apply();
+
 
         // ////////////////////////////////////////////////
-        // step 2: elaborate each class in turn, under the class table
+        // pass 2: check each class in turn, under the class table
         // built above.
-        checkMainClass(prog.mainClass());
-        prog.classes().forEach(this::checkClass);
+        Pass<Program.T, Program.T> checkPass =
+                new Pass<>("check class",
+                        this::checkIt,
+                        p,
+                        Control.Verbose.L1);
+        p = checkPass.apply();
         return p;
     }
 

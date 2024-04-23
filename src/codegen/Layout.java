@@ -40,9 +40,9 @@ public class Layout {
     }
 
     public void layoutVtableEntry(Cfg.Vtable.Entry entry, int index) {
-        ClassLayoutBinding binding = this.map.get(entry.clsName());
+        ClassLayoutBinding binding = this.map.get(entry.classId());
         int offset = index * X64.WordSize.bytesOfWord;
-        binding.methodOffsets.put(entry.funcName(), offset);
+        binding.methodOffsets.put(entry.functionId(), offset);
     }
 
     public void layoutVtable(Cfg.Vtable.T vtable) {

@@ -1,20 +1,21 @@
 package util;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Vector;
+import java.util.function.BiFunction;
 
 
-// a tree is parameterized by its containing datatype "X"
+// a tree is parameterized by its containing data "X"
 public class Tree<X> {
 
     // tree node
     public class Node {
-        X data;
+        public X data;
         public List<Node> children;
 
         public Node(X data) {
             this.data = data;
-            this.children = new LinkedList<>();
+            this.children = new Vector<>();
         }
 
         @Override
@@ -22,29 +23,29 @@ public class Tree<X> {
             return data.toString();
         }
     }
+    // end of tree node
 
-    // the tree
-    String treeName;
-    Node root;
-    List<Node> allNodes;
+    // the tree name, for debugging
+    public final String name;
+    public Node root;
+    private final Vector<Node> allNodes;
 
     public Tree(String name) {
-        this.treeName = name;
+        this.name = name;
         this.root = null;
-        this.allNodes = new LinkedList<>();
+        this.allNodes = new Vector<>();
     }
 
-    private void addNode(Node node) {
-        this.allNodes.add(node);
+    public void addRoot(X data) {
+        Node n = new Node(data);
+        this.allNodes.add(n);
+        this.root = n;
     }
 
     public void addNode(X data) {
-        for (Node n : this.allNodes)
-            if (n.data.equals(data))
-                throw new Error();
-
-        Node node = new Node(data);
-        this.addNode(node);
+        // data must not already be in the tree
+        // we should check that for correctness
+        this.allNodes.add(new Node(data));
     }
 
     public Node lookupNode(X data) {
@@ -55,7 +56,7 @@ public class Tree<X> {
         return null;
     }
 
-    private void addEdge(Node from, Node to) {
+    public void addEdge(Node from, Node to) {
         from.children.add(to);
     }
 
@@ -69,12 +70,29 @@ public class Tree<X> {
         this.addEdge(f, t);
     }
 
-    public void visualize() {
-        Dot dot = new Dot();
-        for (Node node : this.allNodes) {
-            for (Node child : node.children)
-                dot.insert(node.toString(), child.toString());
+    // perform a level-order traversal of the tree.
+    public <Y> void levelOrder(Node node,
+                               BiFunction<X, Y, Y> doit,
+                               Y value) {
+        Y result = doit.apply(node.data, value);
+        for (Node child : node.children) {
+            levelOrder(child, doit, result);
         }
-        dot.visualize(this.treeName);
     }
+
+    public void output(Node n) {
+        for (Node child : n.children)
+            System.out.println(STR."\{n} -> \{child}");
+        for (Node child : n.children)
+            output(child);
+    }
+
+//    public void visualize() {
+//        Dot dot = new Dot();
+//        for (Node node : this.allNodes) {
+//            for (Node child : node.children)
+//                dot.insert(node.toString(), child.toString());
+//        }
+//        dot.visualize(this.treeName);
+//    }
 }

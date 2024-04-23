@@ -546,7 +546,7 @@ public class Munch {
     }
 
     private String munchEntry(Cfg.Vtable.Entry entry) {
-        return STR."\{entry.clsName()}_\{entry.funcName()}";
+        return STR."\{entry.classId()}_\{entry.functionId()}";
     }
 
     public X64.Vtable.T munchVtable(Cfg.Vtable.T f) {
