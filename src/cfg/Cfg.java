@@ -535,7 +535,7 @@ struct V_\{clsName} *vptr;
                         List<Function.T> functions
                 ) -> {
                     printSpaces();
-                    sayln(STR."// the entry function name: \{mainClassId}: \{mainFuncId}");
+                    sayln(STR."// the entry function: \{mainClassId}: \{mainFuncId}");
                     // vtables
                     vtables.forEach(Vtable::pp);
                     // structs
