@@ -3,6 +3,8 @@ package util;
 import java.util.List;
 import java.util.Vector;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 
 // a tree is parameterized by its containing data "X"
@@ -87,12 +89,13 @@ public class Tree<X> {
             output(child);
     }
 
-//    public void visualize() {
-//        Dot dot = new Dot();
-//        for (Node node : this.allNodes) {
-//            for (Node child : node.children)
-//                dot.insert(node.toString(), child.toString());
-//        }
-//        dot.visualize(this.treeName);
-//    }
+    public void dot(Function<X, String> converter) {
+        Dot dot = new Dot(this.name);
+        for (Node node : this.allNodes) {
+            for (Node child : node.children)
+                dot.insert(converter.apply(node.data),
+                        converter.apply(child.data));
+        }
+        dot.visualize();
+    }
 }

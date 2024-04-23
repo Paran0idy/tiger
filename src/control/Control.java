@@ -8,7 +8,7 @@ import java.util.List;
 public class Control {
 
     public enum Verbose {
-        LM1(-1),
+        L_1(-1),
         L0(0), // top level
         L1(1),
         L2(2);
@@ -19,7 +19,8 @@ public class Control {
         }
     }
 
-    public static Verbose verbose = Verbose.LM1;
+    public static Verbose verbose = Verbose.L_1;
+
 
     static List<String> tracedMethods = new LinkedList<>();
 
@@ -32,6 +33,18 @@ public class Control {
     // without hacking the lexer and parser.
     public static Ast.Program.T bultinAst = null;
 
+    // dot-related
+    public static class Dot {
+        public static boolean keep = false;
+        public static String format = "png";
+        public static List<String> graphs = new LinkedList<>();
+
+        public static boolean beingDotted(String graph) {
+            return graphs.contains(graph);
+        }
+    }
+
+
     // the lexer
     public static class Lexer {
         public static boolean dumpToken = false;
@@ -39,19 +52,14 @@ public class Control {
 
     // the parser
     public static class Parser {
-        public static boolean dump = false;
     }
 
     // the type checker
     public static class Type {
-        public static boolean dump = false;
     }
 
     // the CFG
     public static class Cfg {
-        public static String dotOutputFormat = "png";
-        public static boolean dump = false;
-
     }
 
     // the x64

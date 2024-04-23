@@ -399,9 +399,7 @@ public class Translate {
                 new Trace<>("cfg.Translate.buildInheritTree",
                         this::buildInheritTree0,
                         ast,
-                        (a) -> {
-                            new ast.PrettyPrinter().ppProgram(ast);
-                        },
+                        new ast.PrettyPrinter()::ppProgram,
                         (tree) -> {
                             throw new Todo();
                         });

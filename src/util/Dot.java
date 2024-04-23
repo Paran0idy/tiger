@@ -1,80 +1,73 @@
 package util;
 
+import java.util.LinkedList;
+
+
 import control.Control;
 
 import java.io.*;
-import java.util.LinkedList;
 
 public class Dot {
-    public record Element<X, Y, Z>(X x, Y y, Z z) {
-//        Entry<X, Y, Z> e;
+    private record Element(String x,
+                           String y,
+                           String z) {
 
         @Override
         public String toString() {
-            String s = "";
-            if (z != null)
-                s = z.toString();
-
-            return (STR."""
-"\{x.toString()}"->"\{y.toString()}"\{s};
-""");
+            return STR."""
+"\{x}"->"\{y}"\{z};
+""";
         }
     }
+    // end of Element
 
-    LinkedList<Element<String, String, String>> list;
+    //
+    private final String name;
+    private final LinkedList<Element> list;
 
-    public Dot() {
+    public Dot(String name) {
+        this.name = name;
         this.list = new LinkedList<>();
     }
 
     public void insert(String from, String to) {
-        this.list.addFirst(new Element<>(from, to, null));
+        this.insert(from, to, "");
     }
 
     public void insert(String from, String to, String info) {
         String s = STR."[label=\"\{info}\"]";
-        // System.out.println(s);
-        this.list.addFirst(new Element<>(from, to, s));
+        this.list.addFirst(new Element(from, to, s));
     }
 
-    public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        for (Element<String, String, String> e : this.list) {
-            stringBuilder.append(e.toString());
+    private void output(BufferedWriter bw) throws IOException {
+        for (Element e : list) {
+            bw.write(e.toString());
         }
-        return stringBuilder.toString();
     }
 
-    public void toDot(String fname) {
-        String fn = STR."\{fname}.dot";
+    public void toDot() {
+        String fileName = STR."\{this.name}.dot";
         try {
-            File f = new File(fn);
-            FileWriter fw = new FileWriter(f);
-            BufferedWriter w = new BufferedWriter(fw);
-
-            String sb = STR."""
-digraph g{
-\tsize = "10, 10";
-\tnode [color=lightblue2, style=filled];
-\{this.toString()}}
-""";
-
-            w.write(sb);
-            w.close();
+            FileWriter fw = new FileWriter(fileName);
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(STR."""
+                    digraph g{
+                    \tsize = "10, 10";
+                    \tnode [color=lightblue2, style=filled];""");
+            this.output(bw);
+            bw.write("\n}\n\n");
+            bw.close();
             fw.close();
-        } catch (Throwable o) {
+        } catch (Exception o) {
             throw new util.Error();
         }
     }
 
-    void visualize(String name) {
-        toDot(name);
-        String format = Control.Cfg.dotOutputFormat;
-        String[] args = {"dot", "-T", format, "-O", STR."\{name}.dot"};
+    void visualize() {
+        this.toDot();
+        String format = Control.Dot.format;
+        String[] args = {"dot", "-T", format, "-O", STR."\{this.name}.dot"};
         try {
-            // Refer to this article:
-            // http://walsh.iteye.com/blog/449051
             final class StreamDrainer implements Runnable {
                 private final InputStream ins;
 
@@ -82,6 +75,7 @@ digraph g{
                     this.ins = ins;
                 }
 
+                @Override
                 public void run() {
                     try {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
@@ -93,18 +87,20 @@ digraph g{
                         throw new util.Error(e);
                     }
                 }
-
             }
             Process process = Runtime.getRuntime().exec(args);
             new Thread(new StreamDrainer(process.getInputStream())).start();
             new Thread(new StreamDrainer(process.getErrorStream())).start();
             process.getOutputStream().close();
             int exitValue = process.waitFor();
-            if (false) {
-                if (!new File(STR."\{name}.dot").delete())
-                    throw new util.Error("Can't delete dot");
+            if (exitValue != 0) {
+                throw new util.Error(exitValue);
             }
-        } catch (Throwable o) {
+            if (!Control.Dot.keep) {
+                if (!new File(STR."\{name}.dot").delete())
+                    throw new util.Error("Cannot delete dot");
+            }
+        } catch (Exception o) {
             throw new util.Error(o);
         }
     }
