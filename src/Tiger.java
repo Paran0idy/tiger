@@ -35,14 +35,14 @@ public class Tiger {
 
         Pass<Ast.Program.T, Ast.Program.T> checkerPass =
                 new Pass<>("type checking",
-                        (f) -> new Checker().check(f),
+                        new Checker()::check,
                         ast,
                         Control.Verbose.L0);
         Ast.Program.T newAst = checkerPass.apply();
 
         Pass<Ast.Program.T, Cfg.Program.T> transPass =
                 new Pass<>("translating to CFG",
-                        (f) -> new cfg.Translate().translate(f),
+                        new cfg.Translate()::translate,
                         newAst,
                         Control.Verbose.L0);
         Cfg.Program.T cfg = transPass.apply();

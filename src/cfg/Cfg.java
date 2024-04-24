@@ -4,6 +4,7 @@ import util.Id;
 import util.Label;
 import util.Todo;
 
+import java.io.Serializable;
 import java.util.List;
 
 public class Cfg {
@@ -37,7 +38,7 @@ public class Cfg {
     //  ///////////////////////////////////////////////////////////
     //  type
     public static class Type {
-        public sealed interface T
+        public sealed interface T extends Serializable
                 permits ClassType, Int, IntArray, CodePtr {
         }
 
@@ -66,7 +67,8 @@ public class Cfg {
     // ///////////////////////////////////////////////////
     // declaration
     public static class Dec {
-        public sealed interface T permits Singleton {
+        public sealed interface T extends Serializable
+                permits Singleton {
         }
 
         public record Singleton(Type.T type,
@@ -102,13 +104,14 @@ public class Cfg {
     // /////////////////////////////////////////////////////////
     // virtual function table
     public static class Vtable {
-        public sealed interface T permits Singleton {
+        public sealed interface T extends Serializable
+                permits Singleton {
         }
 
         public record Entry(Type.T retType,
                             Id classId,
                             Id functionId,
-                            List<Dec.T> argTypes) {
+                            List<Dec.T> argTypes) implements Serializable {
         }
 
         public record Singleton(Id name,
@@ -156,7 +159,7 @@ struct V_\{name} {
     // /////////////////////////////////////////////////////////
     // structures
     public static class Struct {
-        public sealed interface T
+        public sealed interface T extends Serializable
                 permits Singleton {
         }
 
@@ -205,7 +208,7 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // values
     public static class Value {
-        public sealed interface T
+        public sealed interface T extends Serializable
                 permits Int, Vid {
         }
 
@@ -229,7 +232,7 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // statement
     public static class Stm {
-        public sealed interface T
+        public sealed interface T extends Serializable
                 permits Assign, AssignBop, AssignCall, AssignNew, AssignArray, Print, GetMethod {
         }
 
@@ -320,7 +323,7 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // transfer
     public static class Transfer {
-        public sealed interface T
+        public sealed interface T extends Serializable
                 permits If, Jmp, Ret {
         }
 
@@ -361,7 +364,8 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // block
     public static class Block {
-        public sealed interface T permits Singleton {
+        public sealed interface T extends Serializable
+                permits Singleton {
         }
 
         public record Singleton(Label label,
@@ -428,7 +432,7 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // function
     public static class Function {
-        public sealed interface T
+        public sealed interface T extends Serializable
                 permits Singleton {
         }
 
@@ -515,7 +519,8 @@ struct V_\{clsName} *vptr;
 
     // whole program
     public static class Program {
-        public sealed interface T permits Singleton {
+        public sealed interface T extends Serializable
+                permits Singleton {
         }
 
         public record Singleton(Id mainClassId,
