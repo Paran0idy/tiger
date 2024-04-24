@@ -1,5 +1,6 @@
 package cfg;
 
+import util.Dot;
 import util.Id;
 import util.Label;
 import util.Todo;
@@ -336,20 +337,40 @@ struct V_\{clsName} *vptr;
         }
 
         public record Ret(Value.T retValue) implements T {
+        }
 
+        public static void dot(Dot d, String from, T t) {
+            switch (t) {
+                case If(
+                        _,
+                        Block.T thenn,
+                        Block.T elsee
+                ) -> {
+                    d.insert(from, Block.getLabel(thenn).toString());
+                    d.insert(from, Block.getLabel(elsee).toString());
+                }
+                case Jmp(Block.T target) -> d.insert(from,
+                        Block.getLabel(target).toString());
+                case Ret(_) -> {
+                }
+            }
         }
 
         public static void pp(T t) {
             switch (t) {
-                case If(Value.T value, Block.T thenn, Block.T elsee) -> {
+                case If(
+                        Value.T value,
+                        Block.T thenn,
+                        Block.T elsee
+                ) -> {
                     printSpaces();
                     say("if(");
                     Value.pp(value);
-                    say(STR.", \{Block.getName(thenn)}, \{Block.getName(elsee)});");
+                    say(STR.", \{Block.getLabel(thenn).toString()}, \{Block.getLabel(elsee).toString()});");
                 }
                 case Jmp(Block.T target) -> {
                     printSpaces();
-                    say(STR."jmp \{Block.getName(target)}");
+                    say(STR."jmp \{Block.getLabel(target).toString()}");
 
                 }
                 case Ret(Value.T value) -> {
@@ -396,14 +417,25 @@ struct V_\{clsName} *vptr;
             }
         }
 
-        public static String getName(Block.T t) {
+        public static void dot(Block.T t, Dot d) {
+            switch (t) {
+                case Singleton(
+                        Label label,
+                        List<Stm.T> _,
+                        List<Transfer.T> trans
+                ) -> trans.forEach((tr) -> Transfer.dot(d,
+                        label.toString(), tr));
+            }
+        }
+
+        public static Label getLabel(Block.T t) {
             switch (t) {
                 case Singleton(
                         Label label,
                         List<Stm.T> _,
                         List<Transfer.T> _
                 ) -> {
-                    return label.toString();
+                    return label;
                 }
             }
         }
@@ -483,6 +515,24 @@ struct V_\{clsName} *vptr;
             }
         }
 
+        // TODO: lab3, exercise 4.
+        public static void dot(T func) {
+            switch (func) {
+                case Singleton(
+                        Type.T retType,
+                        Id classId,
+                        Id functionId,
+                        List<Dec.T> formals,
+                        List<Dec.T> locals,
+                        List<Block.T> blocks
+                ) -> {
+                    Dot d = new util.Dot(STR."\{classId.toString()}-\{functionId.toString()}");
+                    blocks.forEach((b) -> Block.dot(b, d));
+                    d.visualize();
+                }
+            }
+        }
+
         public static void pp(T f) {
             switch (f) {
                 case Singleton(
@@ -528,6 +578,18 @@ struct V_\{clsName} *vptr;
                                 List<Vtable.T> vtables,
                                 List<Struct.T> structs,
                                 List<Function.T> functions) implements T {
+        }
+
+        public static void dot(T prog) {
+            switch (prog) {
+                case Singleton(
+                        Id mainClassId,
+                        Id mainFuncId,
+                        List<Vtable.T> vtables,
+                        List<Struct.T> structs,
+                        List<Function.T> functions
+                ) -> functions.forEach(Function::dot);
+            }
         }
 
         public static void pp(T prog) {

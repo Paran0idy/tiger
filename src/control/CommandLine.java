@@ -47,6 +47,11 @@ public class CommandLine {
                             }
                         }),
                 new Arg("dot",
+                        "<ir>",
+                        "visualize the given ir",
+                        Kind.String,
+                        (Object x) -> Control.Dot.irs.add((String) x)),
+                new Arg("dot-format",
                         "<format>",
                         "set the figure format",
                         Kind.String,
@@ -68,16 +73,6 @@ public class CommandLine {
                         (_) -> {
                             usage();
                             System.exit(1);
-                        }),
-                new Arg("keep",
-                        "<ir>",
-                        "keep the given ir",
-                        Kind.String,
-                        (Object x) -> {
-                            switch ((String) x) {
-                                case "dot" -> Control.Dot.keep = true;
-                                default -> error(STR."bad argument: \{x}");
-                            }
                         }),
                 new Arg("trace",
                         "<method>",
