@@ -89,6 +89,7 @@ public class Translate {
         throw new Todo();
     }
 
+    // translate a method
     private Cfg.Function.T transMethod(Ast.Method.T method) {
         throw new Todo();
     }
