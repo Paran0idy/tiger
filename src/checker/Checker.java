@@ -128,7 +128,6 @@ public class Checker {
     }
 
     // type check statements
-    // produce new statement
     private void checkStm(Stm.T s) {
         switch (s) {
             case Stm.If(Exp.T cond, Stm.T then_, Stm.T else_) -> {
