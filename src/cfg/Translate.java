@@ -77,6 +77,7 @@ public class Translate {
 
     /////////////////////////////
     // translate an expression
+    // TODO: lab3, exercise 8.
     private Cfg.Value.T transExp(Ast.Exp.T exp) {
         throw new Todo();
     }
@@ -85,16 +86,19 @@ public class Translate {
     // translate a statement
     // this function does not return its result,
     // but saved the result into "currentBlock"
+    // TODO: lab3, exercise 8.
     private void transStm(Ast.Stm.T stm) {
         throw new Todo();
     }
 
     // translate a method
+    // TODO: lab3, exercise 8.
     private Cfg.Function.T transMethod(Ast.Method.T method) {
         throw new Todo();
     }
 
     // the prefixing algorithm
+    // TODO: lab3, exercise 6.
     private Tuple.Two<Vector<Cfg.Dec.T>,
             Vector<Cfg.Vtable.Entry>> prefixOneClass(Ast.Class.T cls,
                                                      Tuple.Two<Vector<Cfg.Dec.T>,
@@ -103,6 +107,7 @@ public class Translate {
     }
 
     // build an inherit tree
+    // TODO: lab3, exercise 5.
     private Tree<Ast.Class.T> buildInheritTree0(Ast.Program.T ast) {
         throw new Todo();
     }
@@ -114,8 +119,10 @@ public class Translate {
                         ast,
                         new ast.PrettyPrinter()::ppProgram,
                         (tree) -> {
-                            // draw the tree
-                            throw new Todo();
+                            // TODO: lab3, exercise 5.
+                            // visualize the tree
+                            if (Control.Dot.beingDotted("inheritTree"))
+                                throw new Todo();
                         });
         return trace.doit();
     }
@@ -163,7 +170,12 @@ public class Translate {
                         this::translate0,
                         ast,
                         new ast.PrettyPrinter()::ppProgram,
-                        Cfg.Program::pp);
+                        (x) -> {
+                            Cfg.Program.pp(x);
+                            if (Control.Dot.beingDotted("cfg")) {
+                                Cfg.Program.dot(x);
+                            }
+                        });
         return trace.doit();
     }
 }

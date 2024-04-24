@@ -1,11 +1,9 @@
 package util;
 
-import java.util.LinkedList;
-
-
 import control.Control;
 
 import java.io.*;
+import java.util.LinkedList;
 
 public class Dot {
     private record Element(String x,
@@ -63,7 +61,7 @@ public class Dot {
         }
     }
 
-    void visualize() {
+    public void visualize() {
         this.toDot();
         String format = Control.Dot.format;
         String[] args = {"dot", "-T", format, "-O", STR."\{this.name}.dot"};
