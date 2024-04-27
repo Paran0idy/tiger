@@ -3,6 +3,7 @@ package regalloc;
 import codegen.X64;
 import codegen.X64.*;
 import control.Control;
+import util.Error;
 import util.Id;
 import util.Label;
 
@@ -51,8 +52,7 @@ public class PpAssem {
 
     // ///////////////////////////////////////////////////
     // declaration
-
-    public void ppDec(X64.Dec.T dec) {
+    private void ppDec(X64.Dec.T dec) {
         switch (dec) {
             case X64.Dec.Singleton(X64.Type.T type, Id id) -> {
                 //Type.pp(type);
@@ -63,7 +63,7 @@ public class PpAssem {
 
     // /////////////////////////////////////////////////////////
     // virtual function table
-    public static void ppVtable(X64.Vtable.T vtable) {
+    private void ppVtable(X64.Vtable.T vtable) {
         switch (vtable) {
             case X64.Vtable.Singleton(
                     Id name,
@@ -89,13 +89,16 @@ public class PpAssem {
 
     // /////////////////////////////////////////////////////////
     // virtual regs
-    public void ppVirtualReg(X64.VirtualReg.T vt) {
+    private void ppVirtualReg(X64.VirtualReg.T vt) {
         switch (vt) {
             case X64.VirtualReg.Vid(Id x, _) -> {
                 throw new AssertionError(x);
             }
-            case X64.VirtualReg.Reg(String x, X64.Type.T type) -> {
-                say(x);
+            case X64.VirtualReg.Reg(
+                    Id x,
+                    X64.Type.T type
+            ) -> {
+                say(x.toString());
             }
         }
     }
@@ -104,7 +107,7 @@ public class PpAssem {
 
     // /////////////////////////////////////////////////////////
     // instruction
-    public void ppInstr(X64.Instr.T t) {
+    private void ppInstr(X64.Instr.T t) {
         switch (t) {
             case X64.Instr.Bop(
                     BiFunction<List<X64.VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
@@ -134,40 +137,48 @@ public class PpAssem {
                     List<VirtualReg.T> uses,
                     List<VirtualReg.T> defs
             ) -> {
-                if (Control.X64.embedComments)
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                if (Control.X64.embedComment)
+                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
+                            (List<VirtualReg.T>) uses,
+                            (List<VirtualReg.T>) defs);
             }
             case Instr.Load(
                     BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                     List<VirtualReg.T> uses,
                     List<VirtualReg.T> defs
             ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
+                        (List<VirtualReg.T>) uses,
+                        (List<VirtualReg.T>) defs);
             }
             case Instr.Move(
                     BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                     List<VirtualReg.T> uses,
                     List<VirtualReg.T> defs
             ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
+                        (List<VirtualReg.T>) uses,
+                        (List<VirtualReg.T>) defs);
             }
             case Instr.MoveConst(
                     BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                     List<VirtualReg.T> uses,
                     List<VirtualReg.T> defs
             ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
+                        (List<VirtualReg.T>) uses,
+                        (List<VirtualReg.T>) defs);
             }
             case Instr.Store(
                     BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                     List<VirtualReg.T> uses,
                     List<VirtualReg.T> defs
             ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
+                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
+                        (List<VirtualReg.T>) uses,
+                        (List<VirtualReg.T>) defs);
             }
-            default -> {
-                throw new AssertionError();
-            }
+            default -> throw new Error();
         }
     }
 
@@ -191,7 +202,6 @@ public class PpAssem {
 //        sayln("]");
     }
     // end of statement
-
 
     // /////////////////////////////////////////////////////////
     // transfer
@@ -218,11 +228,11 @@ public class PpAssem {
 
     // /////////////////////////////////////////////////////////
 // block
-    public void ppBlock(X64.Block.T b) {
+    private void ppBlock(X64.Block.T b) {
         switch (b) {
             case X64.Block.Singleton(
                     Label label,
-                    List<X64.Instr.T> stms,
+                    List<X64.Instr.T> instrs,
                     List<X64.Transfer.T> transfers
             ) -> {
                 printSpaces();
@@ -230,9 +240,7 @@ public class PpAssem {
 \{label.toString()}:
 """);
                 indent();
-                for (X64.Instr.T s : stms) {
-                    ppInstr(s);
-                }
+                instrs.forEach(this::ppInstr);
                 ppTransfer(transfers.getFirst());
                 unIndent();
             }
@@ -241,7 +249,7 @@ public class PpAssem {
 
     // /////////////////////////////////////////////////////////
 // function
-    public void ppFunction(X64.Function.T f) {
+    private void ppFunction(X64.Function.T f) {
         switch (f) {
             case X64.Function.Singleton(
                     Type.T retType, Id classId, Id methodId, List<Dec.T> formals, List<Dec.T> locals,
@@ -264,12 +272,10 @@ public class PpAssem {
 //                    Dec.pp(dec);
 //                    sayln(";");
 //                }
-                for (Block.T block : blocks) {
-                    ppBlock(block);
-                }
+                blocks.forEach(this::ppBlock);
 //                unIndent();
                 printSpaces();
-                say("\n\n");
+                sayln("\n");
             }
 
         }
@@ -298,19 +304,13 @@ public class PpAssem {
                 // vtables
                 printSpaces();
                 sayln("\t.data");
-                for (X64.Vtable.T vtable : vtables) {
-                    ppVtable(vtable);
-                }
+                vtables.forEach(this::ppVtable);
                 // structs
-//                for (X64.Struct.T struct : structs) {
-//                    //ppStruct(struct);
-//                }
+//                structs.forEach(this::ppStruct);
                 printSpaces();
                 sayln("\t.text");
                 // functions:
-                for (X64.Function.T func : functions) {
-                    ppFunction(func);
-                }
+                functions.forEach(this::ppFunction);
                 // an entry:
                 printSpaces();
                 sayln(STR."\t.globl Tiger_main");
