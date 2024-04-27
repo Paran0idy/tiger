@@ -6,6 +6,9 @@ import util.*;
 
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -133,7 +136,25 @@ public class Translate {
         // and return it.
         if (Control.bultinAst != null) {
             Cfg.Program.T result;
-            String serialFileName = "./cfg/SumRec.java.cfg.ser";
+            String serialFileName = "./src/cfg/SumRec.java.cfg.ser";
+            try {
+                FileInputStream fileIn = new FileInputStream(serialFileName);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                result = (Cfg.Program.T) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (Exception e) {
+                throw new util.Error(e);
+            }
+            return result;
+        }
+
+        // if we are using the builtin AST, then do not generate
+        // the CFG, but load the CFG directly from disk
+        // and return it.
+        if (Control.bultinAst != null) {
+            Cfg.Program.T result;
+            String serialFileName = "./src/cfg/SumRec.java.cfg.ser";
             try {
                 FileInputStream fileIn = new FileInputStream(serialFileName);
                 ObjectInputStream in = new ObjectInputStream(fileIn);
