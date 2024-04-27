@@ -78,7 +78,7 @@ public class Translate {
     /////////////////////////////
     // translate an expression
     // TODO: lab3, exercise 8.
-    private Cfg.Value.T transExp(Ast.Exp.T exp) {
+    private Id transExp(Ast.Exp.T exp) {
         throw new Todo();
     }
 
