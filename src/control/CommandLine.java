@@ -34,6 +34,13 @@ public class CommandLine {
 
     public CommandLine() {
         this.args = List.of(
+                new Arg("embed",
+                        null,
+                        "embed comment into generated assembly",
+                        Kind.Empty,
+                        (_) -> {
+                            Control.X64.embedComment = true;
+                        }),
                 new Arg("builtin",
                         "<file>",
                         "use the builtin AST, instead of parsing",
