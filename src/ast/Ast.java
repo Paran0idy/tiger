@@ -141,15 +141,20 @@ public class Ast {
         }
 
         // ArraySelect
-        public record ArraySelect(T array, T index) implements T {
+        public record ArraySelect(T array,
+                                  T index) implements T {
         }
 
         // binary operations
-        public record Bop(T left, String op, T right) implements T {
+        public record Bop(T left,
+                          String op,
+                          T right) implements T {
         }
 
         // op is a boolean operator
-        public record BopBool(T left, String op, T right) implements T {
+        public record BopBool(T left,
+                              String op,
+                              T right) implements T {
         }
 
         // Call
@@ -195,7 +200,8 @@ public class Ast {
         }
 
         // !
-        public record Uop(String op, T exp) implements T {
+        public record Uop(String op,
+                          T exp) implements T {
         }
     }
     // end of expression
