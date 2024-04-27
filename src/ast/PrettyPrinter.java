@@ -75,7 +75,11 @@ public class PrettyPrinter {
                 sayLocal(STR."new \{id.toString()}()");
             }
             case Exp.Num(int n) -> sayLocal(n);
-            case Exp.Bop(Exp.T left, String bop, Exp.T right) -> {
+            case Exp.Bop(
+                    Exp.T left,
+                    String bop,
+                    Exp.T right
+            ) -> {
                 ppExp(left);
                 sayLocal(STR." \{bop} ");
                 ppExp(right);
@@ -88,7 +92,11 @@ public class PrettyPrinter {
     // statement
     public void ppStm(Stm.T s) {
         switch (s) {
-            case Stm.If(Exp.T cond, Stm.T then_, Stm.T else_) -> {
+            case Stm.If(
+                    Exp.T cond,
+                    Stm.T then_,
+                    Stm.T else_
+            ) -> {
                 say("if(");
                 ppExp(cond);
                 sayLocal("){\n");
@@ -106,7 +114,10 @@ public class PrettyPrinter {
                 ppExp(exp);
                 sayLocal(");\n");
             }
-            case Stm.Assign(AstId aid, Exp.T exp) -> {
+            case Stm.Assign(
+                    AstId aid,
+                    Exp.T exp
+            ) -> {
                 say("");
                 ppAstId(aid);
                 sayLocal(STR." = ");
