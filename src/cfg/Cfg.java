@@ -334,13 +334,7 @@ public class Cfg {
                 }
                 case Jmp(Block.T target) -> {
                     printSpaces();
-<<<<<<< HEAD
-                    say(STR."jmp \{Block.getLabel(target).toString()}");
-                    say(STR."jmp \{Block.getLabel(target)}");
-=======
                     say(STR."jmp \{Block.getLabel(target).toString()};");
->>>>>>> bfd62e1 (lab3)
-
                 }
                 case Ret(Id x) -> {
                     printSpaces();
