@@ -47,6 +47,11 @@ public class CommandLine {
                             }
                         }),
                 new Arg("dot",
+                        "<ir>",
+                        "visualize the given ir",
+                        Kind.String,
+                        (Object x) -> Control.Dot.irs.add((String) x)),
+                new Arg("dot-format",
                         "<format>",
                         "set the figure format",
                         Kind.String,

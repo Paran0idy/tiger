@@ -1,8 +1,9 @@
 package util;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class Id {
+public class Id implements Serializable {
     private static int gCounter = 0;
     // used to print out a fancy name like: %n
     private final int counter;

@@ -37,10 +37,10 @@ public class Control {
     public static class Dot {
         public static boolean keep = false;
         public static String format = "png";
-        public static List<String> graphs = new LinkedList<>();
+        public static List<String> irs = new LinkedList<>();
 
-        public static boolean beingDotted(String graph) {
-            return graphs.contains(graph);
+        public static boolean beingDotted(String ir) {
+            return irs.contains(ir);
         }
     }
 
@@ -64,7 +64,7 @@ public class Control {
 
     // the x64
     public static class X64 {
-        public static boolean embedComments = false;
+        public static boolean embedComment = false;
         public static String assemFile = null;
         public static boolean dump = false;
     }

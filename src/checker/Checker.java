@@ -95,7 +95,11 @@ public class Checker {
             case Exp.Num(int n) -> {
                 return Type.getInt();
             }
-            case Exp.Bop(Exp.T left, String bop, Exp.T right) -> {
+            case Exp.Bop(
+                    Exp.T left,
+                    String bop,
+                    Exp.T right
+            ) -> {
                 var resultLeft = checkExp(left);
                 var resultRight = checkExp(right);
 
@@ -128,10 +132,13 @@ public class Checker {
     }
 
     // type check statements
-    // produce new statement
     private void checkStm(Stm.T s) {
         switch (s) {
-            case Stm.If(Exp.T cond, Stm.T then_, Stm.T else_) -> {
+            case Stm.If(
+                    Exp.T cond,
+                    Stm.T then_,
+                    Stm.T else_
+            ) -> {
                 var resultCond = checkExp(cond);
                 if (Type.nonEquals(resultCond, Type.getBool())) {
                     error("if require a boolean type");
@@ -145,7 +152,10 @@ public class Checker {
                     error("print requires an integer type");
                 }
             }
-            case Stm.Assign(AstId id, Exp.T exp) -> {
+            case Stm.Assign(
+                    AstId id,
+                    Exp.T exp
+            ) -> {
                 // first lookup in the method table
                 var resultAstId = checkAstId(id);
                 var resultExp = checkExp(exp);
