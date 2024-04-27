@@ -272,7 +272,7 @@ public class Munch {
                                 defs = List.of(new X64.VirtualReg.Vid(id,
                                         new X64.Type.Int()));
                                 instr = new X64.Instr.MoveConst((uarg, darg) ->
-                                        STR."movq\t%rax, %\{darg.getFirst()}",
+                                        STR."movq\t%rax, \{darg.getFirst()}",
                                         uses,
                                         defs);
                                 this.currentInstrs.add(instr);

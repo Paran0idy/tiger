@@ -308,7 +308,7 @@ public class PpAssem {
                 // structs
 //                structs.forEach(this::ppStruct);
                 printSpaces();
-                sayln("\t.text");
+                sayln("\n\n\t.text");
                 // functions:
                 functions.forEach(this::ppFunction);
                 // an entry:
