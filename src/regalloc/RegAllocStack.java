@@ -1,10 +1,11 @@
 package regalloc;
 
-import cfg.Cfg;
 import codegen.X64;
 import control.Control;
+import util.Error;
 import util.Id;
 import util.Label;
+import util.Trace;
 import util.Tuple.Two;
 
 import java.util.HashMap;
@@ -22,9 +23,10 @@ public class RegAllocStack {
     // we use two caller-saved registers for load/store variables
     public static class TempRegs {
         private static int counter = 0;
-        private static final List<String> tempRegs = List.of("r10", "r11");
+        private static final List<Id> tempRegs = List.of(Id.newName("%r10"),
+                Id.newName("%r11"));
 
-        public static String next() {
+        public static Id next() {
             return tempRegs.get(counter++);
         }
 
@@ -34,37 +36,37 @@ public class RegAllocStack {
     }
 
     // generate a load instruction
-    public void genLoadToReg(String destReg, String srcReg, int offset, X64.Type.T ty) {
+    public void genLoadToReg(Id destReg, Id srcReg, int offset, X64.Type.T ty) {
         List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Reg(srcReg, ty));
         List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Reg(destReg, ty));
         X64.Instr.T instr = new X64.Instr.Load(
                 (uarg, darg) ->
-                        STR."movq\t\{offset}(%\{uarg.getFirst()}), %\{darg.get(0)}",
+                        STR."movq\t\{offset}(\{uarg.getFirst()}), \{darg.get(0)}",
                 uses,
                 defs);
         this.newInstrs.add(instr);
     }
 
     // generate a store instruction
-    public void genStore(String reg, String baseReg, int offset, X64.Type.T ty) {
+    public void genStore(Id reg, Id baseReg, int offset, X64.Type.T ty) {
         List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Reg(baseReg, ty),
                 new X64.VirtualReg.Reg(reg, ty));
         List<X64.VirtualReg.T> defs = List.of();
         X64.Instr.T instr = new X64.Instr.Store(
                 (uarg, darg) ->
-                        STR."movq\t%\{uarg.get(1)}, \{offset}(%\{uarg.get(0)})",
+                        STR."movq\t\{uarg.get(1)}, \{offset}(\{uarg.get(0)})",
                 uses,
                 defs);
         this.newInstrs.add(instr);
     }
 
     // return the new regs, along with v
-    public Two<List<X64.VirtualReg.T>, HashMap<String, TempMap.Position.T>> mapVirtualRegs
+    public Two<List<X64.VirtualReg.T>, HashMap<Id, TempMap.Position.T>> mapVirtualRegs
     (List<X64.VirtualReg.T> virtualRegs) {
         TempRegs.reset();
         List<X64.VirtualReg.T> newRegs = new LinkedList<>();
         // the order is not important, so we can use a map instead of a list
-        HashMap<String, TempMap.Position.T> map = new HashMap<>();
+        HashMap<Id, TempMap.Position.T> map = new HashMap<>();
 
         for (X64.VirtualReg.T vr : virtualRegs) {
             switch (vr) {
@@ -75,11 +77,11 @@ public class RegAllocStack {
                     // get the position
                     TempMap.Position.T pos = this.tempMap.get(x);
                     switch (pos) {
-                        case TempMap.Position.InReg(String reg) -> {
-                            throw new AssertionError(reg);
+                        case TempMap.Position.InReg(Id reg) -> {
+                            throw new Error(reg);
                         }
                         case TempMap.Position.InStack(int offset) -> {
-                            String r1 = TempRegs.next();
+                            Id r1 = TempRegs.next();
                             newRegs.add(new X64.VirtualReg.Reg(r1, ty));
                             map.put(r1, pos);
                         }
@@ -91,6 +93,8 @@ public class RegAllocStack {
     }
 
     public void allocInstr(X64.Instr.T s) {
+        Id frameBaseReg = Id.newName("%rbp");
+
         switch (s) {
             case X64.Instr.Bop(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
@@ -100,8 +104,8 @@ public class RegAllocStack {
                 var newUsesAndMap = mapVirtualRegs(uses);
                 var newDefsAndMap = mapVirtualRegs(defs);
                 // generate load instructions to load the uses
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
-                    genLoadToReg(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
+                    genLoadToReg(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
                 this.newInstrs.add(new X64.Instr.Bop(
@@ -109,8 +113,8 @@ public class RegAllocStack {
                         newUsesAndMap.first(),
                         newDefsAndMap.first()));
                 // generate store instructions to store the defs
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
-                    genStore(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
+                    genStore(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
             }
@@ -123,8 +127,8 @@ public class RegAllocStack {
                 var newUsesAndMap = mapVirtualRegs(uses);
                 var newDefsAndMap = mapVirtualRegs(defs);
                 // generate load instructions to load the uses
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
-                    genLoadToReg(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
+                    genLoadToReg(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
                 this.newInstrs.add(new X64.Instr.Bop(
@@ -132,8 +136,8 @@ public class RegAllocStack {
                         newUsesAndMap.first(),
                         newDefsAndMap.first()));
                 // generate store instructions to store the defs
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
-                    genStore(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
+                    genStore(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
             }
@@ -145,8 +149,8 @@ public class RegAllocStack {
                 var newUsesAndMap = mapVirtualRegs(uses);
                 var newDefsAndMap = mapVirtualRegs(defs);
                 // generate load instructions to load the uses
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
-                    genLoadToReg(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
+                    genLoadToReg(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
                 this.newInstrs.add(new X64.Instr.Bop(
@@ -154,8 +158,8 @@ public class RegAllocStack {
                         newUsesAndMap.first(),
                         newDefsAndMap.first()));
                 // generate store instructions to store the defs
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
-                    genStore(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
+                    genStore(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
             }
@@ -167,8 +171,8 @@ public class RegAllocStack {
                 var newUsesAndMap = mapVirtualRegs(uses);
                 var newDefsAndMap = mapVirtualRegs(defs);
                 // generate load instructions to load the uses
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
-                    genLoadToReg(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
+                    genLoadToReg(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
                 this.newInstrs.add(new X64.Instr.Bop(
@@ -176,8 +180,8 @@ public class RegAllocStack {
                         newUsesAndMap.first(),
                         newDefsAndMap.first()));
                 // generate store instructions to store the defs
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
-                    genStore(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
+                    genStore(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
             }
@@ -189,8 +193,8 @@ public class RegAllocStack {
                 var newUsesAndMap = mapVirtualRegs(uses);
                 var newDefsAndMap = mapVirtualRegs(defs);
                 // generate load instructions to load the uses
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
-                    genLoadToReg(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
+                    genLoadToReg(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
                 this.newInstrs.add(new X64.Instr.Bop(
@@ -198,8 +202,8 @@ public class RegAllocStack {
                         newUsesAndMap.first(),
                         newDefsAndMap.first()));
                 // generate store instructions to store the defs
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
-                    genStore(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
+                    genStore(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
             }
@@ -211,8 +215,8 @@ public class RegAllocStack {
                 var newUsesAndMap = mapVirtualRegs(uses);
                 var newDefsAndMap = mapVirtualRegs(defs);
                 // generate load instructions to load the uses
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
-                    genLoadToReg(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
+                    genLoadToReg(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
                 this.newInstrs.add(new X64.Instr.Bop(
@@ -220,8 +224,8 @@ public class RegAllocStack {
                         newUsesAndMap.first(),
                         newDefsAndMap.first()));
                 // generate store instructions to store the defs
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
-                    genStore(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
+                    genStore(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
             }
@@ -233,8 +237,8 @@ public class RegAllocStack {
                 var newUsesAndMap = mapVirtualRegs(uses);
                 var newDefsAndMap = mapVirtualRegs(defs);
                 // generate load instructions to load the uses
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
-                    genLoadToReg(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
+                    genLoadToReg(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
                 this.newInstrs.add(new X64.Instr.Bop(
@@ -242,8 +246,8 @@ public class RegAllocStack {
                         newUsesAndMap.first(),
                         newDefsAndMap.first()));
                 // generate store instructions to store the defs
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
-                    genStore(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
+                    genStore(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
             }
@@ -255,8 +259,8 @@ public class RegAllocStack {
                 var newUsesAndMap = mapVirtualRegs(uses);
                 var newDefsAndMap = mapVirtualRegs(defs);
                 // generate load instructions to load the uses
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
-                    genLoadToReg(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newUsesAndMap.second().entrySet())) {
+                    genLoadToReg(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
                 this.newInstrs.add(new X64.Instr.Bop(
@@ -264,8 +268,8 @@ public class RegAllocStack {
                         newUsesAndMap.first(),
                         newDefsAndMap.first()));
                 // generate store instructions to store the defs
-                for (HashMap.Entry<String, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
-                    genStore(entry.getKey(), "rbp",
+                for (HashMap.Entry<Id, TempMap.Position.T> entry : (newDefsAndMap.second().entrySet())) {
+                    genStore(entry.getKey(), frameBaseReg,
                             ((TempMap.Position.InStack) entry.getValue()).offset(), new X64.Type.Int());
                 }
             }
@@ -382,14 +386,17 @@ public class RegAllocStack {
     }
 
     public X64.Program.T allocProgram(X64.Program.T x64) {
-        X64.Program.T newX64 = allocProgram0(x64);
-        if (Control.X64.dump) {
-            X64.Program.pp(newX64);
-        }
+        Trace<X64.Program.T, X64.Program.T> trace =
+                new Trace<>("codegen.Munch.munchProgram",
+                        this::allocProgram0,
+                        x64,
+                        X64.Program::pp,
+                        X64.Program::pp);
+        X64.Program.T result = trace.doit();
         if (Control.X64.assemFile != null) {
-            new PpAssem().ppProgram(newX64);
+            new PpAssem().ppProgram(result);
         }
-        return newX64;
+        return result;
     }
 
 }

@@ -11,7 +11,7 @@ public class TempMap {
                 permits InReg, InStack {
         }
 
-        public record InReg(String reg) implements T {
+        public record InReg(Id reg) implements T {
         }
 
         public record InStack(int offset) implements T {
