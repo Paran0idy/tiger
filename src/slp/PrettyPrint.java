@@ -25,7 +25,11 @@ public class PrettyPrint {
         switch (exp) {
             case Exp.Num(int n) -> print(Integer.valueOf(n).toString());
             case Exp.Id(String x) -> print(x);
-            case Exp.Op(Exp.T left, String bop, Exp.T right) -> {
+            case Exp.Op(
+                    Exp.T left,
+                    String bop,
+                    Exp.T right
+            ) -> {
                 ppExp(left);
                 print(bop);
                 ppExp(right);
@@ -44,12 +48,18 @@ public class PrettyPrint {
     // print statement
     public void ppStm(Stm.T stm) {
         switch (stm) {
-            case Stm.Compound(Stm.T s1, Stm.T s2) -> {
+            case Stm.Compound(
+                    Stm.T s1,
+                    Stm.T s2
+            ) -> {
                 ppStm(s1);
                 println(";");
                 ppStm(s2);
             }
-            case Stm.Assign(String x, Exp.T e) -> {
+            case Stm.Assign(
+                    String x,
+                    Exp.T e
+            ) -> {
                 print(STR."\{x} = ");
                 ppExp(e);
             }
