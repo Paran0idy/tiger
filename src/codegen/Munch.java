@@ -12,16 +12,16 @@ import java.util.stream.Collectors;
 
 public class Munch {
     // data structures to hold the layout information for class
-    Layout layouts;
+    private Layout layouts;
     // all parameters and locals in a function
-    HashMap<Id, X64.Type.T> allVars;
+    private HashMap<Id, X64.Type.T> allVars;
     // current locals, we will append freshly generated locals into it
-    List<X64.Dec.T> currentLocals;
+    private List<X64.Dec.T> currentLocals;
     // points to the current instruction list in a x64 block
     private List<X64.Instr.T> currentInstrs;
 
 
-    public X64.Type.T munchType(Cfg.Type.T type) {
+    private X64.Type.T munchType(Cfg.Type.T type) {
         switch (type) {
             case Cfg.Type.ClassType(Id id) -> {
                 return new X64.Type.ClassType(id);
@@ -38,7 +38,7 @@ public class Munch {
         }
     }
 
-    public X64.Dec.T munchDec(Cfg.Dec.T dec) {
+    private X64.Dec.T munchDec(Cfg.Dec.T dec) {
         switch (dec) {
             case Cfg.Dec.Singleton(Cfg.Type.T type, Id id) -> {
                 return new X64.Dec.Singleton(munchType(type), id);
@@ -47,10 +47,10 @@ public class Munch {
     }
 
     // generate a move instruction
-    public void genMoveReg2Id(Id dest,
-                              Id reg,
-                              // type of the "dest"
-                              X64.Type.T targetType) {
+    private void genMoveReg2Id(Id dest,
+                               Id reg,
+                               // type of the "dest"
+                               X64.Type.T targetType) {
         List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Reg(reg, targetType));
         List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
         X64.Instr.T instr = new X64.Instr.Move(
@@ -62,12 +62,13 @@ public class Munch {
     }
 
     // generate a move instruction
-    public void genMoveId2Id(Id dest,
-                             Id x,
-                             // type of the "dest"
-                             X64.Type.T targetType) {
-        List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Vid(x, targetType));
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
+    private void genMoveId2Id(Id dest,
+                              Id x,
+                              // type of the "dest"
+                              X64.Type.T targetType) {
+        List<X64.VirtualReg.T> uses, defs;
+        uses = List.of(new X64.VirtualReg.Vid(x, targetType));
+        defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
         X64.Instr.T instr = new X64.Instr.Move(
                 (uarg, darg) ->
                         STR."movq\t\{uarg.getFirst()}, \{darg.getFirst()}",
@@ -76,12 +77,13 @@ public class Munch {
         this.currentInstrs.add(instr);
     }
 
-    public void genMoveConst2Reg(Id reg,
-                                 int n,
-                                 // type of the "dest"
-                                 X64.Type.T targetType) {
-        List<X64.VirtualReg.T> uses = List.of();
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Reg(reg, targetType));
+    private void genMoveConst2Reg(Id reg,
+                                  int n,
+                                  // type of the "dest"
+                                  X64.Type.T targetType) {
+        List<X64.VirtualReg.T> uses, defs;
+        uses = List.of();
+        defs = List.of(new X64.VirtualReg.Reg(reg, targetType));
         X64.Instr.T instr = new X64.Instr.MoveConst(
                 (uarg, darg) ->
                         STR."movq\t$\{n}, \{darg.getFirst()}",
@@ -91,9 +93,10 @@ public class Munch {
     }
 
     // generate a move instruction
-    public void genMoveConst2Reg(Id dest, String label) {
-        List<X64.VirtualReg.T> uses = List.of();
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Reg(dest, new X64.Type.CodePtr()));
+    private void genMoveConst2Reg(Id dest, String label) {
+        List<X64.VirtualReg.T> uses, defs;
+        uses = List.of();
+        defs = List.of(new X64.VirtualReg.Reg(dest, new X64.Type.CodePtr()));
         X64.Instr.T instr = new X64.Instr.MoveConst(
                 (uarg, darg) ->
                         STR."leaq\t\{label}(%rip), \{darg.getFirst()}",
@@ -103,9 +106,12 @@ public class Munch {
     }
 
     // generate a move instruction
-    public void genMoveConst2Id(Id dest, int n, X64.Type.T targetType) {
-        List<X64.VirtualReg.T> uses = List.of();
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
+    private void genMoveConst2Id(Id dest,
+                                 int n,
+                                 X64.Type.T targetType) {
+        List<X64.VirtualReg.T> uses, defs;
+        uses = List.of();
+        defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
         X64.Instr.T instr = new X64.Instr.MoveConst(
                 (uarg, darg) ->
                         STR."movq\t$\{n}, \{darg.getFirst()}",
@@ -114,10 +120,13 @@ public class Munch {
         this.currentInstrs.add(instr);
     }
 
-    public void genMoveId2Reg(Id reg, Id id, X64.Type.T type) {
-        List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Vid(id,
+    private void genMoveId2Reg(Id reg,
+                               Id id,
+                               X64.Type.T type) {
+        List<X64.VirtualReg.T> uses, defs;
+        uses = List.of(new X64.VirtualReg.Vid(id,
                 type));
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Reg(reg,
+        defs = List.of(new X64.VirtualReg.Reg(reg,
                 type));
         X64.Instr.T instr = new X64.Instr.Move(
                 (uarg, darg) ->
@@ -128,9 +137,12 @@ public class Munch {
     }
 
     // generate a load instruction
-    public void genLoad(Id dest, Id src, int offset) {
-        List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Vid(src, new X64.Type.Int()));
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
+    private void genLoad(Id dest,
+                         Id src,
+                         int offset) {
+        List<X64.VirtualReg.T> uses, defs;
+        uses = List.of(new X64.VirtualReg.Vid(src, new X64.Type.Int()));
+        defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
         X64.Instr.T instr = new X64.Instr.Load(
                 (uarg, darg) ->
                         STR."movq\t\{offset}(\{uarg.getFirst()}), \{darg.getFirst()}",
@@ -140,10 +152,9 @@ public class Munch {
     }
 
     // generate a binary instruction
-    // "bop %src, %dest"
-    public void genBop(String bop,
-                       Id dest,
-                       Id src) {
+    private void genBop(String bop,
+                        Id dest,
+                        Id src) {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of(new X64.VirtualReg.Vid(src, new X64.Type.Int()),
                 new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
@@ -157,11 +168,12 @@ public class Munch {
     }
 
     // generate an indirect call
-    public void genCallIndirect(Id fname) {
+    private void genCallIndirect(Id fname) {
         // this should be fixed
         // all caller-saved registers should be in the defs...
-        List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Vid(fname, new X64.Type.CodePtr()));
-        List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Reg(X64.Register.retReg, new X64.Type.Int()));
+        List<X64.VirtualReg.T> uses, defs;
+        uses = List.of(new X64.VirtualReg.Vid(fname, new X64.Type.CodePtr()));
+        defs = List.of(new X64.VirtualReg.Reg(X64.Register.retReg, new X64.Type.Int()));
         X64.Instr.T instr = new X64.Instr.CallIndirect(
                 (uarg, darg) ->
                         STR."call\t*\{uarg.getFirst()}",
@@ -171,7 +183,7 @@ public class Munch {
     }
 
     // generate a direct call
-    public void genCallDirect(String fname) {
+    private void genCallDirect(String fname) {
         // this should be fixed...
         List<X64.VirtualReg.T> uses = List.of();
         List<X64.VirtualReg.T> defs = List.of();
@@ -184,7 +196,7 @@ public class Munch {
     }
 
     // generate a comment
-    public void genComment(String comment) {
+    private void genComment(String comment) {
         if (!Control.X64.embedComment)
             return;
         List<X64.VirtualReg.T> uses, defs;
@@ -198,11 +210,9 @@ public class Munch {
         this.currentInstrs.add(instr);
     }
 
-    public void genCmpId2Const(Id left, int right) {
+    private void genCmpId2Const(Id left, int right) {
         List<X64.VirtualReg.T> uses, defs;
-        uses = List.of(
-                new X64.VirtualReg.Vid(left, new X64.Type.Int())
-        );
+        uses = List.of(new X64.VirtualReg.Vid(left, new X64.Type.Int()));
         defs = List.of();
         X64.Instr.T instr = new X64.Instr.Comment(
                 (uarg, darg) ->
@@ -212,12 +222,13 @@ public class Munch {
         this.currentInstrs.add(instr);
     }
 
-    public void genCmpId2Id(Id left, Id right) {
-        List<X64.VirtualReg.T> uses = List.of(
+    private void genCmpId2Id(Id left, Id right) {
+        List<X64.VirtualReg.T> uses, defs;
+        uses = List.of(
                 new X64.VirtualReg.Vid(left, new X64.Type.Int()),
                 new X64.VirtualReg.Vid(right, new X64.Type.Int())
         );
-        List<X64.VirtualReg.T> defs = List.of();
+        defs = List.of();
         X64.Instr.T instr = new X64.Instr.Comment(
                 (uarg, darg) ->
                         STR."cmpq\t\{uarg.get(0)}, \{uarg.get(1)}",
@@ -226,7 +237,10 @@ public class Munch {
         this.currentInstrs.add(instr);
     }
 
-    public void munchStm(Cfg.Stm.T s) {
+    // You should extend this function to add
+    // instruction selection code for the remaining features in CFG.
+    // TODO: lab 4, exercise 3:
+    private void munchStm(Cfg.Stm.T s) {
         List<X64.VirtualReg.T> uses, defs;
         X64.Instr.T instr;
 
@@ -256,14 +270,14 @@ public class Munch {
                                         new X64.VirtualReg.Reg(Id.newName("%rax"),
                                                 new X64.Type.Int())
                                 );
-                                instr = new X64.Instr.MoveConst((uarg, darg) ->
+                                instr = new X64.Instr.MoveConst((_, _) ->
                                         STR."setl\t%al",
                                         uses,
                                         defs);
                                 this.currentInstrs.add(instr);
                                 uses = List.of(new X64.VirtualReg.Reg(Id.newName("%rax"),
                                         new X64.Type.Int()));
-                                instr = new X64.Instr.MoveConst((uarg, darg) ->
+                                instr = new X64.Instr.MoveConst((_, _) ->
                                         STR."movzbq\t%al, %rax",
                                         uses,
                                         defs);
@@ -272,7 +286,7 @@ public class Munch {
                                 uses = List.of();
                                 defs = List.of(new X64.VirtualReg.Vid(id,
                                         new X64.Type.Int()));
-                                instr = new X64.Instr.MoveConst((uarg, darg) ->
+                                instr = new X64.Instr.MoveConst((_, darg) ->
                                         STR."movq\t%rax, \{darg.getFirst()}",
                                         uses,
                                         defs);
@@ -290,6 +304,7 @@ public class Munch {
                         for (int i = 0; i < args.size(); i++) {
                             // we only process no more than 6 arguments
                             if (i > 5) {
+                                // TODO: lab 4, exercise 4.
                                 throw new Todo("#arguments > 6");
                             }
                             Id value = args.get(i);
@@ -347,24 +362,21 @@ public class Munch {
                         genMoveId2Reg(argReg, x, new X64.Type.Int());
                         genCallDirect("Tiger_print");
                     }
-                    default -> {
-                        throw new AssertionError(s);
-                    }
+                    default -> throw new Error(s);
                 }
             }
         }
     }
 
-    public void munchStmTraced(Cfg.Stm.T stm) {
+    private void munchStmTraced(Cfg.Stm.T stm) {
         genComment(STR."stm start: \{stm.getClass()}");
         munchStm(stm);
         genComment(STR."stm finished: \{stm.getClass()}");
-
     }
 
-    public void munchTransfer(Cfg.Transfer.T transfer,
-                              List<X64.Transfer.T> newTransfer,
-                              X64.Function.T newFunc) {
+    private void munchTransfer(Cfg.Transfer.T transfer,
+                               List<X64.Transfer.T> newTransfer,
+                               X64.Function.T newFunc) {
         switch (transfer) {
             case Cfg.Transfer.Jmp(Cfg.Block.T target) -> {
                 Label label = Cfg.Block.getLabel(target);
@@ -392,7 +404,7 @@ public class Munch {
     }
 
     // this pass will create empty block first
-    public X64.Block.T munchBlock1(Cfg.Block.T block) {
+    private X64.Block.T munchBlock1(Cfg.Block.T block) {
         switch (block) {
             case Cfg.Block.Singleton(
                     Label label,
@@ -406,8 +418,8 @@ public class Munch {
         }
     }
 
-    public void munchBlockPass2(List<Cfg.Block.T> cfgBlocks,
-                                X64.Function.T newFunc) {
+    private void munchBlockPass2(List<Cfg.Block.T> cfgBlocks,
+                                 X64.Function.T newFunc) {
         for (Cfg.Block.T cfgBlock : cfgBlocks) {
             switch (cfgBlock) {
                 case Cfg.Block.Singleton(
@@ -437,7 +449,7 @@ public class Munch {
     }
 
     // to implement the calling convention: argument passing
-    public void callingConvention(X64.Function.T f) {
+    private void callingConvention(X64.Function.T f) {
         switch (f) {
             case X64.Function.Singleton(
                     X64.Type.T retType,
@@ -459,6 +471,7 @@ public class Munch {
                 int index = 0;
                 for (X64.Dec.T formal : formals) {
                     if (index > 5) {
+                        // TODO: lab 4, exercise 4.
                         throw new Todo("arguments > 6");
                     }
                     switch (formal) {
@@ -478,7 +491,7 @@ public class Munch {
         }
     }
 
-    public X64.Function.T munchFunction(Cfg.Function.T f) {
+    private X64.Function.T munchFunction(Cfg.Function.T f) {
         switch (f) {
             case Cfg.Function.Singleton(
                     Cfg.Type.T retType,
@@ -532,7 +545,7 @@ public class Munch {
         return STR."\{entry.classId()}_\{entry.functionId()}";
     }
 
-    public X64.Vtable.T munchVtable(Cfg.Vtable.T f) {
+    private X64.Vtable.T munchVtable(Cfg.Vtable.T f) {
         switch (f) {
             case Cfg.Vtable.Singleton(
                     Id name,
