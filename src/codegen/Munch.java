@@ -140,6 +140,7 @@ public class Munch {
     }
 
     // generate a binary instruction
+    // "bop %src, %dest"
     public void genBop(String bop,
                        Id dest,
                        Id src) {
@@ -149,7 +150,7 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
         X64.Instr.T instr = new X64.Instr.Bop(
                 (uarg, darg) ->
-                        STR."\{bop}\t\{uarg.get(1)}, \{uarg.get(0)}",
+                        STR."\{bop}\t\{uarg.get(0)}, \{uarg.get(1)}",
                 uses,
                 defs);
         this.currentInstrs.add(instr);
@@ -248,7 +249,7 @@ public class Munch {
                                 genBop("subq", id, operands.get(1));
                             }
                             case "<" -> {
-                                genCmpId2Id(operands.get(0), operands.get(1));
+                                genCmpId2Id(operands.get(1), operands.get(0));
                                 // the first instruction
                                 uses = List.of();
                                 defs = List.of(
@@ -451,7 +452,10 @@ public class Munch {
                         new LinkedList<>());
                 newEntryBlock.transfer().add(new X64.Transfer.Jmp(blocks.getFirst()));
                 blocks.addFirst(newEntryBlock);
+                this.currentInstrs = newEntryBlock.instrs();
+
                 // to move arguments:
+                genComment("arg passing start:");
                 int index = 0;
                 for (X64.Dec.T formal : formals) {
                     if (index > 5) {
@@ -469,6 +473,7 @@ public class Munch {
                     }
                     index++;
                 }
+                genComment("arg passing finished");
             }
         }
     }

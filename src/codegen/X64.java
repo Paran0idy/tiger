@@ -259,6 +259,24 @@ struct V_\{clsName} *vptr;
             }
         }
 
+        // only takes vid
+        public static T mapVid(T vr, java.util.function.Function<Id, Id> converter) {
+            switch (vr) {
+                case Reg(
+                        _,
+                        _
+                ) -> {
+                    return vr;
+                }
+                case Vid(
+                        Id x,
+                        Type.T type
+                ) -> {
+                    return new Reg(converter.apply(x), type);
+                }
+            }
+        }
+
         public static void pp(T ty) {
             switch (ty) {
                 case Vid(

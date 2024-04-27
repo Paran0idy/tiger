@@ -17,7 +17,7 @@ public class Frame {
         this.offset -= X64.WordSize.bytesOfWord;
         return this.offset;
     }
-    
+
     public int size() {
         return -offset;
     }
