@@ -74,7 +74,7 @@ public class Cfg {
 
         public record Singleton(Type.T type,
                                 Id id) implements T {
-            // only compare "origId"
+            // only compare "id"
             @Override
             public boolean equals(Object o) {
                 if (o == null)
@@ -224,6 +224,7 @@ public class Cfg {
                                 Id methodId) implements T {
         }
 
+        // integer constant
         public record Int(int n) implements T {
         }
 
@@ -526,6 +527,7 @@ public class Cfg {
                     printSpaces();
                     say("}\n\n");
                 }
+
             }
         }
     }

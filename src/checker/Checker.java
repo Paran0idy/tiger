@@ -131,7 +131,7 @@ public class Checker {
         }
     }
 
-    // type check statements
+    // type check a statement
     private void checkStm(Stm.T s) {
         switch (s) {
             case Stm.If(
