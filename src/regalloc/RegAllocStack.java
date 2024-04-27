@@ -50,18 +50,6 @@ public class RegAllocStack {
             });
         }
 
-        private X64.VirtualReg.T mapOne(X64.VirtualReg.T one) {
-            switch (one) {
-                case X64.VirtualReg.Reg(_, _) -> {
-                    return one;
-                }
-                case X64.VirtualReg.Vid(Id x, X64.Type.T type) -> {
-                    Id reg = this.map.get(x);
-                    return new X64.VirtualReg.Reg(reg, type);
-                }
-            }
-        }
-
         public Tuple.Two<List<X64.VirtualReg.T>,
                 List<X64.VirtualReg.T>> allocUseDef(List<X64.VirtualReg.T> uses,
                                                     List<X64.VirtualReg.T> defs) {
@@ -88,8 +76,8 @@ public class RegAllocStack {
                     }
                 }
             });
-            var newUses = uses.stream().map(this::mapOne).toList();
-            var newDefs = defs.stream().map(this::mapOne).toList();
+            var newUses = uses.stream().map((x) -> X64.VirtualReg.mapVid(x, this.map::get)).toList();
+            var newDefs = defs.stream().map((x) -> X64.VirtualReg.mapVid(x, this.map::get)).toList();
             return new Tuple.Two<>(newUses, newDefs);
         }
 
@@ -146,23 +134,30 @@ public class RegAllocStack {
         }
     }
 
-    public void allocInstr(X64.Instr.T s) {
+
+    private void allocUseDefs(java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
+                              List<X64.VirtualReg.T> uses,
+                              List<X64.VirtualReg.T> defs) {
+        AllocReg allocReg = new AllocReg();
+        var newUseDefs = allocReg.allocUseDef(uses, defs);
+        // generate load instructions to load the uses
+        genLoadToReg(uses, allocReg);
+        this.newInstrs.add(new X64.Instr.Bop(
+                instr,
+                newUseDefs.first(),
+                newUseDefs.second()));
+        // generate store instructions to store the defs
+        genStore(defs, allocReg);
+    }
+
+    private void allocInstr(X64.Instr.T s) {
         switch (s) {
             case X64.Instr.Bop(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                AllocReg allocReg = new AllocReg();
-                var newUseDefs = allocReg.allocUseDef(uses, defs);
-                // generate load instructions to load the uses
-                genLoadToReg(uses, allocReg);
-                this.newInstrs.add(new X64.Instr.Bop(
-                        instr,
-                        newUseDefs.first(),
-                        newUseDefs.second()));
-                // generate store instructions to store the defs
-                genStore(defs, allocReg);
+                allocUseDefs(instr, uses, defs);
             }
             case X64.Instr.CallDirect(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>,
@@ -170,112 +165,49 @@ public class RegAllocStack {
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                AllocReg allocReg = new AllocReg();
-                var newUseDefs = allocReg.allocUseDef(uses, defs);
-                // generate load instructions to load the uses
-                genLoadToReg(uses, allocReg);
-                this.newInstrs.add(new X64.Instr.Bop(
-                        instr,
-                        newUseDefs.first(),
-                        newUseDefs.second()));
-                // generate store instructions to store the defs
-                genStore(defs, allocReg);
+                allocUseDefs(instr, uses, defs);
             }
             case X64.Instr.CallIndirect(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                AllocReg allocReg = new AllocReg();
-                var newUseDefs = allocReg.allocUseDef(uses, defs);
-                // generate load instructions to load the uses
-                genLoadToReg(uses, allocReg);
-                this.newInstrs.add(new X64.Instr.Bop(
-                        instr,
-                        newUseDefs.first(),
-                        newUseDefs.second()));
-                // generate store instructions to store the defs
-                genStore(defs, allocReg);
+                allocUseDefs(instr, uses, defs);
             }
             case X64.Instr.Comment(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                AllocReg allocReg = new AllocReg();
-                var newUseDefs = allocReg.allocUseDef(uses, defs);
-                // generate load instructions to load the uses
-                genLoadToReg(uses, allocReg);
-                this.newInstrs.add(new X64.Instr.Bop(
-                        instr,
-                        newUseDefs.first(),
-                        newUseDefs.second()));
-                // generate store instructions to store the defs
-                genStore(defs, allocReg);
+                allocUseDefs(instr, uses, defs);
             }
             case X64.Instr.Load(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                AllocReg allocReg = new AllocReg();
-                var newUseDefs = allocReg.allocUseDef(uses, defs);
-                // generate load instructions to load the uses
-                genLoadToReg(uses, allocReg);
-                this.newInstrs.add(new X64.Instr.Bop(
-                        instr,
-                        newUseDefs.first(),
-                        newUseDefs.second()));
-                // generate store instructions to store the defs
-                genStore(defs, allocReg);
+                allocUseDefs(instr, uses, defs);
             }
             case X64.Instr.Move(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                AllocReg allocReg = new AllocReg();
-                var newUseDefs = allocReg.allocUseDef(uses, defs);
-                // generate load instructions to load the uses
-                genLoadToReg(uses, allocReg);
-                this.newInstrs.add(new X64.Instr.Bop(
-                        instr,
-                        newUseDefs.first(),
-                        newUseDefs.second()));
-                // generate store instructions to store the defs
-                genStore(defs, allocReg);
+                allocUseDefs(instr, uses, defs);
             }
             case X64.Instr.MoveConst(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                AllocReg allocReg = new AllocReg();
-                var newUseDefs = allocReg.allocUseDef(uses, defs);
-                // generate load instructions to load the uses
-                genLoadToReg(uses, allocReg);
-                this.newInstrs.add(new X64.Instr.Bop(
-                        instr,
-                        newUseDefs.first(),
-                        newUseDefs.second()));
-                // generate store instructions to store the defs
-                genStore(defs, allocReg);
+                allocUseDefs(instr, uses, defs);
             }
             case X64.Instr.Store(
                     java.util.function.BiFunction<List<X64.VirtualReg.T>, List<X64.VirtualReg.T>, String> instr,
                     List<X64.VirtualReg.T> uses,
                     List<X64.VirtualReg.T> defs
             ) -> {
-                AllocReg allocReg = new AllocReg();
-                var newUseDefs = allocReg.allocUseDef(uses, defs);
-                // generate load instructions to load the uses
-                genLoadToReg(uses, allocReg);
-                this.newInstrs.add(new X64.Instr.Bop(
-                        instr,
-                        newUseDefs.first(),
-                        newUseDefs.second()));
-                // generate store instructions to store the defs
-                genStore(defs, allocReg);
+                allocUseDefs(instr, uses, defs);
             }
         }
     }
