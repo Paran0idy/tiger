@@ -62,6 +62,7 @@ public class CommandLine {
                         Kind.String,
                         (Object x) -> {
                             switch ((String) x) {
+                                case "id" -> Control.Util.dumpId = true;
                                 case "token" -> Control.Lexer.dumpToken = true;
                                 default -> error(STR."unknown argument: \{x}");
                             }

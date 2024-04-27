@@ -74,14 +74,14 @@ public class Cfg {
 
         public record Singleton(Type.T type,
                                 Id id) implements T {
-            // only compare "id"
+            // only compare "origId"
             @Override
             public boolean equals(Object o) {
                 if (o == null)
                     return false;
                 if (!(o instanceof Singleton))
                     return false;
-                return this.id().equals(((Dec.Singleton) o).id());
+                return this.id().equals(((Singleton) o).id());
             }
 
             @Override
@@ -92,7 +92,10 @@ public class Cfg {
 
         public static void pp(T dec) {
             switch (dec) {
-                case Singleton(Type.T type, Id id) -> {
+                case Singleton(
+                        Type.T type,
+                        Id id
+                ) -> {
                     Type.pp(type);
                     say(STR." \{id}");
                 }
@@ -174,10 +177,11 @@ public class Cfg {
                     // the first field is special
                     printSpaces();
                     sayln(STR."struct V_\{clsName} *vptr;");
-                    for (Cfg.Dec.T dec : fields) {
+                    fields.forEach((dec) -> {
                         printSpaces();
                         Dec.pp(dec);
-                    }
+                        sayln(";");
+                    });
                     unIndent();
                     printSpaces();
                     sayln(STR."} S_\{clsName}_ = {");
