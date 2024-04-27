@@ -13,7 +13,8 @@ public class Slp {
         }
 
         // s, e
-        public record Eseq(Stm.T stm, T exp) implements T {
+        public record Eseq(Stm.T stm,
+                           T exp) implements T {
         }
 
         // x
@@ -21,7 +22,9 @@ public class Slp {
         }
 
         // e bop e
-        public record Op(T left, String op, T right) implements T {
+        public record Op(T left,
+                         String op,
+                         T right) implements T {
         }
 
         // n
@@ -39,13 +42,15 @@ public class Slp {
         }
 
         // x := e
-        public record Assign(String id, Exp.T exp) implements T {
+        public record Assign(String id,
+                             Exp.T exp) implements T {
         }
 
         // s1; s2
-        public record Compound(T s1, T s2) implements T {
+        public record Compound(T s1,
+                               T s2) implements T {
         }
-        
+
         // print(explist)
         public record Print(List<Exp.T> exps) implements T {
         }
