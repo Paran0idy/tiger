@@ -26,13 +26,13 @@ public class Compiler {
 
     private void compileExp(Exp.T exp) {
         switch (exp) {
-            case Id(String x) -> emit(STR."""
-\tmovq\t\{x}, %rax
-""");
-            case Num(int n) -> emit(STR."""
-\tmovq\t$\{n}, %rax
-""");
-            case Op(Exp.T left, String op, Exp.T right) -> {
+            case Id(String x) -> emit(STR."\tmovq\t\{x}, %rax");
+            case Num(int n) -> emit(STR."\tmovq\t$\{n}, %rax");
+            case Op(
+                    Exp.T left,
+                    String op,
+                    Exp.T right
+            ) -> {
                 compileExp(left);
                 emit("\tpushq\t%rax\n");
                 compileExp(right);
@@ -43,7 +43,10 @@ public class Compiler {
                     default -> throw new Todo(op);
                 }
             }
-            case Eseq(Stm.T s, Exp.T e) -> {
+            case Eseq(
+                    Stm.T s,
+                    Exp.T e
+            ) -> {
                 compileStm0(s);
                 compileExp(e);
             }
@@ -53,16 +56,20 @@ public class Compiler {
     // to compile a statement
     private void compileStm0(Stm.T s) {
         switch (s) {
-            case Stm.Compound(Stm.T s1, Stm.T s2) -> {
+            case Stm.Compound(
+                    Stm.T s1,
+                    Stm.T s2
+            ) -> {
                 compileStm0(s1);
                 compileStm0(s2);
             }
-            case Stm.Assign(String x, Exp.T e) -> {
+            case Stm.Assign(
+                    String x,
+                    Exp.T e
+            ) -> {
                 ids.add(x);
                 compileExp(e);
-                emit(STR."""
-\tmovq\t%rax, \{x}
-""");
+                emit(STR."\tmovq\t%rax, \{x}");
             }
             case Stm.Print(List<Exp.T> exps) -> {
                 exps.forEach(e -> {
@@ -103,9 +110,7 @@ public class Compiler {
                             .string "\\n"
                         """);
         for (String s : this.ids) {
-            fileWriter.write(STR."""
-\{s}:
-""");
+            fileWriter.write(STR."\{s}:");
             fileWriter.write("\t.long 0\n");
         }
         fileWriter.write(
