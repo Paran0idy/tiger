@@ -3,6 +3,7 @@ package codegen;
 import cfg.Cfg;
 import util.Id;
 import util.Property;
+import util.Todo;
 import util.Trace;
 
 import java.util.List;
@@ -11,13 +12,11 @@ public class Layout {
     public final int vtablePtrOffsetInObject;
 
     private final Property<Id, Integer> sizeOfClassProp;
-    private final Property<Id, Integer> fieldOffsetProp;
     private final Property<Id, Integer> methodOffsetProp;
 
     Layout() {
         this.vtablePtrOffsetInObject = 0;
         this.sizeOfClassProp = new Property<>(Id::getPlist);
-        this.fieldOffsetProp = new Property<>(Id::getPlist);
         this.methodOffsetProp = new Property<>(Id::getPlist);
     }
 
@@ -59,12 +58,7 @@ public class Layout {
                 // the virtual function table pointer
                 offset += X64.WordSize.bytesOfWord;
                 for (var entry : fields) {
-                    switch (entry) {
-                        case Cfg.Dec.Singleton(
-                                Cfg.Type.T type,
-                                Id id
-                        ) -> fieldOffsetProp.put(id, offset);
-                    }
+                    // TODO: lab 4, exercise 2
                     offset += X64.WordSize.bytesOfWord;
                 }
                 sizeOfClassProp.put(clsId, offset);
@@ -112,21 +106,16 @@ public class Layout {
                                             ) -> {
                                                 System.out.println(STR."class \{clsId.toString()} size = \{sizeOfClassProp.get(clsId).toString()}");
                                                 for (var entry : fields) {
-                                                    switch (entry) {
-                                                        case Cfg.Dec.Singleton(
-                                                                Cfg.Type.T type,
-                                                                Id id
-                                                        ) -> {
-                                                            System.out.println(STR."\{id.toString()} at: \{fieldOffsetProp.get(id).toString()}");
-                                                        }
-                                                    }
+                                                    // TODO: lab 4, exercise 2
+                                                    throw new Todo();
                                                 }
                                             }
                                         }
                                     });
                                     //
                                     vtables.forEach((s) -> {
-                                        System.out.println("vtable...");
+                                        // TODO: lab 4, exercise 2.
+                                        throw new Todo();
                                     });
                                 });
                 trace.doit();
