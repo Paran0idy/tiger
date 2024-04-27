@@ -149,7 +149,7 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
         X64.Instr.T instr = new X64.Instr.Bop(
                 (uarg, darg) ->
-                        STR."\{bop}\t\{uarg.get(1)}, \{uarg.get(0)}",
+                        STR."\{bop}\t\{uarg.get(0)}, \{uarg.get(1)}",
                 uses,
                 defs);
         this.currentInstrs.add(instr);
@@ -248,7 +248,7 @@ public class Munch {
                                 genBop("subq", id, operands.get(1));
                             }
                             case "<" -> {
-                                genCmpId2Id(operands.get(0), operands.get(1));
+                                genCmpId2Id(operands.get(1), operands.get(0));
                                 // the first instruction
                                 uses = List.of();
                                 defs = List.of(
