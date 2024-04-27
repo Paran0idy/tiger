@@ -43,14 +43,14 @@ public class Tiger {
 
         Pass<Ast.Program.T, Cfg.Program.T> transPass =
                 new Pass<>("translating to CFG",
-                        new cfg.Translate()::translate,
+                        new cfg.Translate_Internal()::translate,
                         newAst,
                         Control.Verbose.L0);
         Cfg.Program.T cfg = transPass.apply();
 
         Pass<Cfg.Program.T, X64.Program.T> codeGenPass =
                 new Pass<>("code generation",
-                        (f) -> new codegen.Munch().munchProgram(f),
+                        new codegen.Munch()::munchProgram,
                         cfg,
                         Control.Verbose.L0);
         X64.Program.T x64 = codeGenPass.apply();

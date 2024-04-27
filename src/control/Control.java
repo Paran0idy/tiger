@@ -64,6 +64,7 @@ public class Control {
 
     // the x64
     public static class X64 {
+        public static boolean embedComment = false;
         public static boolean dump = false;
     }
 }
