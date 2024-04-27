@@ -1,5 +1,6 @@
 package codegen;
 
+import util.Error;
 import util.Id;
 import util.Label;
 
@@ -96,10 +97,6 @@ public class X64 {
                 "%r9",
                 "%r10",
                 "%r11").map(Id::newName).toList();
-
-        // we used these two registers for stack-based allocation
-        public static Id callerR10 = Id.newName("%r10");
-        public static Id callerR11 = Id.newName("%r11");
     }
 
 
@@ -155,7 +152,6 @@ public class X64 {
                 }
             }
         }
-
     }
 
     // /////////////////////////////////////////////////////////
@@ -243,7 +239,8 @@ struct V_\{clsName} *vptr;
         }
 
         // variable
-        public record Vid(Id id, Type.T ty) implements T {
+        public record Vid(Id id,
+                          Type.T ty) implements T {
             @Override
             public String toString() {
                 return id.toString();
@@ -261,15 +258,15 @@ struct V_\{clsName} *vptr;
 
         public static void pp(T ty) {
             switch (ty) {
-                case Vid(
-                        Id x,
-                        _
-                ) -> {
-                    say(x.toString());
-                }
                 case Reg(
                         Id x,
                         Type.T type
+                ) -> {
+                    say(x.toString());
+                }
+                case Vid(
+                        Id x,
+                        _
                 ) -> {
                     say(x.toString());
                 }
@@ -337,7 +334,6 @@ struct V_\{clsName} *vptr;
                             List<VirtualReg.T> defs) implements T {
         }
 
-
         public static void pp(T t) {
             switch (t) {
                 case Bop(
@@ -397,7 +393,7 @@ struct V_\{clsName} *vptr;
                     printInstrBody(instrFn, uses, defs);
                 }
                 default -> {
-                    throw new AssertionError();
+                    throw new Error();
                 }
             }
         }
