@@ -140,6 +140,7 @@ public class Munch {
     }
 
     // generate a binary instruction
+    // "bop %src, %dest"
     public void genBop(String bop,
                        Id dest,
                        Id src) {
@@ -451,7 +452,10 @@ public class Munch {
                         new LinkedList<>());
                 newEntryBlock.transfer().add(new X64.Transfer.Jmp(blocks.getFirst()));
                 blocks.addFirst(newEntryBlock);
+                this.currentInstrs = newEntryBlock.instrs();
+
                 // to move arguments:
+                genComment("arg passing start:");
                 int index = 0;
                 for (X64.Dec.T formal : formals) {
                     if (index > 5) {
@@ -469,6 +473,7 @@ public class Munch {
                     }
                     index++;
                 }
+                genComment("arg passing finished");
             }
         }
     }
