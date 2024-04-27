@@ -121,7 +121,7 @@ public class Cfg {
             switch (vtable) {
                 case Singleton(Id name, List<Entry> funcTypes) -> {
                     printSpaces();
-                    say(STR."struct V_\{name} {");
+                    sayln(STR."struct V_\{name} {");
                     // all entries
                     indent();
                     for (Entry e : funcTypes) {
@@ -136,7 +136,7 @@ public class Cfg {
                     }
                     unIndent();
                     printSpaces();
-                    say(STR."} V_\{name}_ = {");
+                    sayln(STR."} V_\{name}_ = {");
                     indent();
                     for (Entry e : funcTypes) {
                         printSpaces();
@@ -169,21 +169,21 @@ public class Cfg {
                         List<Cfg.Dec.T> fields
                 ) -> {
                     printSpaces();
-                    say(STR."struct S_\{clsName.toString()} {");
+                    sayln(STR."struct S_\{clsName.toString()} {");
                     indent();
                     // the first field is special
                     printSpaces();
-                    say(STR."struct V_\{clsName} *vptr;");
+                    sayln(STR."struct V_\{clsName} *vptr;");
                     for (Cfg.Dec.T dec : fields) {
                         printSpaces();
                         Dec.pp(dec);
                     }
                     unIndent();
                     printSpaces();
-                    say(STR."} S_\{clsName}_ = {");
+                    sayln(STR."} S_\{clsName}_ = {");
                     indent();
                     printSpaces();
-                    say(STR.".vptr = &V_\{clsName}_;");
+                    sayln(STR.".vptr = &V_\{clsName}_;");
                     unIndent();
                     printSpaces();
                     say("};\n\n");
@@ -267,7 +267,7 @@ public class Cfg {
         }
 
         // assign
-        // when "x" is null, it is an expression without left-hand side
+        // "x" should not be "null", even if the exp is not used.
         public record Assign(Id x,
                              Exp.T exp) implements T {
         }
@@ -276,9 +276,7 @@ public class Cfg {
             switch (t) {
                 case Assign(Id x, Exp.T exp) -> {
                     printSpaces();
-                    if (x != null) {
-                        say(STR."\{x.toString()} = ");
-                    }
+                    say(STR."\{x.toString()} = ");
                     Exp.pp(exp);
                     sayln(";");
                 }
@@ -412,7 +410,7 @@ public class Cfg {
                         List<Transfer.T> transfer
                 ) -> {
                     printSpaces();
-                    say(STR."\{label.toString()}:");
+                    sayln(STR."\{label.toString()}:");
                     indent();
                     stms.forEach(Stm::pp);
                     Transfer.pp(transfer.getFirst());
