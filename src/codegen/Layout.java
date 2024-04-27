@@ -9,7 +9,7 @@ import java.util.List;
 public class Layout {
 
     public static class ClassLayoutBinding {
-        // the size of a class, in bytes
+        // the size of a class, in #bytes
         int numBytes;
         // the offsets of all methods in the given class
         HashMap<Id, Integer> methodOffsets;
@@ -20,13 +20,13 @@ public class Layout {
         }
     }
 
-    // map each class name to its layout
+    // map each class id to its layout
     HashMap<Id, ClassLayoutBinding> map;
     // where to put the "vptr" in an object
     public int vtablePtrOffsetInObject;
 
     Layout() {
-        this.map = new HashMap<Id, ClassLayoutBinding>();
+        this.map = new HashMap<>();
         this.vtablePtrOffsetInObject = 0;
     }
 
@@ -82,12 +82,8 @@ public class Layout {
                     List<Cfg.Struct.T> structs,
                     List<Cfg.Function.T> functions
             ) -> {
-                for (var struct : structs) {
-                    layoutStruct(struct);
-                }
-                for (var vtable : vtables) {
-                    layoutVtable(vtable);
-                }
+                structs.forEach(this::layoutStruct);
+                vtables.forEach(this::layoutVtable);
             }
         }
     }
