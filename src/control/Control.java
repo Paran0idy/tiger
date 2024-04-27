@@ -44,6 +44,11 @@ public class Control {
         }
     }
 
+    // utils
+    public static class Util {
+        public static boolean dumpId = true;
+    }
+
 
     // the lexer
     public static class Lexer {
