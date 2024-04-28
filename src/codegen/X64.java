@@ -1,6 +1,5 @@
 package codegen;
 
-import util.Error;
 import util.Id;
 import util.Label;
 
@@ -278,123 +277,32 @@ struct V_\{clsName} *vptr;
     // /////////////////////////////////////////////////////////
     // instruction
     public static class Instr {
-        // names should be alphabetically ordered
         public sealed interface T
-                permits Bop, CallDirect, CallIndirect, Comment,
-                Load, Move, MoveConst, Store {
+                permits Singleton {
         }
 
+        // names should be alphabetically ordered
+        public enum Kind {
+            Bop, CallDirect, CallIndirect, Comment,
+            Load, Move, MoveConst, Store
+        }
 
-        // binary operations
-        public record Bop(
+        public record Singleton(
+                Kind kind,
                 BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                 List<VirtualReg.T> uses,
                 List<VirtualReg.T> defs) implements T {
         }
 
-        // call direct
-        public record CallDirect(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
-                                 List<VirtualReg.T> uses,
-                                 List<VirtualReg.T> defs) implements T {
-        }
-
-        // call indirect, that is, the function address is in a register
-        public record CallIndirect(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
-                                   List<VirtualReg.T> uses,
-                                   List<VirtualReg.T> defs) implements T {
-        }
-
-        // comment, for debugging purpose
-        public record Comment(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
-                              List<VirtualReg.T> uses,
-                              List<VirtualReg.T> defs) implements T {
-        }
-
-        // load memory content into registers
-        public record Load(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
-                           List<VirtualReg.T> uses,
-                           List<VirtualReg.T> defs) implements T {
-        }
-
-        // move between registers
-        public record Move(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
-                           List<VirtualReg.T> uses,
-                           List<VirtualReg.T> defs) implements T {
-        }
-
-        // move constants into registers
-        public record MoveConst(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
-                                List<VirtualReg.T> uses,
-                                List<VirtualReg.T> defs) implements T {
-        }
-
-        // store into memory address
-        public record Store(BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
-                            List<VirtualReg.T> uses,
-                            List<VirtualReg.T> defs) implements T {
-        }
 
         public static void pp(T t) {
             switch (t) {
-                case Bop(
+                case Singleton(
+                        Kind _,
                         BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
                         List<VirtualReg.T> defs
-                ) -> {
-                    printInstrBody(instrFn, uses, defs);
-                }
-                case CallDirect(
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                        List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> {
-                    printInstrBody(instrFn, uses, defs);
-                }
-                case CallIndirect(
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                        List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> {
-                    printInstrBody(instrFn, uses, defs);
-                }
-                case Comment(
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                        List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> {
-                    printInstrBody(instrFn, uses, defs);
-                }
-                case Load(
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                        List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> {
-                    printInstrBody(instrFn, uses, defs);
-                }
-                case Move(
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                        List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> {
-                    printInstrBody(instrFn, uses, defs);
-                }
-                case MoveConst(
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                        List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> {
-                    printInstrBody(instrFn, uses, defs);
-                }
-                case Store(
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                        List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> {
-                    printInstrBody(instrFn, uses, defs);
-                }
-                default -> {
-                    throw new Error();
-                }
+                ) -> printInstrBody(instrFn, uses, defs);
             }
         }
 
@@ -405,20 +313,19 @@ struct V_\{clsName} *vptr;
             printSpaces();
             say(instrFn.apply(uses, defs));
             say("\t// uses=[");
-            for (VirtualReg.T use : uses) {
-                VirtualReg.pp(use);
+            uses.forEach((x) -> {
+                VirtualReg.pp(x);
                 say(", ");
-            }
+            });
             say("], defs=[");
-            for (VirtualReg.T def : defs) {
-                VirtualReg.pp(def);
+            defs.forEach((x) -> {
+                VirtualReg.pp(x);
                 say(", ");
-            }
+            });
             sayln("]");
         }
     }
     // end of instruction
-
 
     // /////////////////////////////////////////////////////////
     // transfer
@@ -429,8 +336,7 @@ struct V_\{clsName} *vptr;
 
         public record If(String instr,
                          Block.T trueBlock,
-                         Block.T falseBlock)
-                implements T {
+                         Block.T falseBlock) implements T {
         }
 
         public record Jmp(Block.T target) implements T {
@@ -448,18 +354,18 @@ struct V_\{clsName} *vptr;
                 ) -> {
                     printSpaces();
                     say(STR."\{instr} ");
-                    sayln(Block.getName(thenn));
+                    sayln(Block.getLabel(thenn).toString());
                     printSpaces();
                     say("jmp ");
-                    sayln(Block.getName(elsee));
+                    sayln(Block.getLabel(elsee).toString());
                 }
                 case Jmp(Block.T target) -> {
                     printSpaces();
-                    sayln(STR."jmp \{Block.getName(target)}");
+                    sayln(STR."jmp \{Block.getLabel(target).toString()}");
                 }
                 case Ret() -> {
                     printSpaces();
-                    sayln("ret ");
+                    sayln("ret");
                 }
             }
         }
@@ -492,24 +398,10 @@ struct V_\{clsName} *vptr;
             }
         }
 
-        public static String getName(Block.T t) {
-            switch (t) {
-                case Singleton(
-                        Label label,
-                        _,
-                        _
-                ) -> {
-                    return label.toString();
-                }
-            }
-        }
-
         public static void addInstrsFirst(Block.T b, List<Instr.T> ins) {
             switch (b) {
                 case Singleton(_, List<Instr.T> instrs, _) -> {
-                    for (Instr.T t : ins.reversed()) {
-                        instrs.addFirst(t);
-                    }
+                    ins.reversed().forEach(instrs::addFirst);
                 }
             }
         }

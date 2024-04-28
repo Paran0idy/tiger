@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static codegen.X64.Instr.Kind.*;
+
 public class Munch {
     // data structures to hold the layout information for class
     private Layout layouts;
@@ -53,7 +55,8 @@ public class Munch {
                                X64.Type.T targetType) {
         List<X64.VirtualReg.T> uses = List.of(new X64.VirtualReg.Reg(reg, targetType));
         List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
-        X64.Instr.T instr = new X64.Instr.Move(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                Move,
                 (uarg, darg) ->
                         STR."movq\t\{uarg.getFirst()}, \{darg.getFirst()}",
                 uses,
@@ -69,7 +72,8 @@ public class Munch {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of(new X64.VirtualReg.Vid(x, targetType));
         defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
-        X64.Instr.T instr = new X64.Instr.Move(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                Move,
                 (uarg, darg) ->
                         STR."movq\t\{uarg.getFirst()}, \{darg.getFirst()}",
                 uses,
@@ -84,7 +88,8 @@ public class Munch {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of();
         defs = List.of(new X64.VirtualReg.Reg(reg, targetType));
-        X64.Instr.T instr = new X64.Instr.MoveConst(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                MoveConst,
                 (uarg, darg) ->
                         STR."movq\t$\{n}, \{darg.getFirst()}",
                 uses,
@@ -97,7 +102,8 @@ public class Munch {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of();
         defs = List.of(new X64.VirtualReg.Reg(dest, new X64.Type.CodePtr()));
-        X64.Instr.T instr = new X64.Instr.MoveConst(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                MoveConst,
                 (uarg, darg) ->
                         STR."leaq\t\{label}(%rip), \{darg.getFirst()}",
                 uses,
@@ -112,7 +118,8 @@ public class Munch {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of();
         defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
-        X64.Instr.T instr = new X64.Instr.MoveConst(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                MoveConst,
                 (uarg, darg) ->
                         STR."movq\t$\{n}, \{darg.getFirst()}",
                 uses,
@@ -128,7 +135,8 @@ public class Munch {
                 type));
         defs = List.of(new X64.VirtualReg.Reg(reg,
                 type));
-        X64.Instr.T instr = new X64.Instr.Move(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                Move,
                 (uarg, darg) ->
                         STR."movq\t\{uarg.getFirst()}, \{darg.getFirst()}",
                 uses,
@@ -143,7 +151,8 @@ public class Munch {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of(new X64.VirtualReg.Vid(src, new X64.Type.Int()));
         defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
-        X64.Instr.T instr = new X64.Instr.Load(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                Load,
                 (uarg, darg) ->
                         STR."movq\t\{offset}(\{uarg.getFirst()}), \{darg.getFirst()}",
                 uses,
@@ -159,7 +168,8 @@ public class Munch {
         uses = List.of(new X64.VirtualReg.Vid(src, new X64.Type.Int()),
                 new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
         defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
-        X64.Instr.T instr = new X64.Instr.Bop(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                Bop,
                 (uarg, darg) ->
                         STR."\{bop}\t\{uarg.get(0)}, \{uarg.get(1)}",
                 uses,
@@ -174,7 +184,8 @@ public class Munch {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of(new X64.VirtualReg.Vid(fname, new X64.Type.CodePtr()));
         defs = List.of(new X64.VirtualReg.Reg(X64.Register.retReg, new X64.Type.Int()));
-        X64.Instr.T instr = new X64.Instr.CallIndirect(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                CallIndirect,
                 (uarg, darg) ->
                         STR."call\t*\{uarg.getFirst()}",
                 uses,
@@ -187,7 +198,8 @@ public class Munch {
         // this should be fixed...
         List<X64.VirtualReg.T> uses = List.of();
         List<X64.VirtualReg.T> defs = List.of();
-        X64.Instr.T instr = new X64.Instr.CallDirect(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                CallDirect,
                 (uarg, darg) ->
                         STR."call\t\{fname}",
                 uses,
@@ -202,7 +214,8 @@ public class Munch {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of();
         defs = List.of();
-        X64.Instr.T instr = new X64.Instr.Comment(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                Comment,
                 (uarg, darg) ->
                         STR."//\{comment}",
                 uses,
@@ -214,9 +227,10 @@ public class Munch {
         List<X64.VirtualReg.T> uses, defs;
         uses = List.of(new X64.VirtualReg.Vid(left, new X64.Type.Int()));
         defs = List.of();
-        X64.Instr.T instr = new X64.Instr.Comment(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                Comment,
                 (uarg, darg) ->
-                        STR."cmpq\t$\{right}, \{uarg.get(0)}",
+                        STR."cmpq\t$\{right}, \{uarg.getFirst()}",
                 uses,
                 defs);
         this.currentInstrs.add(instr);
@@ -229,9 +243,10 @@ public class Munch {
                 new X64.VirtualReg.Vid(right, new X64.Type.Int())
         );
         defs = List.of();
-        X64.Instr.T instr = new X64.Instr.Comment(
+        X64.Instr.T instr = new X64.Instr.Singleton(
+                Comment,
                 (uarg, darg) ->
-                        STR."cmpq\t\{uarg.get(0)}, \{uarg.get(1)}",
+                        STR."cmpq\t\{uarg.getFirst()}, \{uarg.get(1)}",
                 uses,
                 defs);
         this.currentInstrs.add(instr);
@@ -270,15 +285,17 @@ public class Munch {
                                         new X64.VirtualReg.Reg(Id.newName("%rax"),
                                                 new X64.Type.Int())
                                 );
-                                instr = new X64.Instr.MoveConst((_, _) ->
-                                        STR."setl\t%al",
+                                instr = new X64.Instr.Singleton(
+                                        MoveConst,
+                                        (_, _) -> STR."setl\t%al",
                                         uses,
                                         defs);
                                 this.currentInstrs.add(instr);
                                 uses = List.of(new X64.VirtualReg.Reg(Id.newName("%rax"),
                                         new X64.Type.Int()));
-                                instr = new X64.Instr.MoveConst((_, _) ->
-                                        STR."movzbq\t%al, %rax",
+                                instr = new X64.Instr.Singleton(
+                                        MoveConst,
+                                        (_, _) -> STR."movzbq\t%al, %rax",
                                         uses,
                                         defs);
                                 this.currentInstrs.add(instr);
@@ -286,8 +303,9 @@ public class Munch {
                                 uses = List.of();
                                 defs = List.of(new X64.VirtualReg.Vid(id,
                                         new X64.Type.Int()));
-                                instr = new X64.Instr.MoveConst((_, darg) ->
-                                        STR."movq\t%rax, \{darg.getFirst()}",
+                                instr = new X64.Instr.Singleton(
+                                        MoveConst,
+                                        (_, darg) -> STR."movq\t%rax, \{darg.getFirst()}",
                                         uses,
                                         defs);
                                 this.currentInstrs.add(instr);
