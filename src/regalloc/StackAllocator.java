@@ -5,17 +5,17 @@ import control.Control;
 import util.Todo;
 import util.Trace;
 
-// A linear scan register allocator.
-public class LinearScan {
+// A register allocator to allocate each variable to a physical register,
+// using a stack-based allocation approach.
+public class StackAllocator {
 
-    
     private X64.Program.T allocProgram0(X64.Program.T x64) {
         throw new Todo();
     }
 
     public X64.Program.T allocProgram(X64.Program.T x64) {
         Trace<X64.Program.T, X64.Program.T> trace =
-                new Trace<>("regalloc.LinearScan.allocProgram",
+                new Trace<>("regalloc.StackAllocator.allocProgram",
                         this::allocProgram0,
                         x64,
                         X64.Program::pp,

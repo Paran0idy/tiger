@@ -136,8 +136,11 @@ public class Translate {
         // and return it.
         if (Control.bultinAst != null) {
             Cfg.Program.T result;
-            String serialFileName = "./src/cfg/SumRec.java.cfg.ser";
+            String serialFileName;
             try {
+                File dir = new File("");
+                serialFileName = dir.getCanonicalPath() + "/cfg/SumRec.java.cfg.ser";
+
                 FileInputStream fileIn = new FileInputStream(serialFileName);
                 ObjectInputStream in = new ObjectInputStream(fileIn);
                 result = (Cfg.Program.T) in.readObject();
