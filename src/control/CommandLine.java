@@ -34,6 +34,18 @@ public class CommandLine {
 
     public CommandLine() {
         this.args = List.of(
+                new Arg("alloc",
+                        "<strategy>",
+                        "which register allocator to use",
+                        Kind.String,
+                        (Object x) -> {
+                            String s = (String) x;
+                            switch (s) {
+                                case "linear" -> Control.Allocator.strategy = Control.Allocator.Kind.Linear;
+                                case "stack" -> Control.Allocator.strategy = Control.Allocator.Kind.Stack;
+                                default -> error(STR."unknown alloc: \{s}");
+                            }
+                        }),
                 new Arg("embed",
                         null,
                         "embed comment into generated assembly",

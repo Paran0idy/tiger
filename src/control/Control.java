@@ -73,5 +73,15 @@ public class Control {
         public static String assemFile = null;
         public static boolean dump = false;
     }
+
+    // the allocator
+    public static class Allocator {
+        public enum Kind {
+            Linear,
+            Stack,
+        }
+
+        public static Kind strategy = Kind.Stack;
+    }
 }
 

@@ -2,7 +2,7 @@ package regalloc;
 
 import codegen.X64;
 
-// to allocate a new variable in a frame
+// to allocate a variable in a frame
 public class Frame {
     // whose frame, for debugging purpose
     String funcName;

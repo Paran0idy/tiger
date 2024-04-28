@@ -5,6 +5,7 @@ import codegen.X64;
 import control.CommandLine;
 import control.Control;
 import parser.Parser;
+import regalloc.Allocator;
 import util.Pass;
 
 // the Tiger compiler main class.
@@ -43,7 +44,7 @@ public class Tiger {
 
         Pass<Ast.Program.T, Cfg.Program.T> transPass =
                 new Pass<>("translating to CFG",
-                        new cfg.Translate()::translate,
+                        new cfg.Translate_Internal()::translate,
                         newAst,
                         Control.Verbose.L0);
         Cfg.Program.T cfg = transPass.apply();
@@ -57,7 +58,7 @@ public class Tiger {
 
         Pass<X64.Program.T, X64.Program.T> regAllocPass =
                 new Pass<>("register allocation",
-                        (f) -> new regalloc.RegAllocStack().allocProgram(f),
+                        (f) -> new Allocator().allocProgram(f),
                         x64,
                         Control.Verbose.L0);
         X64.Program.T newX64 = regAllocPass.apply();

@@ -40,6 +40,7 @@ public class PpAssem {
             writer.write(s);
             writer.newLine();
         } catch (Exception _) {
+            throw new Error();
         }
     }
 
@@ -47,6 +48,7 @@ public class PpAssem {
         try {
             writer.write(s);
         } catch (Exception _) {
+            throw new Error();
         }
     }
 
@@ -54,8 +56,11 @@ public class PpAssem {
     // declaration
     private void ppDec(X64.Dec.T dec) {
         switch (dec) {
-            case X64.Dec.Singleton(X64.Type.T type, Id id) -> {
-                //Type.pp(type);
+            case X64.Dec.Singleton(
+                    X64.Type.T type,
+                    Id id
+            ) -> {
+                // Type.pp(type);
                 say(STR." \{id}");
             }
         }
@@ -75,10 +80,10 @@ public class PpAssem {
 """);
                 // all entries
                 indent();
-                for (String s : funcs) {
+                funcs.forEach((s) -> {
                     printSpaces();
                     sayln(STR.".quad \{s}");
-                }
+                });
                 unIndent();
             }
         }
@@ -92,7 +97,7 @@ public class PpAssem {
     private void ppVirtualReg(X64.VirtualReg.T vt) {
         switch (vt) {
             case X64.VirtualReg.Vid(Id x, _) -> {
-                throw new AssertionError(x);
+                throw new Error(x);
             }
             case X64.VirtualReg.Reg(
                     Id x,
@@ -109,86 +114,15 @@ public class PpAssem {
     // instruction
     private void ppInstr(X64.Instr.T t) {
         switch (t) {
-            case X64.Instr.Bop(
-                    BiFunction<List<X64.VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
+            case X64.Instr.Singleton(
+                    Instr.Kind kind,
+                    BiFunction<List<X64.VirtualReg.T>,
+                            List<VirtualReg.T>, String> instrFn,
                     List<VirtualReg.T> uses,
                     List<VirtualReg.T> defs
             ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
-                        (List<VirtualReg.T>) uses,
-                        (List<VirtualReg.T>) defs);
-            }
-            case Instr.CallDirect(
-                    BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                    List<VirtualReg.T> uses,
-                    List<VirtualReg.T> defs
-            ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
-            }
-            case Instr.CallIndirect(
-                    BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                    List<VirtualReg.T> uses,
-                    List<VirtualReg.T> defs
-            ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn, (List<VirtualReg.T>) uses, (List<VirtualReg.T>) defs);
-            }
-            case Instr.Comment(
-                    BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                    List<VirtualReg.T> uses,
-                    List<VirtualReg.T> defs
-            ) -> {
-                if (Control.X64.embedComment)
-                    printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
-                            (List<VirtualReg.T>) uses,
-                            (List<VirtualReg.T>) defs);
-            }
-            case Instr.Load(
-                    BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                    List<VirtualReg.T> uses,
-                    List<VirtualReg.T> defs
-            ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
-                        (List<VirtualReg.T>) uses,
-                        (List<VirtualReg.T>) defs);
-            }
-            case Instr.Move(
-                    BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                    List<VirtualReg.T> uses,
-                    List<VirtualReg.T> defs
-            ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
-                        (List<VirtualReg.T>) uses,
-                        (List<VirtualReg.T>) defs);
-            }
-            case Instr.MoveConst(
-                    BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                    List<VirtualReg.T> uses,
-                    List<VirtualReg.T> defs
-            ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
-                        (List<VirtualReg.T>) uses,
-                        (List<VirtualReg.T>) defs);
-            }
-            case Instr.Store(
-                    BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
-                    List<VirtualReg.T> uses,
-                    List<VirtualReg.T> defs
-            ) -> {
-                printInstrBody((BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String>) instrFn,
-                        (List<VirtualReg.T>) uses,
-                        (List<VirtualReg.T>) defs);
-            }
-            default -> throw new Error();
-        }
-    }
-
-
-    private void printInstrBody(BiFunction<List<VirtualReg.T>,
-            List<VirtualReg.T>, String> instrFn,
-                                List<VirtualReg.T> uses,
-                                List<VirtualReg.T> defs) {
-        printSpaces();
-        sayln(instrFn.apply(uses, defs));
+                printSpaces();
+                sayln(instrFn.apply(uses, defs));
 //        say("\t// uses=[");
 //        for (VirtualReg.T use : uses) {
 //            VirtualReg.pp(use);
@@ -200,6 +134,8 @@ public class PpAssem {
 //            say(", ");
 //        }
 //        sayln("]");
+            }
+        }
     }
     // end of statement
 
@@ -207,17 +143,21 @@ public class PpAssem {
     // transfer
     public void ppTransfer(X64.Transfer.T t) {
         switch (t) {
-            case X64.Transfer.If(String instr, X64.Block.T thenn, X64.Block.T elsee) -> {
+            case X64.Transfer.If(
+                    String instr,
+                    X64.Block.T thenn,
+                    X64.Block.T elsee
+            ) -> {
                 printSpaces();
                 say(STR."\{instr} ");
-                sayln(X64.Block.getName(thenn));
+                sayln(X64.Block.getLabel(thenn).toString());
                 printSpaces();
                 say("jmp ");
-                sayln(X64.Block.getName(elsee));
+                sayln(X64.Block.getLabel(elsee).toString());
             }
             case X64.Transfer.Jmp(X64.Block.T target) -> {
                 printSpaces();
-                sayln(STR."jmp \{Block.getName(target)}");
+                sayln(STR."jmp \{Block.getLabel(target).toString()}");
             }
             case X64.Transfer.Ret() -> {
                 printSpaces();
@@ -252,7 +192,11 @@ public class PpAssem {
     private void ppFunction(X64.Function.T f) {
         switch (f) {
             case X64.Function.Singleton(
-                    Type.T retType, Id classId, Id methodId, List<Dec.T> formals, List<Dec.T> locals,
+                    Type.T retType,
+                    Id classId,
+                    Id methodId,
+                    List<Dec.T> formals,
+                    List<Dec.T> locals,
                     List<Block.T> blocks
             ) -> {
                 printSpaces();
@@ -277,7 +221,6 @@ public class PpAssem {
                 printSpaces();
                 sayln("\n");
             }
-
         }
     }
 
@@ -294,7 +237,7 @@ public class PpAssem {
                 try {
                     writer = new BufferedWriter(new FileWriter(Control.X64.assemFile));
                 } catch (Exception _) {
-                    throw new AssertionError();
+                    throw new Error();
                 }
                 //
                 printSpaces();
@@ -323,18 +266,16 @@ public class PpAssem {
                 sayln(STR."ret");
                 unIndent();
 
-                // extra information to make the assembler happy...
-
+                // extra information to turn off GAS assembler warnings
                 printSpaces();
                 sayln("");
                 sayln(STR."\t.ident\t\"Tiger compiler: 0.1\"");
                 printSpaces();
                 sayln(STR."\t.section\t.note.GNU-stack,\"\",@progbits");
-
                 try {
                     writer.close();
                 } catch (Exception _) {
-                    throw new AssertionError();
+                    throw new Error();
                 }
             }
         }
