@@ -3,6 +3,8 @@ package util;
 import java.io.Serializable;
 import java.util.HashMap;
 
+import static control.Control.Util.dumpId;
+
 public class Id implements Serializable {
     private static int gCounter = 0;
     // used to print out a fancy name like: %n
@@ -62,6 +64,13 @@ public class Id implements Serializable {
         return this.plist;
     }
 
+    public static boolean originalEquals(Id id1, Id id2) {
+        if (id1 == null || id2 == null) {
+            throw new Error("null ids not allowed");
+        }
+        return id1.origName.equals(id2.origName);
+    }
+
 //    @Override
 //    public boolean equals(Object o) {
 //        if (o == null)
@@ -75,8 +84,6 @@ public class Id implements Serializable {
 //    public int hashCode() {
 //        return this.counter;
 //    }
-
-    private boolean dumpId = false;
 
     @Override
     public String toString() {

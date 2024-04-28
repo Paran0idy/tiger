@@ -44,6 +44,11 @@ public class Control {
         }
     }
 
+    // utils
+    public static class Util {
+        public static boolean dumpId = false;
+    }
+
 
     // the lexer
     public static class Lexer {
@@ -61,5 +66,10 @@ public class Control {
     // the CFG
     public static class Cfg {
     }
-}
 
+    // the x64
+    public static class X64 {
+        public static boolean embedComment = false;
+        public static boolean dump = false;
+    }
+}
