@@ -26,8 +26,8 @@ public class Compiler {
 
     private void compileExp(Exp.T exp) {
         switch (exp) {
-            case Id(String x) -> emit(STR."\tmovq\t\{x}, %rax");
-            case Num(int n) -> emit(STR."\tmovq\t$\{n}, %rax");
+            case Id(String x) -> emit(STR."\tmovq\t\{x}, %rax\n");
+            case Num(int n) -> emit(STR."\tmovq\t$\{n}, %rax\n");
             case Op(
                     Exp.T left,
                     String op,
@@ -125,7 +125,7 @@ public class Compiler {
         fileWriter.write("\tleave\n\tret\n\n");
         fileWriter.close();
 
-        String[] cmdStr = {"gcc -no-pie ", "slp_gen.s"};
+        String[] cmdStr = {"gcc", "-no-pie", "slp_gen.s"};
         Process child = Runtime.getRuntime().exec(cmdStr, null, null);
         child.waitFor();
         if (!keepAsm) {
