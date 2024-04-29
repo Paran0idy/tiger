@@ -69,7 +69,7 @@ public class Compiler {
             ) -> {
                 ids.add(x);
                 compileExp(e);
-                emit(STR."\tmovq\t%rax, \{x}");
+                emit(STR."\tmovq\t%rax, \{x}\n");
             }
             case Stm.Print(List<Exp.T> exps) -> {
                 exps.forEach(e -> {
