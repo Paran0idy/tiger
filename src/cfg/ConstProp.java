@@ -1,9 +1,7 @@
 package cfg;
 
-import util.Id;
-import util.Label;
-import util.Todo;
-import util.Tuple;
+import util.*;
+import util.set.HashSet;
 
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +62,7 @@ public class ConstProp {
                     List<Cfg.Struct.T> structs,
                     List<Cfg.Function.T> functions
             ) -> {
-                HashMap<Object, Tuple.Two<Set<Cfg.Stm.T>, Set<Cfg.Stm.T>>>
+                HashMap<Object, Tuple.Two<HashSet<Cfg.Stm.T>, HashSet<Cfg.Stm.T>>>
                         inOutMap = new ReachDef().doitProgram(prog);
                 var newFunctions =
                         functions.stream().map(this::doitFunction).toList();
