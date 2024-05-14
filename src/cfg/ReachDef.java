@@ -1,9 +1,8 @@
 package cfg;
 
-import util.Id;
-import util.Label;
-import util.Todo;
-import util.Tuple;
+import util.*;
+import util.set.HashSet;
+import util.set.Set;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +14,7 @@ public class ReachDef {
             genKillMap;
 
     // for "block", "transfer", and "statement".
-    private final HashMap<Object, Tuple.Two<Set<Cfg.Stm.T>, Set<Cfg.Stm.T>>>
+    private final HashMap<Object, Tuple.Two<HashSet<Cfg.Stm.T>, HashSet<Cfg.Stm.T>>>
             inOutMap;
 
     public ReachDef() {
@@ -67,7 +66,7 @@ public class ReachDef {
     }
 
     // TODO: lab3, exercise 11.
-    public HashMap<Object, Tuple.Two<Set<Cfg.Stm.T>, Set<Cfg.Stm.T>>>
+    public HashMap<Object, Tuple.Two<HashSet<Cfg.Stm.T>, HashSet<Cfg.Stm.T>>>
     doitProgram(Cfg.Program.T prog) {
         switch (prog) {
             case Cfg.Program.Singleton(
