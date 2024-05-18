@@ -15,15 +15,22 @@ public class Graph<X> {
     public class Node {
         X data;
         public LinkedList<Edge> edges;
+        public Plist plist;
 
         public Node() {
             this.data = null;
             this.edges = null;
+            this.plist = null;
         }
 
         public Node(X data) {
             this.data = data;
             this.edges = new LinkedList<>();
+            this.plist = new Plist();
+        }
+
+        public Plist getPlist() {
+            return this.plist;
         }
     }
 
@@ -31,10 +38,16 @@ public class Graph<X> {
     public class Edge {
         Node from;
         Node to;
+        public Plist plist;
 
         public Edge(Node from, Node to) {
             this.from = from;
             this.to = to;
+            this.plist = new Plist();
+        }
+
+        public Plist getPlist() {
+            return plist;
         }
 
         @Override

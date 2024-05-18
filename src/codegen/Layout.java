@@ -59,7 +59,7 @@ public class Layout {
                 offset += X64.WordSize.bytesOfWord;
                 for (var entry : fields) {
                     // TODO: lab 4, exercise 2
-                    offset += X64.WordSize.bytesOfWord;
+                    throw new Todo();
                 }
                 sizeOfClassProp.put(clsId, offset);
             }
