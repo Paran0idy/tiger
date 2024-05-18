@@ -4,7 +4,6 @@ import util.Id;
 import util.Label;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public class X64 {
@@ -289,40 +288,34 @@ struct V_\{classId.toString()} *vptr;
 
         public record Singleton(
                 Kind kind,
-                BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                 List<VirtualReg.T> uses,
-                List<VirtualReg.T> defs) implements T {
+                List<VirtualReg.T> defs,
+                java.util.function.Function<Singleton, String> instr) implements T {
         }
-
 
         public static void pp(T t) {
             switch (t) {
                 case Singleton(
                         Kind _,
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> printInstrBody(instrFn, uses, defs);
+                        List<VirtualReg.T> defs,
+                        java.util.function.Function<Singleton, String> instrFn
+                ) -> {
+                    printSpaces();
+                    say(instrFn.apply((Singleton) t));
+                    say("\t// uses=[");
+                    uses.forEach((x) -> {
+                        VirtualReg.pp(x);
+                        say(", ");
+                    });
+                    say("], defs=[");
+                    defs.forEach((x) -> {
+                        VirtualReg.pp(x);
+                        say(", ");
+                    });
+                    sayln("]");
+                }
             }
-        }
-
-        private static void printInstrBody(BiFunction<List<VirtualReg.T>,
-                List<VirtualReg.T>, String> instrFn,
-                                           List<VirtualReg.T> uses,
-                                           List<VirtualReg.T> defs) {
-            printSpaces();
-            say(instrFn.apply(uses, defs));
-            say("\t// uses=[");
-            uses.forEach((x) -> {
-                VirtualReg.pp(x);
-                say(", ");
-            });
-            say("], defs=[");
-            defs.forEach((x) -> {
-                VirtualReg.pp(x);
-                say(", ");
-            });
-            sayln("]");
         }
     }
     // end of instruction
