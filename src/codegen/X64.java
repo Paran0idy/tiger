@@ -191,22 +191,22 @@ public class X64 {
                 permits Singleton {
         }
 
-        public record Singleton(String clsName,
+        public record Singleton(Id classId,
                                 List<Dec.T> fields) implements T {
         }
 
         public static void pp(T s) {
             switch (s) {
-                case Singleton(String clsName, List<Dec.T> fields) -> {
+                case Singleton(Id classId, List<Dec.T> fields) -> {
                     printSpaces();
                     say(STR."""
-struct S_\{clsName} {
+struct S_\{classId.toString()} {
 """);
                     indent();
                     // the first field is special
                     printSpaces();
                     say(STR."""
-struct V_\{clsName} *vptr;
+struct V_\{classId.toString()} *vptr;
 """);
                     for (Dec.T dec : fields) {
                         printSpaces();
@@ -215,12 +215,12 @@ struct V_\{clsName} *vptr;
                     unIndent();
                     printSpaces();
                     say(STR."""
-} S_\{clsName}_ = {
+} S_\{classId.toString()}_ = {
 """);
                     indent();
                     printSpaces();
                     say(STR."""
-.vptr = &V_\{clsName}_;
+.vptr = &V_\{classId.toString()}_;
 """);
                     unIndent();
                     printSpaces();
@@ -418,15 +418,21 @@ struct V_\{clsName} *vptr;
 
         public static void addInstrsFirst(Block.T b, List<Instr.T> ins) {
             switch (b) {
-                case Singleton(_, List<Instr.T> instrs, _) -> {
-                    ins.reversed().forEach(instrs::addFirst);
-                }
+                case Singleton(
+                        _,
+                        List<Instr.T> instrs,
+                        _
+                ) -> ins.reversed().forEach(instrs::addFirst);
             }
         }
 
         public static void addInstrsLast(Block.T b, List<Instr.T> ins) {
             switch (b) {
-                case Singleton(_, List<Instr.T> instrs, _) -> ins.forEach(instrs::addLast);
+                case Singleton(
+                        _,
+                        List<Instr.T> instrs,
+                        _
+                ) -> ins.forEach(instrs::addLast);
             }
         }
 
@@ -473,7 +479,8 @@ struct V_\{clsName} *vptr;
                         List<Dec.T> locals,
                         List<Block.T> blocks
                 ) -> {
-                    return blocks.stream().filter(x -> X64.Block.getLabel(x).equals(label)).toList().getFirst();
+                    return blocks.stream().filter(x ->
+                            X64.Block.getLabel(x).equals(label)).toList().getFirst();
                 }
             }
         }
@@ -507,7 +514,6 @@ struct V_\{clsName} *vptr;
                     printSpaces();
                     say("}\n\n");
                 }
-
             }
         }
     }// end of function
