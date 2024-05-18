@@ -530,7 +530,7 @@ struct V_\{classId.toString()} *vptr;
                     vtables.forEach(Vtable::pp);
                     // structs
                     structs.forEach(Struct::pp);
-                    // functions:
+                    // functions
                     functions.forEach(Function::pp);
                 }
             }
