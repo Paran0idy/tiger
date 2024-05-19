@@ -4,7 +4,6 @@ import util.Id;
 import util.Label;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public class X64 {
@@ -278,15 +277,11 @@ struct V_\{classId.toString()} *vptr;
                 case Reg(
                         Id x,
                         Type.T type
-                ) -> {
-                    say(x.toString());
-                }
+                ) -> say(x.toString());
                 case Vid(
                         Id x,
                         _
-                ) -> {
-                    say(x.toString());
-                }
+                ) -> say(x.toString());
             }
         }
     }
@@ -307,40 +302,34 @@ struct V_\{classId.toString()} *vptr;
 
         public record Singleton(
                 Kind kind,
-                BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instr,
                 List<VirtualReg.T> uses,
-                List<VirtualReg.T> defs) implements T {
+                List<VirtualReg.T> defs,
+                java.util.function.Function<Singleton, String> instr) implements T {
         }
-
 
         public static void pp(T t) {
             switch (t) {
                 case Singleton(
                         Kind _,
-                        BiFunction<List<VirtualReg.T>, List<VirtualReg.T>, String> instrFn,
                         List<VirtualReg.T> uses,
-                        List<VirtualReg.T> defs
-                ) -> printInstrBody(instrFn, uses, defs);
+                        List<VirtualReg.T> defs,
+                        java.util.function.Function<Singleton, String> instrFn
+                ) -> {
+                    printSpaces();
+                    say(instrFn.apply((Singleton) t));
+                    say("\t// uses=[");
+                    uses.forEach((x) -> {
+                        VirtualReg.pp(x);
+                        say(", ");
+                    });
+                    say("], defs=[");
+                    defs.forEach((x) -> {
+                        VirtualReg.pp(x);
+                        say(", ");
+                    });
+                    sayln("]");
+                }
             }
-        }
-
-        private static void printInstrBody(BiFunction<List<VirtualReg.T>,
-                List<VirtualReg.T>, String> instrFn,
-                                           List<VirtualReg.T> uses,
-                                           List<VirtualReg.T> defs) {
-            printSpaces();
-            say(instrFn.apply(uses, defs));
-            say("\t// uses=[");
-            uses.forEach((x) -> {
-                VirtualReg.pp(x);
-                say(", ");
-            });
-            say("], defs=[");
-            defs.forEach((x) -> {
-                VirtualReg.pp(x);
-                say(", ");
-            });
-            sayln("]");
         }
     }
     // end of instruction
@@ -413,26 +402,6 @@ struct V_\{classId.toString()} *vptr;
                 ) -> {
                     return label;
                 }
-            }
-        }
-
-        public static void addInstrsFirst(Block.T b, List<Instr.T> ins) {
-            switch (b) {
-                case Singleton(
-                        _,
-                        List<Instr.T> instrs,
-                        _
-                ) -> ins.reversed().forEach(instrs::addFirst);
-            }
-        }
-
-        public static void addInstrsLast(Block.T b, List<Instr.T> ins) {
-            switch (b) {
-                case Singleton(
-                        _,
-                        List<Instr.T> instrs,
-                        _
-                ) -> ins.forEach(instrs::addLast);
             }
         }
 
@@ -548,7 +517,7 @@ struct V_\{classId.toString()} *vptr;
                     vtables.forEach(Vtable::pp);
                     // structs
                     structs.forEach(Struct::pp);
-                    // functions:
+                    // functions
                     functions.forEach(Function::pp);
                 }
             }

@@ -57,10 +57,10 @@ public class Munch {
         List<X64.VirtualReg.T> defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 Move,
-                (uarg, darg) ->
-                        STR."movq\t\{uarg.getFirst()}, \{darg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."movq\t\{ud.uses().getFirst()}, \{ud.defs().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -74,10 +74,10 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 Move,
-                (uarg, darg) ->
-                        STR."movq\t\{uarg.getFirst()}, \{darg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."movq\t\{ud.uses().getFirst()}, \{ud.defs().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -90,10 +90,10 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Reg(reg, targetType));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 MoveConst,
-                (uarg, darg) ->
-                        STR."movq\t$\{n}, \{darg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."movq\t$\{n}, \{ud.defs().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -104,10 +104,10 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Reg(dest, new X64.Type.CodePtr()));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 MoveConst,
-                (uarg, darg) ->
-                        STR."leaq\t\{label}(%rip), \{darg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."leaq\t\{label}(%rip), \{ud.defs().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -120,10 +120,10 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Vid(dest, targetType));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 MoveConst,
-                (uarg, darg) ->
-                        STR."movq\t$\{n}, \{darg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."movq\t$\{n}, \{ud.defs().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -137,10 +137,10 @@ public class Munch {
                 type));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 Move,
-                (uarg, darg) ->
-                        STR."movq\t\{uarg.getFirst()}, \{darg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."movq\t\{ud.uses().getFirst()}, \{ud.defs().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -153,10 +153,10 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 Load,
-                (uarg, darg) ->
-                        STR."movq\t\{offset}(\{uarg.getFirst()}), \{darg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."movq\t\{offset}(\{ud.uses().getFirst()}), \{ud.defs().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -170,10 +170,10 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Vid(dest, new X64.Type.Int()));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 Bop,
-                (uarg, darg) ->
-                        STR."\{bop}\t\{uarg.get(0)}, \{uarg.get(1)}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."\{bop}\t\{ud.uses().get(0)}, \{ud.uses().get(1)}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -186,10 +186,11 @@ public class Munch {
         defs = List.of(new X64.VirtualReg.Reg(X64.Register.retReg, new X64.Type.Int()));
         X64.Instr.T instr = new X64.Instr.Singleton(
                 CallIndirect,
-                (uarg, darg) ->
-                        STR."call\t*\{uarg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) ->
+                        STR."call\t*\{ud.uses().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -200,10 +201,10 @@ public class Munch {
         List<X64.VirtualReg.T> defs = List.of();
         X64.Instr.T instr = new X64.Instr.Singleton(
                 CallDirect,
-                (uarg, darg) ->
-                        STR."call\t\{fname}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."call\t\{fname}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -216,10 +217,10 @@ public class Munch {
         defs = List.of();
         X64.Instr.T instr = new X64.Instr.Singleton(
                 Comment,
-                (uarg, darg) ->
-                        STR."//\{comment}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."//\{comment}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -229,10 +230,10 @@ public class Munch {
         defs = List.of();
         X64.Instr.T instr = new X64.Instr.Singleton(
                 Comment,
-                (uarg, darg) ->
-                        STR."cmpq\t$\{right}, \{uarg.getFirst()}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."cmpq\t$\{right}, \{ud.uses().getFirst()}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -245,10 +246,10 @@ public class Munch {
         defs = List.of();
         X64.Instr.T instr = new X64.Instr.Singleton(
                 Comment,
-                (uarg, darg) ->
-                        STR."cmpq\t\{uarg.getFirst()}, \{uarg.get(1)}",
                 uses,
-                defs);
+                defs,
+                (ud) -> STR."cmpq\t\{ud.uses().getFirst()}, \{ud.uses().get(1)}"
+        );
         this.currentInstrs.add(instr);
     }
 
@@ -287,17 +288,19 @@ public class Munch {
                                 );
                                 instr = new X64.Instr.Singleton(
                                         MoveConst,
-                                        (_, _) -> STR."setl\t%al",
                                         uses,
-                                        defs);
+                                        defs,
+                                        (_) -> STR."setl\t%al"
+                                );
                                 this.currentInstrs.add(instr);
                                 uses = List.of(new X64.VirtualReg.Reg(Id.newName("%rax"),
                                         new X64.Type.Int()));
                                 instr = new X64.Instr.Singleton(
                                         MoveConst,
-                                        (_, _) -> STR."movzbq\t%al, %rax",
                                         uses,
-                                        defs);
+                                        defs,
+                                        (_) -> STR."movzbq\t%al, %rax"
+                                );
                                 this.currentInstrs.add(instr);
                                 // the second instruction
                                 uses = List.of();
@@ -305,9 +308,10 @@ public class Munch {
                                         new X64.Type.Int()));
                                 instr = new X64.Instr.Singleton(
                                         MoveConst,
-                                        (_, darg) -> STR."movq\t%rax, \{darg.getFirst()}",
                                         uses,
-                                        defs);
+                                        defs,
+                                        (ud) -> STR."movq\t%rax, \{ud.defs().getFirst()}"
+                                );
                                 this.currentInstrs.add(instr);
                             }
                             default -> throw new Error(op);
@@ -320,7 +324,7 @@ public class Munch {
                     ) -> {
                         X64.Type.T targetType = this.allVars.get(id);
                         for (int i = 0; i < args.size(); i++) {
-                            // we only process no more than 6 arguments
+                            // this code only process no more than 6 arguments
                             if (i > 5) {
                                 // TODO: lab 4, exercise 4.
                                 throw new Todo("#arguments > 6");
@@ -355,11 +359,9 @@ public class Munch {
                         genCallDirect("Tiger_getVirtualMethod");
                         genMoveReg2Id(id, X64.Register.retReg, new X64.Type.CodePtr());
                     }
-                    case Cfg.Exp.Int(int n) -> {
-                        genMoveConst2Id(id,
-                                n,
-                                new X64.Type.Int());
-                    }
+                    case Cfg.Exp.Int(int n) -> genMoveConst2Id(id,
+                            n,
+                            new X64.Type.Int());
                     case Cfg.Exp.New(Id clsId) -> {
                         X64.Type.T type = this.allVars.get(id);
                         // the 1st argument: virtual table pointer
@@ -496,11 +498,9 @@ public class Munch {
                         case X64.Dec.Singleton(
                                 X64.Type.T type,
                                 Id id1
-                        ) -> {
-                            genMoveReg2Id(id1,
-                                    X64.Register.argPassingRegs.get(index),
-                                    type);
-                        }
+                        ) -> genMoveReg2Id(id1,
+                                X64.Register.argPassingRegs.get(index),
+                                type);
                     }
                     index++;
                 }
@@ -537,16 +537,12 @@ public class Munch {
                 this.allVars = new HashMap<>();
                 newFormals.forEach((dec) -> {
                     switch (dec) {
-                        case X64.Dec.Singleton(X64.Type.T type, Id id1) -> {
-                            this.allVars.put(id1, type);
-                        }
+                        case X64.Dec.Singleton(X64.Type.T type, Id id1) -> this.allVars.put(id1, type);
                     }
                 });
                 newLocals.forEach((dec) -> {
                     switch (dec) {
-                        case X64.Dec.Singleton(X64.Type.T type, Id id1) -> {
-                            this.allVars.put(id1, type);
-                        }
+                        case X64.Dec.Singleton(X64.Type.T type, Id id1) -> this.allVars.put(id1, type);
                     }
                 });
                 this.currentLocals = newLocals;
