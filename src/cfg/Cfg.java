@@ -238,17 +238,13 @@ public class Cfg {
             switch (t) {
                 case Bop(String op, List<Id> operands, Type.T type) -> {
                     say(STR."\{op}(");
-                    operands.forEach((e) -> {
-                        say(STR."\{e.toString()}, ");
-                    });
+                    operands.forEach((e) -> say(STR."\{e.toString()}, "));
                     say(")  @ty:");
                     Type.pp(type);
                 }
                 case Call(Id func, List<Id> args, Type.T retType) -> {
                     say(STR."\{func.toString()}(");
-                    args.forEach((e) -> {
-                        say(STR."\{e.toString()}, ");
-                    });
+                    args.forEach((e) -> say(STR."\{e.toString()}, "));
                     say(")  @retType:");
                     Type.pp(retType);
                 }
@@ -527,7 +523,6 @@ public class Cfg {
                     printSpaces();
                     say("}\n\n");
                 }
-
             }
         }
     }

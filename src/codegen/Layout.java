@@ -57,10 +57,10 @@ public class Layout {
                 int offset = 0;
                 // the virtual function table pointer
                 offset += X64.WordSize.bytesOfWord;
-                for (var entry : fields) {
+                fields.forEach(x -> {
                     // TODO: lab 4, exercise 2
                     throw new Todo();
-                }
+                });
                 sizeOfClassProp.put(clsId, offset);
             }
         }
