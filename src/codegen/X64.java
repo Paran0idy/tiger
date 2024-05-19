@@ -391,26 +391,6 @@ struct V_\{classId.toString()} *vptr;
             }
         }
 
-        public static void addInstrsFirst(Block.T b, List<Instr.T> ins) {
-            switch (b) {
-                case Singleton(
-                        _,
-                        List<Instr.T> instrs,
-                        _
-                ) -> ins.reversed().forEach(instrs::addFirst);
-            }
-        }
-
-        public static void addInstrsLast(Block.T b, List<Instr.T> ins) {
-            switch (b) {
-                case Singleton(
-                        _,
-                        List<Instr.T> instrs,
-                        _
-                ) -> ins.forEach(instrs::addLast);
-            }
-        }
-
         public static void pp(T b) {
             switch (b) {
                 case Singleton(
