@@ -116,13 +116,12 @@ public class PpAssem {
         switch (t) {
             case X64.Instr.Singleton(
                     Instr.Kind kind,
-                    BiFunction<List<X64.VirtualReg.T>,
-                            List<VirtualReg.T>, String> instrFn,
                     List<VirtualReg.T> uses,
-                    List<VirtualReg.T> defs
+                    List<VirtualReg.T> defs,
+                    java.util.function.Function<Instr.Singleton, String> instrFn
             ) -> {
                 printSpaces();
-                sayln(instrFn.apply(uses, defs));
+                sayln(instrFn.apply((Instr.Singleton) t));
 //        say("\t// uses=[");
 //        for (VirtualReg.T use : uses) {
 //            VirtualReg.pp(use);
