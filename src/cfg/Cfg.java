@@ -523,7 +523,6 @@ public class Cfg {
                     printSpaces();
                     say("}\n\n");
                 }
-
             }
         }
     }

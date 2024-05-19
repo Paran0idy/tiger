@@ -259,15 +259,11 @@ struct V_\{classId.toString()} *vptr;
                 case Reg(
                         Id x,
                         Type.T type
-                ) -> {
-                    say(x.toString());
-                }
+                ) -> say(x.toString());
                 case Vid(
                         Id x,
                         _
-                ) -> {
-                    say(x.toString());
-                }
+                ) -> say(x.toString());
             }
         }
     }

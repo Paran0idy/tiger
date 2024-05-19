@@ -324,7 +324,7 @@ public class Munch {
                     ) -> {
                         X64.Type.T targetType = this.allVars.get(id);
                         for (int i = 0; i < args.size(); i++) {
-                            // we only process no more than 6 arguments
+                            // this code only process no more than 6 arguments
                             if (i > 5) {
                                 // TODO: lab 4, exercise 4.
                                 throw new Todo("#arguments > 6");
@@ -359,11 +359,9 @@ public class Munch {
                         genCallDirect("Tiger_getVirtualMethod");
                         genMoveReg2Id(id, X64.Register.retReg, new X64.Type.CodePtr());
                     }
-                    case Cfg.Exp.Int(int n) -> {
-                        genMoveConst2Id(id,
-                                n,
-                                new X64.Type.Int());
-                    }
+                    case Cfg.Exp.Int(int n) -> genMoveConst2Id(id,
+                            n,
+                            new X64.Type.Int());
                     case Cfg.Exp.New(Id clsId) -> {
                         X64.Type.T type = this.allVars.get(id);
                         // the 1st argument: virtual table pointer
@@ -497,11 +495,9 @@ public class Munch {
                         case X64.Dec.Singleton(
                                 X64.Type.T type,
                                 Id id1
-                        ) -> {
-                            genMoveReg2Id(id1,
-                                    X64.Register.argPassingRegs.get(index),
-                                    type);
-                        }
+                        ) -> genMoveReg2Id(id1,
+                                X64.Register.argPassingRegs.get(index),
+                                type);
                     }
                     index++;
                 }
@@ -537,16 +533,12 @@ public class Munch {
                 this.allVars = new HashMap<>();
                 newFormals.forEach((dec) -> {
                     switch (dec) {
-                        case X64.Dec.Singleton(X64.Type.T type, Id id1) -> {
-                            this.allVars.put(id1, type);
-                        }
+                        case X64.Dec.Singleton(X64.Type.T type, Id id1) -> this.allVars.put(id1, type);
                     }
                 });
                 newLocals.forEach((dec) -> {
                     switch (dec) {
-                        case X64.Dec.Singleton(X64.Type.T type, Id id1) -> {
-                            this.allVars.put(id1, type);
-                        }
+                        case X64.Dec.Singleton(X64.Type.T type, Id id1) -> this.allVars.put(id1, type);
                     }
                 });
                 this.currentLocals = newLocals;
