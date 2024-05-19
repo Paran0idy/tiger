@@ -2,6 +2,9 @@ package util.set;
 
 import util.Error;
 
+import java.util.Arrays;
+import java.util.List;
+
 // a functional set.
 public class FunSet<X> {
     private final java.util.HashSet<X> set;
@@ -22,7 +25,14 @@ public class FunSet<X> {
     // s \/ {data}
     public FunSet<X> add(X data) {
         var targetSet = new FunSet<>(this);
-        targetSet.add(data);
+        targetSet.set.add(data);
+        return targetSet;
+    }
+
+    // s \/ [data]
+    public FunSet<X> addList(List<X> list) {
+        var targetSet = new FunSet<>(this);
+        targetSet.set.addAll(list);
         return targetSet;
     }
 
@@ -30,6 +40,14 @@ public class FunSet<X> {
     public FunSet<X> union(FunSet<X> theSet) {
         var targetSet = new FunSet<>(this);
         targetSet.set.addAll(theSet.set);
+        return targetSet;
+    }
+
+    // s1 \/ {s2}
+    public FunSet<X> unionList(List<FunSet<X>> theSets) {
+        var targetSet = new FunSet<>(this);
+        for (FunSet<X> theSet : theSets)
+            targetSet.set.addAll(theSet.set);
         return targetSet;
     }
 
@@ -52,5 +70,19 @@ public class FunSet<X> {
                 return false;
         }
         return true;
+    }
+
+    public int size() {
+        return this.set.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<X> toList() {
+        // Java's type system does not like this:
+        //    X[] arr = new X[0];
+        // Ooops.
+        Object[] arr = new Object[0];
+        arr = set.toArray(arr);
+        return (List<X>) Arrays.stream(arr).toList();
     }
 }
