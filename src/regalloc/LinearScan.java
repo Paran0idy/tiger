@@ -9,14 +9,14 @@ import util.Trace;
 public class LinearScan {
 
     
-    private X64.Program.T allocProgram0(X64.Program.T x64) {
+    private X64.Program.T doitProgram0(X64.Program.T x64) {
         throw new Todo();
     }
 
-    public X64.Program.T allocProgram(X64.Program.T x64) {
+    public X64.Program.T doitProgram(X64.Program.T x64) {
         Trace<X64.Program.T, X64.Program.T> trace =
                 new Trace<>("regalloc.LinearScan.allocProgram",
-                        this::allocProgram0,
+                        this::doitProgram0,
                         x64,
                         X64.Program::pp,
                         X64.Program::pp);

@@ -51,7 +51,7 @@ public class Tiger {
 
         Pass<Cfg.Program.T, X64.Program.T> codeGenPass =
                 new Pass<>("code generation",
-                        new codegen.Munch()::munchProgram,
+                        new codegen.Munch()::doitProgram,
                         cfg,
                         Control.Verbose.L0);
         X64.Program.T x64 = codeGenPass.apply();
