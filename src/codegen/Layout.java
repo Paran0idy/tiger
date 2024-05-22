@@ -1,99 +1,41 @@
 package codegen;
 
 import cfg.Cfg;
-import util.Id;
-import util.Property;
-import util.Todo;
-import util.Trace;
+import util.*;
 
 import java.util.List;
 
 public class Layout {
     public final int vtablePtrOffsetInObject;
 
+    // to record the size of a class
     private final Property<Id, Integer> sizeOfClassProp;
-    private final Property<Id, Integer> methodOffsetProp;
+    // to record the offset of class fields and methods
+    private final Property<Id, Integer> offsetProp;
 
     Layout() {
         this.vtablePtrOffsetInObject = 0;
         this.sizeOfClassProp = new Property<>(Id::getPlist);
-        this.methodOffsetProp = new Property<>(Id::getPlist);
+        this.offsetProp = new Property<>(Id::getPlist);
     }
 
-    // retrieval
-    public int classSize(Id clazz) {
-        return sizeOfClassProp.get(clazz);
+    private Object doitProgram0(Cfg.Program.T cfg) {
+        // TODO: lab 4, exercise 2
+        throw new Todo();
     }
 
-    public int methodOffset(Id clazz, Id method) {
-        return methodOffsetProp.get(method);
-    }
-
-    // layout facility
-    private void layoutVtableEntry(Cfg.Vtable.Entry entry, int offset) {
-        methodOffsetProp.put(entry.functionId(), offset);
-    }
-
-    private void layoutVtable(Cfg.Vtable.T vtable) {
-        switch (vtable) {
-            case Cfg.Vtable.Singleton(
-                    Id classId,
-                    List<Cfg.Vtable.Entry> funcAndTypes
-            ) -> {
-                int offset = 0;
-                for (Cfg.Vtable.Entry entry : funcAndTypes) {
-                    layoutVtableEntry(entry, offset++);
-                }
-            }
-        }
-    }
-
-    public void layoutStruct(Cfg.Struct.T struct) {
-        switch (struct) {
-            case Cfg.Struct.Singleton(
-                    Id clsId,
-                    List<Cfg.Dec.T> fields
-            ) -> {
-                int offset = 0;
-                // the virtual function table pointer
-                offset += X64.WordSize.bytesOfWord;
-                fields.forEach(x -> {
-                    // TODO: lab 4, exercise 2
-                    throw new Todo();
-                });
-                sizeOfClassProp.put(clsId, offset);
-            }
-        }
-    }
-
-    private Object layoutProgram0(Cfg.Program.T cfg) {
+    public Tuple.Two<Property, Property> doitProgram(Cfg.Program.T cfg) {
         switch (cfg) {
             case Cfg.Program.Singleton(
-                    Id entryClassName,
-                    Id entryFuncName,
-                    List<Cfg.Vtable.T> vtables,
-                    List<Cfg.Struct.T> structs,
-                    List<Cfg.Function.T> functions
-            ) -> {
-                structs.forEach(this::layoutStruct);
-                vtables.forEach(this::layoutVtable);
-            }
-        }
-        return null;
-    }
-
-    public void layoutProgram(Cfg.Program.T cfg) {
-        switch (cfg) {
-            case Cfg.Program.Singleton(
-                    Id entryClassName,
-                    Id entryFuncName,
+                    Id entryClassId,
+                    Id entryFuncId,
                     List<Cfg.Vtable.T> vtables,
                     List<Cfg.Struct.T> structs,
                     List<Cfg.Function.T> functions
             ) -> {
                 Trace<Cfg.Program.T, Object> trace =
                         new Trace<>("codegen.Layout.layoutProgram",
-                                this::layoutProgram0,
+                                this::doitProgram0,
                                 cfg,
                                 Cfg.Program::pp,
                                 (_) -> {
@@ -119,7 +61,10 @@ public class Layout {
                                     });
                                 });
                 trace.doit();
+                return new Tuple.Two<>(sizeOfClassProp, offsetProp);
             }
         }
     }
 }
+
+
