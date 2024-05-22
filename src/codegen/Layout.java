@@ -20,10 +20,11 @@ public class Layout {
     }
 
     private Object doitProgram0(Cfg.Program.T cfg) {
+        // TODO: lab 4, exercise 2
         throw new Todo();
     }
 
-    public Tuple.Two<Property, Property> layoutProgram(Cfg.Program.T cfg) {
+    public Tuple.Two<Property, Property> doitProgram(Cfg.Program.T cfg) {
         switch (cfg) {
             case Cfg.Program.Singleton(
                     Id entryClassId,
@@ -65,3 +66,4 @@ public class Layout {
         }
     }
 }
+

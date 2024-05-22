@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class X64 {
-
     // the pretty printer
     // assembly need tabs, instead of white spaces
     private static int indentLevel = 0;
@@ -469,6 +468,7 @@ struct V_\{classId.toString()} *vptr;
         }
     }// end of function
 
+    // /////////////////////////////////////////////////////////
     // whole program
     public static class Program {
         public sealed interface T

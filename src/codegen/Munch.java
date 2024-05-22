@@ -17,10 +17,11 @@ public class Munch {
     private List<X64.Instr.T> currentInstrs;
 
     private X64.Program.T doitProgram0(Cfg.Program.T cfg) {
+        // TODO: lab 4.
         throw new Todo();
     }
 
-    public X64.Program.T munchProgram(Cfg.Program.T cfg) {
+    public X64.Program.T doitProgram(Cfg.Program.T cfg) {
         Trace<Cfg.Program.T, X64.Program.T> trace =
                 new Trace<>("codegen.Munch.munchProgram",
                         this::doitProgram0,
