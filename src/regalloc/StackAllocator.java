@@ -15,7 +15,7 @@ public class StackAllocator {
 
     public X64.Program.T doitProgram(X64.Program.T x64) {
         Trace<X64.Program.T, X64.Program.T> trace =
-                new Trace<>("regalloc.StackAllocator.allocProgram",
+                new Trace<>("regalloc.StackAllocator.doitProgram",
                         this::doitProgram0,
                         x64,
                         X64.Program::pp,
