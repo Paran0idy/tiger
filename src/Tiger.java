@@ -44,7 +44,7 @@ public class Tiger {
 
         Pass<Ast.Program.T, Cfg.Program.T> transPass =
                 new Pass<>("translating to CFG",
-                        new cfg.Translate()::translate,
+                        new cfg.Translate()::doitProgram,
                         newAst,
                         Control.Verbose.L0);
         Cfg.Program.T cfg = transPass.apply();
@@ -58,7 +58,7 @@ public class Tiger {
 
         Pass<X64.Program.T, X64.Program.T> regAllocPass =
                 new Pass<>("register allocation",
-                        (f) -> new Allocator().allocProgram(f),
+                        new Allocator()::doitProgram,
                         x64,
                         Control.Verbose.L0);
         X64.Program.T newX64 = regAllocPass.apply();
