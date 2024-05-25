@@ -35,7 +35,7 @@ public class Translate {
 
     /////////////////////////////
     // translate a type
-    private Cfg.Type.T transType(Ast.Type.T ty) {
+    private Cfg.Type.T doitType(Ast.Type.T ty) {
         switch (ty) {
             case Ast.Type.ClassType(Id id) -> {
                 return new Cfg.Type.ClassType(id);
@@ -52,16 +52,16 @@ public class Translate {
         }
     }
 
-    private Cfg.Dec.T transDec(Ast.Dec.T dec) {
+    private Cfg.Dec.T doitDec(Ast.Dec.T dec) {
         switch (dec) {
             case Ast.Dec.Singleton(Ast.Type.T type, Ast.AstId aid) -> {
-                return new Cfg.Dec.Singleton(transType(type), aid.freshId);
+                return new Cfg.Dec.Singleton(doitType(type), aid.freshId);
             }
         }
     }
 
-    private List<Cfg.Dec.T> transDecList(List<Ast.Dec.T> decs) {
-        return decs.stream().map(this::transDec).collect(Collectors.toList());
+    private List<Cfg.Dec.T> doitDecList(List<Ast.Dec.T> decs) {
+        return decs.stream().map(this::doitDec).collect(Collectors.toList());
     }
 
     private void emit(Cfg.Stm.T s) {
@@ -79,7 +79,7 @@ public class Translate {
     /////////////////////////////
     // translate an expression
     // TODO: lab3, exercise 8.
-    private Id transExp(Ast.Exp.T exp) {
+    private Id doitExp(Ast.Exp.T exp) {
         throw new Todo();
     }
 
@@ -88,13 +88,13 @@ public class Translate {
     // this function does not return its result,
     // but saved the result into "currentBlock"
     // TODO: lab3, exercise 8.
-    private void transStm(Ast.Stm.T stm) {
+    private void doitStm(Ast.Stm.T stm) {
         throw new Todo();
     }
 
     // translate a method
     // TODO: lab3, exercise 8.
-    private Cfg.Function.T transMethod(Ast.Method.T method) {
+    private Cfg.Function.T doitMethod(Ast.Method.T method) {
         throw new Todo();
     }
 
