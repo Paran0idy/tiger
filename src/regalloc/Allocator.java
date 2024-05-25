@@ -6,7 +6,7 @@ import control.Control;
 // Allocator dispatcher.
 public class Allocator {
 
-    public X64.Program.T allocProgram(X64.Program.T x64) {
+    public X64.Program.T doitProgram(X64.Program.T x64) {
         return switch (Control.Allocator.strategy) {
             case Linear -> new LinearScan().doitProgram(x64);
             case Stack -> new StackAllocator().doitProgram(x64);

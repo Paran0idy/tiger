@@ -58,7 +58,7 @@ public class Tiger {
 
         Pass<X64.Program.T, X64.Program.T> regAllocPass =
                 new Pass<>("register allocation",
-                        (f) -> new Allocator().allocProgram(f),
+                        new Allocator()::doitProgram,
                         x64,
                         Control.Verbose.L0);
         X64.Program.T newX64 = regAllocPass.apply();
