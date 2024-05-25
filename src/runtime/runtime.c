@@ -1,18 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "todo.h"
 
 extern void Tiger_main();
 
 void *Tiger_new(long size, void *vtable){
-    void **ptr = (void **)malloc(size);
-    *ptr = vtable;
-    return (void *)ptr;
+    TODO();
+    return (void *)0;
 }
 
 void *Tiger_getVirtualMethod(long *ptr, long vtableOffset, long methodOffset){
-    long *vtable = (long *)ptr[vtableOffset];
-    long *method = (long *)vtable[methodOffset];
-    return method;
+    TODO();
+    return (void *)0;
 }
 
 void Tiger_print(long n){
@@ -23,8 +22,7 @@ void Tiger_debug(char *s){
     printf("%s\n", s);
 }
 
-
-int main(){
+int main(int argc, char **argv){
     Tiger_main();
     return 0;
 }
