@@ -1,24 +1,25 @@
 package regalloc;
 
 import codegen.X64;
+import util.Id;
 
 // to allocate a variable in a frame
 public class Frame {
     // whose frame, for debugging purpose
-    String funcName;
-    int offset;
+    Id funcId;
+    int currentPos;
 
-    Frame(String funcName) {
-        this.funcName = funcName;
-        this.offset = 0;
+    Frame(Id funcId) {
+        this.funcId = funcId;
+        this.currentPos = 0;
     }
 
     public int alloc() {
-        this.offset -= X64.WordSize.bytesOfWord;
-        return this.offset;
+        this.currentPos += X64.WordSize.bytesOfWord;
+        return this.currentPos;
     }
 
     public int size() {
-        return -offset;
+        return currentPos;
     }
 }

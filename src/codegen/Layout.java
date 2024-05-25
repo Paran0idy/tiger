@@ -24,7 +24,8 @@ public class Layout {
         throw new Todo();
     }
 
-    public Tuple.Two<Property, Property> doitProgram(Cfg.Program.T cfg) {
+    public Tuple.Two<Property<Id, Integer>,
+            Property<Id, Integer>> doitProgram(Cfg.Program.T cfg) {
         switch (cfg) {
             case Cfg.Program.Singleton(
                     Id entryClassId,
@@ -34,7 +35,7 @@ public class Layout {
                     List<Cfg.Function.T> functions
             ) -> {
                 Trace<Cfg.Program.T, Object> trace =
-                        new Trace<>("codegen.Layout.layoutProgram",
+                        new Trace<>("codegen.Layout.doitProgram",
                                 this::doitProgram0,
                                 cfg,
                                 Cfg.Program::pp,
