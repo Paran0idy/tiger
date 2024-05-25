@@ -128,7 +128,7 @@ public class Translate {
         return trace.doit();
     }
 
-    private Cfg.Program.T translate0(Ast.Program.T ast) {
+    private Cfg.Program.T doitProgram0(Ast.Program.T ast) {
         // if we are using the builtin AST, then do not generate
         // the CFG, but load the CFG directly from disk
         // and return it.
@@ -168,10 +168,10 @@ public class Translate {
 
     // given an abstract syntax tree, lower it down
     // to a corresponding control-flow graph.
-    public Cfg.Program.T translate(Ast.Program.T ast) {
+    public Cfg.Program.T doitProgram(Ast.Program.T ast) {
         Trace<Ast.Program.T, Cfg.Program.T> trace =
-                new Trace<>("cfg.Translate.translate",
-                        this::translate0,
+                new Trace<>("cfg.Translate.doitProgram",
+                        this::doitProgram0,
                         ast,
                         new ast.PrettyPrinter()::ppProgram,
                         (x) -> {
