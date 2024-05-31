@@ -1,11 +1,10 @@
 package util;
 
-import java.io.Serializable;
 import java.util.HashMap;
 
 import static control.Control.Util.dumpId;
 
-public class Id implements Serializable {
+public class Id {
     private static int gCounter = 0;
     // used to print out a fancy name like: %n
     private final int counter;

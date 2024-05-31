@@ -25,6 +25,11 @@ public class HashSet<X> implements Set<X> {
         this.set.add(data);
     }
 
+    // s - {data}
+    public void remove(X data) {
+        this.set.remove(data);
+    }
+
     // s1 \/ s2
     public void union(Set<X> theSet) {
         var targetSet = (HashSet<X>) theSet;

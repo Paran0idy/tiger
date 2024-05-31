@@ -1,9 +1,8 @@
 package util;
 
-import java.io.Serializable;
 import java.util.HashMap;
 
-public class Plist implements Serializable {
+public class Plist {
     private final HashMap<Object, Object> map;
 
     public Plist() {
