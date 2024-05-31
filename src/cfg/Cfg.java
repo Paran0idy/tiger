@@ -5,7 +5,6 @@ import util.Id;
 import util.Label;
 import util.Todo;
 
-import java.io.Serializable;
 import java.util.List;
 
 public class Cfg {
@@ -39,7 +38,7 @@ public class Cfg {
     //  ///////////////////////////////////////////////////////////
     //  type
     public static class Type {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits ClassType, CodePtr, Int, IntArray {
         }
 
@@ -68,7 +67,7 @@ public class Cfg {
     // ///////////////////////////////////////////////////
     // declaration
     public static class Dec {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits Singleton {
         }
 
@@ -103,14 +102,14 @@ public class Cfg {
     // /////////////////////////////////////////////////////////
     // virtual function table
     public static class Vtable {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits Singleton {
         }
 
         public record Entry(Type.T retType,
                             Id classId,
                             Id functionId,
-                            List<Dec.T> argTypes) implements Serializable {
+                            List<Dec.T> argTypes) {
         }
 
         public record Singleton(Id name,
@@ -154,7 +153,7 @@ public class Cfg {
     // /////////////////////////////////////////////////////////
     // structures
     public static class Struct {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits Singleton {
         }
 
@@ -195,7 +194,7 @@ public class Cfg {
     // /////////////////////////////////////////////////////////
     // expression
     public static class Exp {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits Bop, Call, Eid, GetMethod, Int, New, Print {
         }
 
@@ -262,7 +261,7 @@ public class Cfg {
     // /////////////////////////////////////////////////////////
     // statement
     public static class Stm {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits Assign {
         }
 
@@ -288,7 +287,7 @@ public class Cfg {
     // /////////////////////////////////////////////////////////
     // transfer
     public static class Transfer {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits If, Jmp, Ret {
         }
 
@@ -347,7 +346,7 @@ public class Cfg {
     // /////////////////////////////////////////////////////////
     // block
     public static class Block {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits Singleton {
         }
 
@@ -424,7 +423,7 @@ public class Cfg {
     // /////////////////////////////////////////////////////////
     // function
     public static class Function {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits Singleton {
         }
 
@@ -528,7 +527,7 @@ public class Cfg {
 
     // whole program
     public static class Program {
-        public sealed interface T extends Serializable
+        public sealed interface T
                 permits Singleton {
         }
 

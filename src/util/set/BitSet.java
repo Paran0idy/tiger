@@ -28,6 +28,11 @@ public class BitSet<X> implements Set<X> {
         this.set.set(this.getIndex.apply(data));
     }
 
+    // s - {data}
+    public void remove(X data) {
+        this.set.clear(this.getIndex.apply(data));
+    }
+
     // s1 \/ s2
     public void union(Set<X> theSet) {
         var targetSet = (BitSet<X>) theSet;

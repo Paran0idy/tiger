@@ -1,8 +1,6 @@
 package util;
 
-import java.io.Serializable;
-
-public class Label implements Serializable {
+public class Label {
     private final int i;
     private static int gCounter = 0;
     private final Plist plist;

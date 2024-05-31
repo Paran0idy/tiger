@@ -4,9 +4,6 @@ import ast.Ast;
 import control.Control;
 import util.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -129,27 +126,6 @@ public class Translate {
     }
 
     private Cfg.Program.T doitProgram0(Ast.Program.T ast) {
-        // if we are using the builtin AST, then do not generate
-        // the CFG, but load the CFG directly from disk
-        // and return it.
-        if (Control.bultinAst != null) {
-            Cfg.Program.T result;
-            String serialFileName;
-            try {
-                File dir = new File("");
-                serialFileName = dir.getCanonicalPath() + "/cfg/SumRec.java.cfg.ser";
-
-                FileInputStream fileIn = new FileInputStream(serialFileName);
-                ObjectInputStream in = new ObjectInputStream(fileIn);
-                result = (Cfg.Program.T) in.readObject();
-                in.close();
-                fileIn.close();
-            } catch (Exception e) {
-                throw new util.Error(e);
-            }
-            return result;
-        }
-
         // Step #1: build the inheritance tree
         Tree<Ast.Class.T> tree = buildInheritTree(ast);
         // Step #2: perform prefixing via a level-order traversal
