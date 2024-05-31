@@ -9,6 +9,9 @@ public interface Set<X> {
     // s \/ {data}
     void add(X data);
 
+    // s - {data}
+    void remove(X data);
+
     // s1 \/ s2
     void union(Set<X> theSet);
 
