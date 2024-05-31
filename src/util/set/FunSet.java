@@ -88,13 +88,4 @@ public class FunSet<X> {
         return this.set.size();
     }
 
-    @SuppressWarnings("unchecked")
-    public List<X> toList() {
-        // Java's type system does not like this:
-        //    X[] arr = new X[0];
-        // Ooops.
-        Object[] arr = new Object[0];
-        arr = set.toArray(arr);
-        return (List<X>) Arrays.stream(arr).toList();
-    }
 }
