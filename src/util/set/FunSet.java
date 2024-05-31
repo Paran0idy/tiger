@@ -2,7 +2,7 @@ package util.set;
 
 import util.Error;
 
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 // a functional set.
@@ -25,6 +25,14 @@ public class FunSet<X> {
     // s \/ {data}
     public FunSet<X> add(X data) {
         var targetSet = new FunSet<>(this);
+        targetSet.set.add(data);
+        return targetSet;
+    }
+
+    // s - {data}
+    public FunSet<X> remove(X data) {
+        var targetSet = new FunSet<>(this);
+        targetSet.set.remove(data);
         targetSet.set.add(data);
         return targetSet;
     }
@@ -72,17 +80,12 @@ public class FunSet<X> {
         return true;
     }
 
+    public List<X> toList() {
+        return this.set.stream().toList();
+    }
+
     public int size() {
         return this.set.size();
     }
 
-    @SuppressWarnings("unchecked")
-    public List<X> toList() {
-        // Java's type system does not like this:
-        //    X[] arr = new X[0];
-        // Ooops.
-        Object[] arr = new Object[0];
-        arr = set.toArray(arr);
-        return (List<X>) Arrays.stream(arr).toList();
-    }
 }
