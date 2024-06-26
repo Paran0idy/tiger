@@ -10,7 +10,7 @@ public class Tuple {
         public One() {
             this.data = null;
         }
-
+        
         public One(X data) {
             this.data = data;
         }

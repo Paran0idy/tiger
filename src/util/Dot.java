@@ -19,7 +19,7 @@ public class Dot {
     }
     // end of Element
 
-    //
+    // fields
     private final String name;
     private final LinkedList<Element> list;
 

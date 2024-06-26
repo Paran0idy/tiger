@@ -49,6 +49,13 @@ public class Tiger {
                         Control.Verbose.L0);
         Cfg.Program.T cfg = transPass.apply();
 
+        Pass<Cfg.Program.T, Cfg.Program.T> ssaPass =
+                new Pass<>("translating to SSA",
+                        new ssa.Translate()::doitProgram,
+                        cfg,
+                        Control.Verbose.L0);
+        Cfg.Program.T newCfg = transPass.apply();
+
         Pass<Cfg.Program.T, X64.Program.T> codeGenPass =
                 new Pass<>("code generation",
                         new codegen.Munch()::doitProgram,
