@@ -512,6 +512,24 @@ public class Ssa {
             }
         }
 
+        // TODO: lab7, exercise 7.
+        // place \phi-functions to basic blocks
+        public void placePhiFunctions() {
+            throw new util.Todo();
+        }
+
+        // TODO: lab7, exercise 8.
+        // place \phi-functions to basic blocks
+        public Function.T renameVariables() {
+            throw new util.Todo();
+        }
+
+        // TODO: lab7, exercise 9.
+        // translation out of SSA.
+        public void outSsa() {
+            throw new util.Todo();
+        }
+
         public static void dot(T func) {
             switch (func) {
                 case Singleton(

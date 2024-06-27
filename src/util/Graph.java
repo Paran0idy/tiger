@@ -1,10 +1,12 @@
 package util;
 
+import util.set.FunSet;
+
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 // a graph is parameterized by its containing data type "X"
@@ -157,15 +159,42 @@ public class Graph<X> {
         throw new util.Todo();
     }
 
+    // TODO: lab7, exercise 3.
+    // calculate the dominators for each node "n".
+    public FunSet<Node> dominators(Node n) {
+        throw new util.Todo();
+    }
+
+    // TODO: lab7, exercise 4.
     // calculate the dominator tree
-    // the tree Node is the graph Node.
     public Tree<Node> dominatorTree() {
         throw new util.Todo();
     }
 
-    //
-    public HashMap<Node, Node> dominanceFrontier() {
+    // TODO: lab7, exercise 5.
+    // calculate the immediate dominator for a node n
+    public Node idom(Tree<Node> tree, Node n) {
         throw new util.Todo();
     }
+
+    // TODO: lab7, exercise 6.
+    // calculate the dominance frontiers for a node n
+    public FunSet<Node> dominanceFrontier(Node n) {
+        throw new util.Todo();
+    }
+
+    // TODO: lab7, exercise 9.
+    // split critical edges in a graph。
+    // when inserting a fresh node n between two node "from"
+    // and "to":
+    //   1. invoke "doitFrom()" to process the "from" node (to modify
+    //     its transfers); and
+    //   2. invoke "doitTo()" to process the "to" node (to generate
+    //     the data for the freshly generated node).
+    public void splitCriticalEdges(Consumer<X> doitFrom,
+                                   Function<X, X> doitTo) {
+        throw new util.Todo();
+    }
+
 
 }
