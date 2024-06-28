@@ -7,51 +7,51 @@ import util.Trace;
 
 public class Translate {
 
-    private Cfg.Program.T outSsa0(Ssa.Program.T ssa) {
+    private Cfg.Program.T outSsa0(Cfg.Program.T ssa) {
         throw new Todo();
     }
 
-    private Cfg.Program.T outSsa(Ssa.Program.T ssa) {
-        Trace<Ssa.Program.T, Cfg.Program.T> trace =
+    private Cfg.Program.T outSsa(Cfg.Program.T ssa) {
+        Trace<Cfg.Program.T, Cfg.Program.T> trace =
                 new Trace<>("ssa.Translate.outSsa",
                         this::outSsa0,
                         ssa,
-                        Ssa.Program::pp,
+                        Cfg.Program::pp,
                         Cfg.Program::pp);
         return trace.doit();
     }
 
-    private Ssa.Program.T optimizeSsa0(Ssa.Program.T ssa) {
+    private Cfg.Program.T optimizeSsa0(Cfg.Program.T ssa) {
         throw new Todo();
     }
 
-    private Ssa.Program.T optimizeSsa(Ssa.Program.T ssa) {
-        Trace<Ssa.Program.T, Ssa.Program.T> trace =
+    private Cfg.Program.T optimizeSsa(Cfg.Program.T ssa) {
+        Trace<Cfg.Program.T, Cfg.Program.T> trace =
                 new Trace<>("ssa.Translate.optimizeSsa",
                         this::optimizeSsa0,
                         ssa,
-                        Ssa.Program::pp,
-                        Ssa.Program::pp);
+                        Cfg.Program::pp,
+                        Cfg.Program::pp);
         return trace.doit();
     }
 
-    private Ssa.Program.T buildSsa0(Cfg.Program.T cfg) {
+    private Cfg.Program.T buildSsa0(Cfg.Program.T cfg) {
         throw new Todo();
     }
 
-    private Ssa.Program.T buildSsa(Cfg.Program.T cfg) {
-        Trace<Cfg.Program.T, Ssa.Program.T> trace =
+    private Cfg.Program.T buildSsa(Cfg.Program.T cfg) {
+        Trace<Cfg.Program.T, Cfg.Program.T> trace =
                 new Trace<>("ssa.Translate.buildSsa",
                         this::buildSsa0,
                         cfg,
                         Cfg.Program::pp,
-                        Ssa.Program::pp);
+                        Cfg.Program::pp);
         return trace.doit();
     }
 
     private Cfg.Program.T doitProgram0(Cfg.Program.T cfg) {
         // Step #1: build the SSA from the CFG
-        Ssa.Program.T ssa = buildSsa(cfg);
+        Cfg.Program.T ssa = buildSsa(cfg);
 
 
         // Step #2: analyze and optimize the SSA.
@@ -63,8 +63,9 @@ public class Translate {
     }
 
     // given a control-flow graph, translate it to a corresponding
-    // static single-assignment form (SSA), perform optimizations on SSA, then
-    // translate the SSA back to CFG.
+    // static single-assignment form (SSA), perform optimizations on
+    // the resulting SSA, then
+    // translate the optimized SSA back to CFG.
     public Cfg.Program.T doitProgram(Cfg.Program.T cfg) {
         Trace<Cfg.Program.T, Cfg.Program.T> trace =
                 new Trace<>("ssa.Translate.doitProgram",

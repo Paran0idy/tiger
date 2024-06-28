@@ -7,11 +7,7 @@ import util.Todo;
 
 import java.util.List;
 
-public class ConstProp {
-
-    public ConstProp() {
-    }
-
+public class Ccp {
 
     // /////////////////////////////////////////////////////////
     // statement
@@ -53,7 +49,7 @@ public class ConstProp {
         }
     }
 
-    // TODO: lab7, exercise 11.
+    // TODO: lab7.
     public Program.T doitProgram(Program.T prog) {
         switch (prog) {
             case Program.Singleton(

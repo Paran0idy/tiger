@@ -1,9 +1,6 @@
 package cfg;
 
-import util.Dot;
-import util.Id;
-import util.Label;
-import util.Todo;
+import util.*;
 
 import java.util.List;
 
@@ -39,7 +36,10 @@ public class Cfg {
     //  type
     public static class Type {
         public sealed interface T
-                permits ClassType, CodePtr, Int, IntArray {
+                permits ClassType,
+                CodePtr,
+                Int,
+                IntArray {
         }
 
         public record ClassType(Id id) implements T {
@@ -121,7 +121,10 @@ public class Cfg {
 
         public static void pp(T vtable) {
             switch (vtable) {
-                case Singleton(Id name, List<Entry> funcTypes) -> {
+                case Singleton(
+                        Id name,
+                        List<Entry> funcTypes
+                ) -> {
                     printSpaces();
                     sayln(STR."struct V_\{name} {");
                     // all entries
@@ -199,7 +202,14 @@ public class Cfg {
     // expression
     public static class Exp {
         public sealed interface T
-                permits Bop, Call, Eid, GetMethod, Int, New, Print {
+                permits Bop,
+                Call,
+                Eid,
+                GetMethod,
+                Int,
+                New,
+                Phi,
+                Print {
         }
 
         public record Bop(String op,
@@ -230,26 +240,45 @@ public class Cfg {
         public record New(Id classId) implements T {
         }
 
+        // \phi-function
+        public record Phi(List<Tuple.Two<Block.T, Id>> arguments) implements T {
+        }
+
         public record Print(Id x) implements T {
         }
 
+        // methods
         public static void pp(Exp.T t) {
             switch (t) {
-                case Bop(String op, List<Id> operands, Type.T type) -> {
+                case Bop(
+                        String op,
+                        List<Id> operands,
+                        Type.T type
+                ) -> {
                     say(STR."\{op}(");
                     operands.forEach((e) -> say(STR."\{e.toString()}, "));
                     say(")  @ty:");
                     Type.pp(type);
                 }
-                case Call(Id func, List<Id> args, Type.T retType) -> {
+                case Call(
+                        Id func,
+                        List<Id> args,
+                        Type.T retType
+                ) -> {
                     say(STR."\{func.toString()}(");
                     args.forEach((e) -> say(STR."\{e.toString()}, "));
                     say(")  @retType:");
                     Type.pp(retType);
                 }
-                case Eid(Id id, Type.T type) -> say(STR."\{id}");
-                case GetMethod(Id objId, Id classId, Id methodId) ->
-                        say(STR."getMethod(\{objId.toString()}, \{classId.toString()}, \{methodId.toString()})");
+                case Eid(
+                        Id id,
+                        Type.T type
+                ) -> say(STR."\{id}");
+                case GetMethod(
+                        Id objId,
+                        Id classId,
+                        Id methodId
+                ) -> say(STR."getMethod(\{objId.toString()}, \{classId.toString()}, \{methodId.toString()})");
                 case Int(int n) -> say(STR."\{n}");
                 case New(Id classId) -> say(STR."new \{classId.toString()}()");
                 case Print(Id x) -> say(STR."print(\{x.toString()})");
@@ -352,6 +381,8 @@ public class Cfg {
         }
 
         public record Singleton(Label label,
+                                // a list of phi functions;
+                                List<Stm.T> phis,
                                 List<Stm.T> stms,
                                 // this is a special hack
                                 // the transfer field is final, so that
@@ -363,6 +394,7 @@ public class Cfg {
             switch (b) {
                 case Singleton(
                         _,
+                        _,
                         List<Stm.T> stms,
                         _
                 ) -> stms.add(s);
@@ -373,6 +405,7 @@ public class Cfg {
             switch (b) {
                 case Singleton(
                         Label _,
+                        _,
                         List<Stm.T> _,
                         List<Transfer.T> transfer
                 ) -> transfer.add(s);
@@ -383,6 +416,7 @@ public class Cfg {
             switch (t) {
                 case Singleton(
                         Label label,
+                        _,
                         List<Stm.T> _,
                         List<Transfer.T> trans
                 ) -> trans.forEach((tr) -> Transfer.dot(d,
@@ -394,6 +428,7 @@ public class Cfg {
             switch (t) {
                 case Singleton(
                         Label label,
+                        _,
                         List<Stm.T> _,
                         List<Transfer.T> _
                 ) -> {
@@ -406,6 +441,7 @@ public class Cfg {
             switch (b) {
                 case Singleton(
                         Label label,
+                        _,
                         List<Stm.T> stms,
                         List<Transfer.T> transfer
                 ) -> {
@@ -493,6 +529,24 @@ public class Cfg {
             }
         }
 
+        // TODO: lab7, exercise 7.
+        // place \phi-functions to basic blocks
+        public void placePhiFunctions() {
+            throw new util.Todo();
+        }
+
+        // TODO: lab7, exercise 8.
+        // place \phi-functions to basic blocks
+        public Function.T renameVariables() {
+            throw new util.Todo();
+        }
+
+        // TODO: lab7, exercise 9.
+        // translation out of SSA.
+        public void outSsa() {
+            throw new util.Todo();
+        }
+
         public static void pp(T f) {
             switch (f) {
                 case Singleton(
@@ -526,7 +580,8 @@ public class Cfg {
         }
     }
 
-    // whole program
+    // /////////////////////////////////////////////////////////
+    // program
     public static class Program {
         public sealed interface T
                 permits Singleton {

@@ -7,10 +7,7 @@ import util.Todo;
 
 import java.util.List;
 
-public class ConstProp {
-
-    public ConstProp() {
-    }
+public class ValueNumber {
 
 
     // /////////////////////////////////////////////////////////
@@ -18,6 +15,7 @@ public class ConstProp {
     private void doitStm(Stm.T t) {
         throw new Todo();
     }
+    // end of statement
 
     // /////////////////////////////////////////////////////////
     // transfer
@@ -53,7 +51,7 @@ public class ConstProp {
         }
     }
 
-    // TODO: lab7, exercise 11.
+    // TODO: lab7.
     public Program.T doitProgram(Program.T prog) {
         switch (prog) {
             case Program.Singleton(

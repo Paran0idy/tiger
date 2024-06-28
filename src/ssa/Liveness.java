@@ -1,86 +1,70 @@
 package ssa;
 
+import cfg.Cfg.*;
 import util.Id;
 import util.Label;
 import util.Todo;
-import util.Tuple;
-import util.set.Set;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class Liveness {
 
-    // record information within a single "map"
-    private final HashMap<Object, Tuple.Two<Set<Id>, Set<Id>>>
-            useDefMap;
-
-    // for "block", "transfer", and "statement".
-    private final HashMap<Object, Tuple.Two<Set<Id>, Set<Id>>>
-            liveInOutMap;
-
-    public Liveness() {
-        useDefMap = new HashMap<>();
-        liveInOutMap = new HashMap<>();
-    }
-
 
     // /////////////////////////////////////////////////////////
     // statement
-    private void doitStm(Ssa.Stm.T t) {
+    private void doitStm(Stm.T t) {
         throw new Todo();
     }
-    // end of statement
 
     // /////////////////////////////////////////////////////////
     // transfer
-    private void doitTransfer(Ssa.Transfer.T t) {
+    private void doitTransfer(Transfer.T t) {
         throw new Todo();
     }
 
     // /////////////////////////////////////////////////////////
     // block
-    private void doitBlock(Ssa.Block.T b) {
+    private void doitBlock(Block.T b) {
         switch (b) {
-            case Ssa.Block.Singleton(
+            case Block.Singleton(
                     Label label,
-                    List<Ssa.Stm.T> phis,
-                    List<Ssa.Stm.T> stms,
-                    List<Ssa.Transfer.T> transfer
+                    List<Stm.T> phis,
+                    List<Stm.T> stms,
+                    List<Transfer.T> transfer
             ) -> throw new Todo();
         }
     }
 
     // /////////////////////////////////////////////////////////
     // function
-    // TODO: lab3, exercise 9.
-    private boolean stillChanging = true;
-
-    private void doitFunction(Ssa.Function.T func) {
+    private Function.T doitFunction(Function.T func) {
         switch (func) {
-            case Ssa.Function.Singleton(
-                    Ssa.Type.T retType,
+            case Function.Singleton(
+                    Type.T retType,
                     Id classId,
                     Id functionId,
-                    List<Ssa.Dec.T> formals,
-                    List<Ssa.Dec.T> locals,
-                    List<Ssa.Block.T> blocks
+                    List<Dec.T> formals,
+                    List<Dec.T> locals,
+                    List<Block.T> blocks
             ) -> throw new Todo();
         }
     }
 
-    public HashMap<Object, Tuple.Two<Set<Id>, Set<Id>>>
-    doitProgram(Ssa.Program.T prog) {
+    // TODO: lab7.
+    public Program.T doitProgram(Program.T prog) {
         switch (prog) {
-            case Ssa.Program.Singleton(
+            case Program.Singleton(
                     Id mainClassId,
                     Id mainFuncId,
-                    List<Ssa.Vtable.T> vtables,
-                    List<Ssa.Struct.T> structs,
-                    List<Ssa.Function.T> functions
+                    List<Vtable.T> vtables,
+                    List<Struct.T> structs,
+                    List<Function.T> functions
             ) -> {
-                functions.forEach(this::doitFunction);
-                return liveInOutMap;
+                var newFunctions =
+                        functions.stream().map(this::doitFunction).toList();
+                // TODO: your code here:
+                //
+                return prog;
             }
         }
     }
