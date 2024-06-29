@@ -24,5 +24,11 @@ public class SamplePrograms {
 
     // lab 1, exercise 3:
     // replace the "null" with your code:
-    public static Stm.T sample2 = null;
+    public static Stm.T sample2 = new Compound(
+      new Assign("a", new Num(1)),
+      new Compound(
+              new Assign("b", new Num(0)),
+              new Print(List.of(new Op(new Id("a"), "/", new Id("b"))))
+      )
+    );
 }
